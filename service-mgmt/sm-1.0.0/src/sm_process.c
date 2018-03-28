@@ -395,14 +395,14 @@ static SmErrorT sm_process_finalize( void )
     error = sm_failover_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize failover handler module, error=%s.",
+        DPRINTFE( "Failed to finalize failover handler module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_main_event_handler_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize main event handler module, error=%s.",
+        DPRINTFE( "Failed to finalize main event handler module, error=%s.",
                   sm_error_str( error ) );
     }
 
@@ -423,14 +423,14 @@ static SmErrorT sm_process_finalize( void )
     error = sm_service_api_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize service api module, error=%s.",
+        DPRINTFE( "Failed to finalize service api module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_service_action_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize service action module, error=%s.",
+        DPRINTFE( "Failed to finalize service action module, error=%s.",
                   sm_error_str( error ) );
     }
 
@@ -465,42 +465,35 @@ static SmErrorT sm_process_finalize( void )
     error = sm_db_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize database module, error=%s.",
+        DPRINTFE( "Failed to finalize database module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_process_death_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize process death module, error=%s.",
+        DPRINTFE( "Failed to finalize process death module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_heartbeat_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize heartbeat module, error=%s.",
-                  sm_error_str( error ) );
-    }
-
-    error = sm_log_finalize();
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to finialize log module, error=%s.",
+        DPRINTFE( "Failed to finalize heartbeat module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_alarm_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize alarm module, error=%s.",
+        DPRINTFE( "Failed to finalize alarm module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_thread_health_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize thread health module, error=%s.",
+        DPRINTFE( "Failed to finalize thread health module, error=%s.",
                   sm_error_str( error ) );
     }
 
@@ -514,28 +507,35 @@ static SmErrorT sm_process_finalize( void )
     error = sm_msg_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize messaging module, error=%s.",
+        DPRINTFE( "Failed to finalize messaging module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_hw_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize hardware module, error=%s.",
+        DPRINTFE( "Failed to finalize hardware module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_timer_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize timer module, error=%s.",
+        DPRINTFE( "Failed to finalize timer module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_selobj_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finialize selection object module, error=%s.",
+        DPRINTFE( "Failed to finalize selection object module, error=%s.",
+                  sm_error_str( error ) );
+    }
+
+    error = sm_log_finalize();
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to finalize log module, error=%s.",
                   sm_error_str( error ) );
     }
 
