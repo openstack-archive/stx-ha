@@ -191,3 +191,12 @@ def main():
         print e
         sys.exit(-1)
 
+    try:
+        sys.stdout.close()
+    except:
+        pass
+    try:
+        sys.stderr.close()
+    except:
+        pass
+
