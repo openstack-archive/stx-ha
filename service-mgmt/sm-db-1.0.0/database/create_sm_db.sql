@@ -935,4 +935,6 @@ INSERT INTO "CONFIGURATION" VALUES(1,'ENABLING_THROTTLE','2');
 -- INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','drbd-patch-vault','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 -- INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcorch-nova-api-proxy','critical' FROM "SERVICE_GROUP_MEMBERS";
 
+update "SERVICE_ACTIONS" set TIMEOUT_IN_SECS=60 where action in ('enable', 'audit-enabled') and service_name = 'glance-registry';
+
 COMMIT;
