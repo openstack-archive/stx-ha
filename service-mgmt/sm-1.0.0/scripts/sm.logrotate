@@ -30,10 +30,10 @@ nodateext
 /var/log/sm-scheduler.log
 {
     nodateext
-    size 100M
+    size 50M
     start 1
     missingok
-    rotate 20
+    rotate 10
     compress
     copytruncate
 }
@@ -52,10 +52,10 @@ nodateext
 /var/log/sm-troubleshoot.log
 {
     nodateext
-    size 100M
+    size 50M
     start 1
     missingok
-    rotate 20
+    rotate 10
     compress
     copytruncate
 }
