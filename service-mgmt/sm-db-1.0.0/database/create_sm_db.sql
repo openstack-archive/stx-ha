@@ -125,6 +125,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(94,'no','distributed-cloud-services',
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(95,'no','controller-services','drbd-patch-vault','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(96,'no','controller-services','patch-vault-fs','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(97,'no','distributed-cloud-services','dcorch-patch-api-proxy','critical');
+INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(98,'no','distributed-cloud-services','dcorch-identity-api-proxy','critical');
 CREATE TABLE SERVICES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), DESIRED_STATE CHAR(32), STATE CHAR(32), STATUS CHAR(32), CONDITION CHAR(32), MAX_FAILURES INT, FAIL_COUNTDOWN INT, FAIL_COUNTDOWN_INTERVAL INT, MAX_ACTION_FAILURES INT, MAX_TRANSITION_FAILURES INT, PID_FILE CHAR(256) );
 INSERT INTO "SERVICES" VALUES(1,'yes','oam-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(2,'yes','management-ip','initial','initial','none','none',2,1,90000,4,16,'');
@@ -218,6 +219,7 @@ INSERT INTO "SERVICES" VALUES(94,'no','dcorch-cinder-api-proxy','initial','initi
 INSERT INTO "SERVICES" VALUES(95,'no','drbd-patch-vault','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(96,'no','patch-vault-fs','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(97,'no','dcorch-patch-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-patch-api-proxy.pid');
+INSERT INTO "SERVICES" VALUES(98,'no','dcorch-identity-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-identity-api-proxy.pid');
 CREATE TABLE SERVICE_HEARTBEAT ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), TYPE CHAR(32), SRC_ADDRESS CHAR(256), SRC_PORT INT, DST_ADDRESS CHAR(256), DST_PORT INT, MESSAGE CHAR(256), INTERVAL_IN_MS INT, MISSED_WARN INT, MISSED_DEGRADE INT, MISSED_FAIL INT, STATE CHAR(32), MISSED INT, HEARTBEAT_TIMER_ID INT, HEARTBEAT_SOCKET INT );
 CREATE TABLE SERVICE_DEPENDENCY ( DEPENDENCY_TYPE CHAR(32), SERVICE_NAME CHAR(32), STATE CHAR(32), ACTION CHAR(32), DEPENDENT CHAR(32), DEPENDENT_STATE CHAR(32), PRIMARY KEY (DEPENDENCY_TYPE, SERVICE_NAME, STATE, ACTION, DEPENDENT));
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ip','not-applicable','enable','management-ip','enabled-active');
@@ -468,6 +470,10 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','dcorch-engine','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','disable','dcorch-sysinv-api-proxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','disable','dcorch-sysinv-api-proxy','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-identity-api-proxy','not-applicable','enable','keystone','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-identity-api-proxy','not-applicable','enable','dcorch-engine','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','disable','dcorch-identity-api-proxy','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','disable','dcorch-identity-api-proxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-nova-api-proxy','not-applicable','enable','nova-api','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-nova-api-proxy','not-applicable','enable','dcorch-engine','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nova-api','not-applicable','disable','dcorch-nova-api-proxy','disabled');
@@ -855,6 +861,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-sysinv-api-proxy','enable','ocf-scr
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-sysinv-api-proxy','disable','ocf-script','openstack','dcorch-sysinv-api-proxy','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-sysinv-api-proxy','audit-enabled','ocf-script','openstack','dcorch-sysinv-api-proxy','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-sysinv-api-proxy','audit-disabled','ocf-script','openstack','dcorch-sysinv-api-proxy','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-identity-api-proxy','enable','ocf-script','openstack','dcorch-identity-api-proxy','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-identity-api-proxy','disable','ocf-script','openstack','dcorch-identity-api-proxy','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-identity-api-proxy','audit-enabled','ocf-script','openstack','dcorch-identity-api-proxy','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-identity-api-proxy','audit-disabled','ocf-script','openstack','dcorch-identity-api-proxy','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-nova-api-proxy','enable','ocf-script','openstack','dcorch-nova-api-proxy','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-nova-api-proxy','disable','ocf-script','openstack','dcorch-nova-api-proxy','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-nova-api-proxy','audit-enabled','ocf-script','openstack','dcorch-nova-api-proxy','monitor','',2,2,2,20,5);
