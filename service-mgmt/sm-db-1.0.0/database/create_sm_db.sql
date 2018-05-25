@@ -126,6 +126,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(95,'no','controller-services','drbd-p
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(96,'no','controller-services','patch-vault-fs','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(97,'no','distributed-cloud-services','dcorch-patch-api-proxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(98,'no','distributed-cloud-services','dcorch-identity-api-proxy','critical');
+INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(99,'yes','controller-services','etcd','critical');
 CREATE TABLE SERVICES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), DESIRED_STATE CHAR(32), STATE CHAR(32), STATUS CHAR(32), CONDITION CHAR(32), MAX_FAILURES INT, FAIL_COUNTDOWN INT, FAIL_COUNTDOWN_INTERVAL INT, MAX_ACTION_FAILURES INT, MAX_TRANSITION_FAILURES INT, PID_FILE CHAR(256) );
 INSERT INTO "SERVICES" VALUES(1,'yes','oam-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(2,'yes','management-ip','initial','initial','none','none',2,1,90000,4,16,'');
@@ -220,6 +221,7 @@ INSERT INTO "SERVICES" VALUES(95,'no','drbd-patch-vault','initial','initial','no
 INSERT INTO "SERVICES" VALUES(96,'no','patch-vault-fs','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(97,'no','dcorch-patch-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-patch-api-proxy.pid');
 INSERT INTO "SERVICES" VALUES(98,'no','dcorch-identity-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-identity-api-proxy.pid');
+INSERT INTO "SERVICES" VALUES(99,'yes','etcd','initial','initial','none','none',2,1,90000,4,16,'/var/run/etcd.pid');
 CREATE TABLE SERVICE_HEARTBEAT ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), TYPE CHAR(32), SRC_ADDRESS CHAR(256), SRC_PORT INT, DST_ADDRESS CHAR(256), DST_PORT INT, MESSAGE CHAR(256), INTERVAL_IN_MS INT, MISSED_WARN INT, MISSED_DEGRADE INT, MISSED_FAIL INT, STATE CHAR(32), MISSED INT, HEARTBEAT_TIMER_ID INT, HEARTBEAT_SOCKET INT );
 CREATE TABLE SERVICE_DEPENDENCY ( DEPENDENCY_TYPE CHAR(32), SERVICE_NAME CHAR(32), STATE CHAR(32), ACTION CHAR(32), DEPENDENT CHAR(32), DEPENDENT_STATE CHAR(32), PRIMARY KEY (DEPENDENCY_TYPE, SERVICE_NAME, STATE, ACTION, DEPENDENT));
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ip','not-applicable','enable','management-ip','enabled-active');
@@ -258,6 +260,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','enab
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','oam-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','platform-nfs-ip','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd','not-applicable','enable','cgcs-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','cgcs-nfs-ip','enabled-active');
@@ -389,6 +392,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','d
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','disable','cinder-volume','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','iscsi','not-applicable','disable','cinder-ip','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cgcs','not-applicable','disable','iscsi','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-fs','not-applicable','disable','etcd','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-lvm','not-applicable','disable','iscsi','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','go-standby','cinder-lvm','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','aodh-listener','not-applicable','enable','postgres','enabled-active');
@@ -619,6 +623,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dnsmasq','enable','lsb-script','','dnsmasq
 INSERT INTO "SERVICE_ACTIONS" VALUES('dnsmasq','disable','lsb-script','','dnsmasq','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dnsmasq','audit-enabled','lsb-script','','dnsmasq','status','',2,2,2,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dnsmasq','audit-disabled','lsb-script','','dnsmasq','status','',0,0,0,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('etcd','enable','lsb-script','','etcd','start','',2,2,2,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('etcd','disable','lsb-script','','etcd','stop','',1,1,1,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('etcd','audit-enabled','lsb-script','','etcd','status','',2,2,2,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('etcd','audit-disabled','lsb-script','','etcd','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('fm-mgr','enable','lsb-script','','fminit','start','',2,2,2,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('fm-mgr','disable','lsb-script','','fminit','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('fm-mgr','audit-enabled','lsb-script','','fminit','status','',2,2,2,15,40);
