@@ -1,0 +1,4 @@
+SRC_DIR=sm-client
+TAR_NAME=sm-client
+VERSION=1.0
+TIS_PATCH_VER=1

@@ -1,0 +1,17 @@
+#
+# Copyright (c) 2015 Wind River Systems, Inc.
+# SPDX-License-Identifier: Apache-2.0
+#
+#
+#
+#
+# Description: installs the services for the PXEBoot network
+#
+INSERT INTO "SERVICE_GROUP_MEMBERS_V1" VALUES(67,'controller-services','pxeboot-ip','critical');
+
+INSERT INTO "SERVICES_V1" VALUES(67,'pxeboot-ip','initial','initial','none','none',2,1,60000,4,16,'');
+
+INSERT INTO "SERVICE_ACTIONS_V1" VALUES('pxeboot-ip','enable','ocf-script','heartbeat','IPaddr2','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS_V1" VALUES('pxeboot-ip','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS_V1" VALUES('pxeboot-ip','audit-enabled','ocf-script','heartbeat','IPaddr2','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS_V1" VALUES('pxeboot-ip','audit-disabled','ocf-script','heartbeat','IPaddr2','monitor','',0,0,0,20,5);

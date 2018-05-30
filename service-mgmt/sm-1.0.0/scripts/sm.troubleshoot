@@ -1,0 +1,166 @@
+#! /bin/bash
+#
+# Copyright (c) 2014 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+LOGFILE=$1
+if [ -n "$LOGFILE" ]
+then
+    exec >> $LOGFILE
+fi
+
+exec 2>&1
+
+export COLUMNS=768
+
+HOSTNAME=`hostname`
+
+function delimiter()
+{
+    echo " "
+    echo "--------------------------------------------------------------------"
+    echo "`date` : ${HOSTNAME} : ${1}"
+    echo "--------------------------------------------------------------------"
+}
+
+delimiter "uname -a"
+timeout --signal KILL 5s uname -a
+
+delimiter "cat /etc/motd"
+timeout --signal KILL 5s cat /etc/motd
+
+delimiter "ntpq -n -p"
+timeout --signal KILL 5s /usr/sbin/ntpq -n -p
+
+delimiter "cat /proc/stat"
+timeout --signal KILL 5s cat /proc/stat
+
+delimiter "cat /proc/cpuinfo"
+timeout --signal KILL 5s cat /proc/cpuinfo
+
+delimiter "cat /proc/meminfo"
+timeout --signal KILL 5s cat /proc/meminfo
+
+delimiter "chkconfig --list"
+timeout --signal KILL 5s /usr/sbin/chkconfig --list
+
+delimiter "sm-dump"
+timeout --signal KILL 5s sm-dump
+
+delimiter "find /etc/init.d/ -type f -exec sha512sum {} \;"
+timeout --signal KILL 5s find /etc/init.d/ -type f -exec sha512sum {} \;
+
+delimiter "find /usr/lib/ocf/ -type f -exec sha512sum {} \;"
+timeout --signal KILL 5s find /usr/lib/ocf/ -type f -exec sha512sum {} \;
+
+delimiter "top -b -n 1  -H -p cat /var/run/sm.pid, cat /var/run/sm-trap.pid"
+timeout --signal KILL 5s top -b -n 1  -H -p `cat /var/run/sm.pid`, `cat /var/run/sm-trap.pid`
+
+delimiter "pmap -x cat /var/run/sm.pid"
+timeout --signal KILL 5s pmap -x `cat /var/run/sm.pid`
+
+delimiter "pmap -x cat /var/run/sm-trap.pid"
+timeout --signal KILL 5s pmap -x `cat /var/run/sm-trap.pid`
+
+delimiter "pmap -x cat /var/run/sm-eru.pid"
+timeout --signal KILL 5s pmap -x `cat /var/run/sm-eru.pid`
+
+delimiter "pmap -x cat /var/run/sm-watchdog.pid"
+timeout --signal KILL 5s pmap -x `cat /var/run/sm-watchdog.pid`
+
+delimiter "top -b -n 1 -H -c"
+timeout --signal KILL 5s top -b -n 1 -H -c
+
+delimiter "top -b -n 1 -H -c"
+timeout --signal KILL 5s top -b -n 1 -H -c
+
+delimiter "pstree"
+timeout --signal KILL 5s pstree
+
+delimiter "ps -elfL"
+timeout --signal KILL 5s ps -elfL
+
+delimiter "ip -s link show"
+timeout --signal KILL 5s /sbin/ip -s link show
+
+delimiter "ip addr show"
+timeout --signal KILL 5s /sbin/ip addr show
+
+delimiter "ip neigh"
+timeout --signal KILL 5s /sbin/ip neigh
+
+delimiter "ip route"
+timeout --signal KILL 5s /sbin/ip route
+
+delimiter "tc -s qdisc show"
+timeout --signal KILL 5s /sbin/tc -s qdisc show
+
+delimiter "iptables -nvL"
+timeout --signal KILL 5s /usr/sbin/iptables -nvL
+
+delimiter "cat /etc/hosts"
+timeout --signal KILL 5s cat /etc/hosts
+
+delimiter "cat /etc/services"
+timeout --signal KILL 5s cat /etc/services
+
+delimiter "netstat -anpo"
+timeout --signal KILL 5s netstat -anpo
+
+delimiter "ping -c 2 controller-0"
+timeout --signal KILL 5s ping -c 2 controller-0
+
+delimiter "ping -c 2 controller-1"
+timeout --signal KILL 5s ping -c 2 controller-1
+
+delimiter "drbd-overview"
+timeout --signal KILL 5s /usr/sbin/drbd-overview
+
+delimiter "cat /proc/drbd"
+timeout --signal KILL 5s cat /proc/drbd
+
+delimiter "nfsstat -o all"
+timeout --signal KILL 5s /usr/sbin/nfsstat -o all
+
+delimiter "df -h"
+timeout --signal KILL 5s df -h
+
+delimiter "mount"
+timeout --signal KILL 5s mount
+
+delimiter "exportfs"
+timeout --signal KILL 5s /usr/sbin/exportfs
+
+delimiter "tgtadm --lld iscsi --op show --mode target"
+timeout --signal KILL 5s /usr/sbin/tgtadm --lld iscsi --op show --mode target
+
+delimiter "pvdisplay"
+timeout --signal KILL 5s /usr/sbin/pvdisplay
+
+delimiter "lvdisplay"
+timeout --signal KILL 5s /usr/sbin/lvdisplay
+
+delimiter "fdisk -l"
+timeout --signal KILL 5s /sbin/fdisk -l
+
+delimiter "cat /proc/scsi/scsi"
+timeout --signal KILL 5s cat /proc/scsi/scsi
+
+delimiter "cat /proc/partitions"
+timeout --signal KILL 5s cat /proc/partitions
+
+delimiter "cat /proc/diskstats"
+timeout --signal KILL 5s cat /proc/diskstats
+
+delimiter "cat /proc/net/igmp"
+timeout --signal KILL 5s cat /proc/net/igmp
+
+delimiter "cat /proc/net/igmp6"
+timeout --signal KILL 5s cat /proc/net/igmp6
+
+delimiter "ip maddr"
+timeout --signal KILL 5s /sbin/ip maddr
+
+exit 0

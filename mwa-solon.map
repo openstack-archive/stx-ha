@@ -1,0 +1,5 @@
+cgcs/recipes-svcmgmt/service-mgmt-api|service-mgmt-api
+cgcs/recipes-svcmgmt/service-mgmt-client|service-mgmt-client
+cgcs/recipes-svcmgmt/service-mgmt-tools|service-mgmt-tools
+cgcs/recipes-svcmgmt/service-mgmt|service-mgmt
+cgcs/middleware/mtce/recipes-common/cgts-mtce-common/cgts-mtce-common-1.0/pmon|pmon

@@ -1,0 +1,155 @@
+#! /bin/sh
+#
+# Copyright (c) 2014 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# chkconfig: - 84 84
+# processname: sm
+# description: Service Management Engine
+#
+### BEGIN INIT INFO
+# Description: sm
+#
+# Short-Description: Service Management Engine.
+# Provides: sm
+# Required-Start: $network
+# Should-Start: $syslog
+# Required-Stop: $network
+# Default-Start: 3 5
+# Default-Stop: 0 6
+### END INIT INFO
+
+. /etc/init.d/functions
+
+RETVAL=0
+
+SM_NAME="sm"
+SM="/usr/bin/${SM_NAME}"
+SM_PIDFILE="/var/run/${SM_NAME}.pid"
+
+if [ ! -e "${SM}" ] 
+then
+    logger "${SM} is missing"
+    exit 5
+fi
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+COMPUTE_RESERVED_FILE=/etc/nova/compute_reserved.conf
+SM_PLATFORM_CORES_FILE=/var/run/sm/.platform_cores
+
+export PATH
+
+case "$1" in
+    start)
+        if [ -f $COMPUTE_RESERVED_FILE ]; then
+            . $COMPUTE_RESERVED_FILE
+            mkdir /var/run/sm -p
+            echo $PLATFORM_CPU_LIST > $SM_PLATFORM_CORES_FILE
+        fi
+        sm_args=""
+        if [ "`/usr/bin/facter is_virtual`" = "true" ]
+        then
+            sm_args="--interval-extension 10 --timeout-extension 30"
+        fi
+
+        echo -n "Starting ${SM_NAME}: "
+        if [ -n "`pidof ${SM}`" ]
+        then
+           # PMOND might have restarted SM already.
+           RETVAL=0
+        else
+           start-stop-daemon --start -b -x ${SM} -- ${sm_args}
+           RETVAL=$?
+        fi
+        if [ ${RETVAL} -eq 0 ]
+        then
+           echo "OK"
+        else
+           echo "FAIL"
+           RETVAL=1
+        fi
+        ;;
+
+    stop)
+        echo -n "Stopping ${SM_NAME}: "
+        if [ -n "`pidof ${SM}`" ]
+        then
+           killproc ${SM}
+        fi
+
+        SHUTDOWN_TIMEOUT=20
+        count=0
+        while [ ${count} -lt ${SHUTDOWN_TIMEOUT} ]
+        do
+           pidof ${SM} &> /dev/null
+           rc=$?
+           if [ ${rc} -eq 1 ]
+           then
+              echo "OK"
+              break
+           fi
+           count=`expr ${count} + 1`
+           sleep 1
+        done
+
+        pidof ${SM} &> /dev/null
+        rc=$?
+        if [ ${rc} -eq 0 ]
+        then
+           echo "FAIL"
+           RETVAL=7
+        fi
+
+        rm -f ${SM_PIDFILE}
+        ;;
+
+    status)
+        pid=`cat ${SM_PIDFILE} 2>/dev/null`
+        if [ -n "${pid}" ]
+        then
+           if ps -p ${pid} &>/dev/null
+           then
+              echo "${SM_NAME} is running"
+              RETVAL=0
+           else
+              echo "${SM_NAME} is not running but has pid file"
+              RETVAL=1
+           fi
+        else
+           echo "${SM_NAME} is not running"
+           RETVAL=3
+        fi
+        ;;
+
+    restart)
+        pid=`cat ${SM_PIDFILE} 2>/dev/null`
+        if [ -n "${pid}" ]
+        then
+           kill -USR2 ${pid}
+        fi
+        $0 stop
+        sleep 1
+        $0 start
+        ;;
+
+    reload)
+        pid=`cat ${SM_PIDFILE} 2>/dev/null`
+        if [ -n "${pid}" ]
+        then
+           echo "${SM_NAME} reload"
+           kill -HUP ${pid}
+        fi
+        ;;
+
+    force-reload)
+        echo "${SM_NAME} force-reload"
+        $0 restart
+        ;;
+
+    *)
+        echo "usage: $0 { start | stop | status | restart | reload | force-reload }"
+        ;;
+esac
+
+exit ${RETVAL}

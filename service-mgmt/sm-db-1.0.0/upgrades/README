@@ -1,0 +1,31 @@
+The SM database can be generated off of an excel spreadsheet
+(cgcs-root/addons/wr-cgcs/layers/mwa-thales/service-mgmt/sm-db-1.0.0/database/sm_database.xlsb)
+
+Instructions:
+1. Update the SM excel spreadsheet (sm_database.xlsb) with your changes,
+2. Update the SM database (sm.db.v1) with your changes:
+	sqlite3 sm.db.v1
+	.tables
+    apply our changes using SQL statements
+    record the SQL statements for Crucible review (i.e. in commit.txt and in Crucible)
+    .quit
+3. Update Packstack "sm-configure" calls were appropriate.
+4. Update Packstack "sm-provision" and "sm-deprovision" calls were appropriate.
+5. If your service runs during Packstack manifest apply, you may need to make
+   sure it is stopped before SM takes over.
+
+See packstack/puppet/templates/platform_sm_stopresources.pp
+See packstack/puppet/templates/platform_sm_stopservice.pp
+
+OBSOLETE:
+
+	CONTROLLER=192.168.204.4
+
+	mkdir -p /var/lib/sm/patches/
+
+	scp new-service root@${CONTROLLER}:/etc/init.d
+	scp sm_db_upgrade.patch root@${CONTROLLER}:/var/lib/sm/patches/
+
+	chmod 777 /etc/init.d/new-service
+	sm-patch database running sm_db_upgrade.patch
+

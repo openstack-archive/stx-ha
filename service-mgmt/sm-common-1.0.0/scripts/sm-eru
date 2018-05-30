@@ -1,0 +1,131 @@
+#! /bin/sh
+#
+# Copyright (c) 2014 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# chkconfig: - 86 86
+# processname: sm-eru
+# description: Service Management Event Recorder Unit
+#
+### BEGIN INIT INFO
+# Description: sm-eru
+#
+# Short-Description: Service Management Event Recorder Unit
+# Provides: sm-eru
+# Required-Start: $network
+# Should-Start: $syslog
+# Required-Stop: $network
+# Default-Start: 3 5
+# Default-Stop: 0 6
+### END INIT INFO
+
+. /etc/init.d/functions
+
+RETVAL=0
+
+SM_ERU_NAME="sm-eru"
+SM_ERU="/usr/bin/${SM_ERU_NAME}"
+SM_ERU_PIDFILE="/var/run/${SM_ERU_NAME}.pid"
+
+if [ ! -e "${SM_ERU}" ] 
+then
+    logger "${SM_ERU} is missing"
+    exit 5 
+fi
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+
+case "$1" in
+    start)
+        echo -n "Starting ${SM_ERU_NAME}: "
+        if [ -n "`pidof ${SM_ERU}`" ]
+        then
+           # PMOND might have restarted SM-ERU already.
+            RETVAL=0
+        else
+            start-stop-daemon --start -b -x ${SM_ERU}
+            RETVAL=$?
+        fi
+        if [ ${RETVAL} -eq 0 ]
+        then
+            echo "OK"
+        else
+            echo "FAIL"
+            RETVAL=1
+        fi
+        ;;
+
+    stop)
+        echo -n "Stopping ${SM_ERU_NAME}: "
+        if [ -n "`pidof ${SM_ERU}`" ]
+        then
+            killproc ${SM_ERU}
+        fi
+
+        SHUTDOWN_TIMEOUT=5
+        count=0
+        while [ ${count} -lt ${SHUTDOWN_TIMEOUT} ]
+        do
+            pidof ${SM_ERU} &> /dev/null
+            rc=$?
+            if [ ${rc} -eq 1 ]
+            then
+                echo "OK"
+                break
+            fi
+            count=`expr ${count} + 1`
+            sleep 1
+        done
+
+        pidof ${SM_ERU} &> /dev/null
+        rc=$?
+        if [ ${rc} -eq 0 ]
+        then
+            echo "FAIL"
+            RETVAL=7
+        fi
+
+        rm -f ${SM_ERU_PIDFILE}
+        ;;
+
+    status)
+        pid=`cat ${SM_ERU_PIDFILE} 2>/dev/null`
+        if [ -n "${pid}" ]
+        then
+           if ps -p ${pid} &>/dev/null
+           then
+              echo "${SM_ERU_NAME} is running"
+              RETVAL=0
+           else
+              echo "${SM_ERU_NAME} is not running but has pid file"
+              RETVAL=1
+           fi
+        else
+           echo "${SM_ERU_NAME} is not running"
+           RETVAL=3
+        fi
+        ;;
+
+    restart)
+        $0 stop
+        sleep 1
+        $0 start
+        ;;
+
+    reload)
+        echo "${SM_ERU_NAME} reload"
+        $0 restart
+        ;;
+
+    force-reload)
+        echo "${SM_ERU_NAME} force-reload"
+        $0 restart
+        ;;
+
+    *)
+        echo "usage: $0 { start | stop | status | restart | reload | force-reload }"
+        ;;
+esac
+
+exit ${RETVAL}

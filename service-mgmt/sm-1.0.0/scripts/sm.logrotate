@@ -1,0 +1,61 @@
+#
+# Copyright (c) 2014 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+nodateext
+
+/var/log/sm-customer.alarm
+{
+    nodateext
+    size 100M
+    start 1
+    missingok
+    rotate 20
+    compress
+    copytruncate
+}
+
+/var/log/sm-customer.log
+{
+    nodateext
+    size 100M
+    start 1
+    missingok
+    rotate 20
+    compress
+    copytruncate
+}
+
+/var/log/sm-scheduler.log
+{
+    nodateext
+    size 100M
+    start 1
+    missingok
+    rotate 20
+    compress
+    copytruncate
+}
+
+/var/log/sm-trap.log
+{
+    nodateext
+    size 100M
+    start 1
+    missingok
+    rotate 20
+    compress
+    copytruncate
+}
+
+/var/log/sm-troubleshoot.log
+{
+    nodateext
+    size 100M
+    start 1
+    missingok
+    rotate 20
+    compress
+    copytruncate
+}

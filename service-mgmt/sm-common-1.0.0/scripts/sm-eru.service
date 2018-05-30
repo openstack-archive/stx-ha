@@ -1,0 +1,15 @@
+[Unit]
+Description=Service Management Event Recorder Unit
+After=network-online.target syslog-ng.service sm-api.service
+Before=pmon.service
+
+[Service]
+Type=forking
+RemainAfterExit=yes
+User=root
+ExecStart=/etc/init.d/sm-eru start
+ExecStop=/etc/init.d/sm-eru stop
+PIDFile=/var/run/sm-eru.pid
+
+[Install]
+WantedBy=multi-user.target

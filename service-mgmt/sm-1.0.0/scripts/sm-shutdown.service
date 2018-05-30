@@ -1,0 +1,13 @@
+[Unit]
+Description=Service Management Shutdown Unit
+After=sm.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStop=/etc/init.d/sm-shutdown stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+

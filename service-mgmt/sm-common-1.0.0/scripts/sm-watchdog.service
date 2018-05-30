@@ -1,0 +1,15 @@
+[Unit]
+Description=Service Management Watchdog
+After=network-online.target syslog-ng.service config.service
+Before=sm.service pmon.service
+
+[Service]
+Type=forking
+RemainAfterExit=yes
+User=root
+ExecStart=/etc/init.d/sm-watchdog start
+ExecStop=/etc/init.d/sm-watchdog stop
+PIDFile=/var/run/sm-watchdog.pid
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,15 @@
+[Unit]
+Description=Service Management API Unit
+After=network-online.target syslog-ng.service config.service sm.service
+Before=sm-eru.service pmon.service
+
+[Service]
+Type=forking
+RemainAfterExit=yes
+User=root
+ExecStart=/etc/init.d/sm-api start
+ExecStop=/etc/init.d/sm-api stop
+PIDFile=/var/run/sm-api.pid
+
+[Install]
+WantedBy=multi-user.target

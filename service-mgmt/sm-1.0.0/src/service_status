@@ -1,0 +1,114 @@
+sm_log.c:                  "%s", service_group_member->name );
+sm_log.c:                    service_group_member->name );
+sm_service_group_audit.c:    if( 0 != service_group_member->service_failure_timestamp )
+sm_service_group_audit.c:        delta_ms = elapsed_ms - service_group_member->service_failure_timestamp;
+sm_service_group_audit.c:                      service_group_member->service_name, delta_ms );
+sm_service_group_audit.c:            switch( service_group_member->service_failure_impact )
+sm_service_group_audit.c:                      service_group_member->service_name, delta_ms );
+sm_service_group_audit.c:    switch( service_group_member->service_status )
+sm_service_group_audit.c:                                    service_group_member->service_name,
+sm_service_group_audit.c:                                    service_group_member->service_state,
+sm_service_group_audit.c:                                    service_group_member->service_status,
+sm_service_group_audit.c:                                    service_group_member->service_condition );
+sm_service_group_audit.c:                        service_group_member->service_condition,
+sm_service_group_audit.c:                                    service_group_member->service_name,
+sm_service_group_audit.c:                                    service_group_member->service_state,
+sm_service_group_audit.c:                                    service_group_member->service_status,
+sm_service_group_audit.c:                                    service_group_member->service_condition );
+sm_service_group_audit.c:            switch( service_group_member->service_failure_impact )
+sm_service_group_audit.c:                                    service_group_member->service_condition,
+sm_service_group_audit.c:                                    service_group_member->service_name,
+sm_service_group_audit.c:                                    service_group_member->service_state,
+sm_service_group_audit.c:                                    service_group_member->service_status,
+sm_service_group_audit.c:                                    service_group_member->service_condition );
+sm_service_group_audit.c:                  "group (%s).", service_group_member->service_name,
+sm_service_group_audit.c:                          service_group_member->service_failure_impact ),
+sm_service_group_audit.c:                  "overall_status=%s.", service_group_member->name,
+sm_service_group_audit.c:                  service_group_member->service_name,
+sm_service_group_audit.c:                  "overall_condition=%s.", service_group_member->name,
+sm_service_group_audit.c:                  service_group_member->service_name,
+sm_service_group_disable.c:    DPRINTFD( "Disabling %s of %s", service_group_member->service_name,
+sm_service_group_disable.c:    error = sm_service_api_disable( service_group_member->service_name );
+sm_service_group_disable.c:                  service_group_member->service_name,
+sm_service_group_disable.c:    if( SM_SERVICE_STATE_DISABLED == service_group_member->service_state )
+sm_service_group_disable.c:                  "state=%s.", service_group_member->service_name, 
+sm_service_group_disable.c:                  service_group_member->name,
+sm_service_group_disable.c:                  sm_service_state_str( service_group_member->service_state ) );
+sm_service_group_disable.c:                  "complete, state=%s.", service_group_member->service_name, 
+sm_service_group_disable.c:                  service_group_member->name,
+sm_service_group_disable.c:                  sm_service_state_str( service_group_member->service_state ) );
+sm_service_group_enable.c:    DPRINTFD( "Enabling %s of %s", service_group_member->service_name,
+sm_service_group_enable.c:    if(( SM_SERVICE_STATE_ENABLED_ACTIVE     == service_group_member->service_state )||
+sm_service_group_enable.c:       ( SM_SERVICE_STATE_ENABLED_GO_ACTIVE  == service_group_member->service_state )||
+sm_service_group_enable.c:       ( SM_SERVICE_STATE_ENABLED_GO_STANDBY == service_group_member->service_state )||
+sm_service_group_enable.c:       ( SM_SERVICE_STATE_ENABLED_STANDBY    == service_group_member->service_state ))
+sm_service_group_enable.c:                  "state=%s.", service_group_member->service_name, 
+sm_service_group_enable.c:                  service_group_member->name,
+sm_service_group_enable.c:                  sm_service_state_str( service_group_member->service_state ) );
+sm_service_group_enable.c:                  "complete, state=%s.", service_group_member->service_name, 
+sm_service_group_enable.c:                  service_group_member->name,
+sm_service_group_enable.c:                  sm_service_state_str( service_group_member->service_state ) );
+sm_service_group_fsm.c:    service = sm_service_table_read( service_group_member->service_name );
+sm_service_group_fsm.c:                  service_group_member->service_name, 
+sm_service_group_fsm.c:    if(( service->state != service_group_member->service_state )||
+sm_service_group_fsm.c:       ( service->status != service_group_member->service_status ))
+sm_service_group_fsm.c:        service_group_member->service_state = service->state;
+sm_service_group_fsm.c:        service_group_member->service_status = service->status;
+sm_service_group_fsm.c:    error = sm_service_api_recover( service_group_member->service_name,
+sm_service_group_fsm.c:                  service_group_member->service_name,
+sm_service_group_fsm.c:    service_group_member->service_state = state;
+sm_service_group_fsm.c:    service_group_member->service_status = status;
+sm_service_group_fsm.c:    service_group_member->service_condition = condition;
+sm_service_group_fsm.c:        service_group_member->service_failure_timestamp
+sm_service_group_fsm.c:    error = sm_service_group_fsm_event_handler( service_group_member->name,
+sm_service_group_fsm.c:                  "error=%s.", service_group_member->service_name,
+sm_service_group_fsm.c:                  service_group_member->name, sm_error_str( error ) );
+sm_service_group_go_active.c:    DPRINTFD( "Go-Active on %s of %s", service_group_member->service_name,
+sm_service_group_go_active.c:    error = sm_service_api_go_active( service_group_member->service_name );
+sm_service_group_go_active.c:                  service_group_member->service_name,
+sm_service_group_go_active.c:    if( SM_SERVICE_STATE_ENABLED_ACTIVE == service_group_member->service_state )
+sm_service_group_go_active.c:                  "state=%s.", service_group_member->service_name, 
+sm_service_group_go_active.c:                  service_group_member->name,
+sm_service_group_go_active.c:                  sm_service_state_str( service_group_member->service_state ) );
+sm_service_group_go_active.c:                  "complete, state=%s.", service_group_member->service_name, 
+sm_service_group_go_active.c:                  service_group_member->name,
+sm_service_group_go_active.c:                  sm_service_state_str( service_group_member->service_state ) );
+sm_service_group_go_standby.c:    DPRINTFD( "Go-Standby on %s of %s", service_group_member->service_name,
+sm_service_group_go_standby.c:    error = sm_service_api_go_standby( service_group_member->service_name );
+sm_service_group_go_standby.c:                  service_group_member->service_name,
+sm_service_group_go_standby.c:    if(( SM_SERVICE_STATE_ENABLED_STANDBY == service_group_member->service_state )||
+sm_service_group_go_standby.c:       ( SM_SERVICE_STATE_ENABLING        == service_group_member->service_state )||
+sm_service_group_go_standby.c:       ( SM_SERVICE_STATE_DISABLING       == service_group_member->service_state )||
+sm_service_group_go_standby.c:       ( SM_SERVICE_STATE_DISABLED        == service_group_member->service_state ))
+sm_service_group_go_standby.c:                  "state=%s.", service_group_member->service_name, 
+sm_service_group_go_standby.c:                  service_group_member->name,
+sm_service_group_go_standby.c:                  sm_service_state_str( service_group_member->service_state ) );
+sm_service_group_go_standby.c:                  "complete, state=%s.", service_group_member->service_name, 
+sm_service_group_go_standby.c:                  service_group_member->name,
+sm_service_group_go_standby.c:                  sm_service_state_str( service_group_member->service_state ) );
+sm_service_group_member_table.c:        if(( 0 == strcmp( service_group_name, service_group_member->name ) )&&
+sm_service_group_member_table.c:           ( 0 == strcmp( service_name, service_group_member->service_name ) )) 
+sm_service_group_member_table.c:        if( service_group_member_id == service_group_member->id )
+sm_service_group_member_table.c:        if( 0 == strcmp( service_name, service_group_member->service_name ) )
+sm_service_group_member_table.c:        if( 0 == strcmp( service_group_name, service_group_member->name ) )
+sm_service_group_member_table.c:                                    db_service_group_member->name,
+sm_service_group_member_table.c:                                    db_service_group_member->service_name );
+sm_service_group_member_table.c:        service_group_member->id = db_service_group_member->id;
+sm_service_group_member_table.c:        snprintf( service_group_member->name, sizeof(service_group_member->name),
+sm_service_group_member_table.c:                  "%s", db_service_group_member->name );
+sm_service_group_member_table.c:        snprintf( service_group_member->service_name,
+sm_service_group_member_table.c:                  sizeof(service_group_member->service_name),
+sm_service_group_member_table.c:                  "%s", db_service_group_member->service_name );
+sm_service_group_member_table.c:        service_group_member->service_state = SM_SERVICE_STATE_INITIAL;
+sm_service_group_member_table.c:        service_group_member->service_status = SM_SERVICE_STATUS_NONE;
+sm_service_group_member_table.c:        service_group_member->service_condition = SM_SERVICE_CONDITION_NONE;
+sm_service_group_member_table.c:        service_group_member->service_failure_impact
+sm_service_group_member_table.c:            = db_service_group_member->service_failure_impact;
+sm_service_group_member_table.c:        service_group_member->service_failure_timestamp = 0;
+sm_service_group_member_table.c:        service_group_member->id = db_service_group_member->id;
+sm_service_group_member_table.c:        service_group_member->service_failure_impact
+sm_service_group_member_table.c:            = db_service_group_member->service_failure_impact;
+sm_service_group_member_table.c:    db_service_group_member.id = service_group_member->id;
+sm_service_group_member_table.c:              "%s", service_group_member->name );
+sm_service_group_member_table.c:              "%s", service_group_member->service_name );
+sm_service_group_member_table.c:        = service_group_member->service_failure_impact;
