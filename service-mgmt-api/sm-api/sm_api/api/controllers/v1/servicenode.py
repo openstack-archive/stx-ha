@@ -16,7 +16,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 
 
@@ -25,10 +25,14 @@ from pecan import rest
 import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
+import socket
+import urllib2
+import json
 
 from sm_api.api.controllers.v1 import base
 from sm_api.api.controllers.v1 import smc_api
 from sm_api.openstack.common import log
+from sm_api.api.controllers.v1 import services
 
 LOG = log.getLogger(__name__)
 
@@ -36,6 +40,7 @@ ERR_CODE_SUCCESS = "0"
 ERR_CODE_HOST_NOT_FOUND = "-1000"
 ERR_CODE_ACTION_FAILED = "-1001"
 ERR_CODE_NO_HOST_TO_SWACT_TO = "-1002"
+ERR_CODE_LOCK_SOLE_SERVICE_PROVIDER = "-1003"
 
 SM_NODE_STATE_UNKNOWN = "unknown"
 SM_NODE_ADMIN_LOCKED = "locked"
@@ -54,6 +59,13 @@ SM_SERVICE_DOMAIN_MEMBER_REDUNDANCY_MODEL_N = "N"
 SM_SERVICE_DOMAIN_MEMBER_REDUNDANCY_MODEL_N_PLUS_M = "N + M"
 SM_SERVICE_DOMAIN_MEMBER_REDUNDANCY_MODEL_N_TO_1 = "N to 1"
 SM_SERVICE_DOMAIN_MEMBER_REDUNDANCY_MODEL_N_TO_N = "N to N"
+
+SM_SERVICE_SEVERITY_NIL = "nil"
+SM_SERVICE_SEVERITY_UNKNOWN = "unknown"
+SM_SERVICE_SEVERITY_NONE = "none"
+SM_SERVICE_SEVERITY_MINOR = "minor"
+SM_SERVICE_SEVERITY_MAJOR = "major"
+SM_SERVICE_SEVERITY_CRITICAL = "critical"
 
 # sm_types.c
 SM_SERVICE_GROUP_STATE_NIL = "nil"
@@ -87,6 +99,77 @@ SM_SERVICE_GROUP_CONDITION_RECOVERY_FAILURE = "recovery-failure"
 SM_SERVICE_GROUP_CONDITION_ACTION_FAILURE = "action-failure"
 SM_SERVICE_GROUP_CONDITION_FATAL_FAILURE = "fatal-failure"
 
+SM_SERVICE_STATE_NIL = "nil"
+SM_SERVICE_STATE_NA = "not-applicable"
+SM_SERVICE_STATE_INITIAL = "initial"
+SM_SERVICE_STATE_UNKNOWN = "unknown"
+SM_SERVICE_STATE_ENABLED_STANDBY = "enabled-standby"
+SM_SERVICE_STATE_ENABLED_GO_STANDBY = "enabled-go-standby"
+SM_SERVICE_STATE_ENABLED_GO_ACTIVE = "enabled-go-active"
+SM_SERVICE_STATE_ENABLED_ACTIVE = "enabled-active"
+SM_SERVICE_STATE_ENABLING = "enabling"
+SM_SERVICE_STATE_ENABLING_THROTTLE = "enabling-throttle"
+SM_SERVICE_STATE_DISABLING = "disabling"
+SM_SERVICE_STATE_DISABLED = "disabled"
+SM_SERVICE_STATE_SHUTDOWN = "shutdown"
+
+LOCAL_HOST_NAME = socket.gethostname()
+
+
+def rest_api_request(token, method, api_cmd, api_cmd_headers=None,
+                     api_cmd_payload=None, timeout=10):
+
+
+    """
+    Make a rest-api request
+    Returns: response as a dictionary
+    """
+
+    LOG.info("%s cmd:%s hdr:%s payload:%s" % (
+        method, api_cmd, api_cmd_headers, api_cmd_payload))
+
+    response = None
+    try:
+        request_info = urllib2.Request(api_cmd)
+        request_info.get_method = lambda: method
+        if token:
+            request_info.add_header("X-Auth-Token", token.get_id())
+        request_info.add_header("Accept", "application/json")
+
+        if api_cmd_headers is not None:
+            for header_type, header_value in api_cmd_headers.items():
+                request_info.add_header(header_type, header_value)
+
+        if api_cmd_payload is not None:
+            request_info.add_data(api_cmd_payload)
+
+        request = urllib2.urlopen(request_info, timeout=timeout)
+        response = request.read()
+
+        if response == "":
+            response = {}
+        else:
+            response = json.loads(response)
+        request.close()
+
+        LOG.info("Response=%s" % response)
+
+    except urllib2.HTTPError as e:
+        if 401 == e.code:
+            if token:
+                token.set_expired()
+        LOG.warn("HTTP Error e.code=%s e=%s" % (e.code, e))
+        if hasattr(e, 'msg') and e.msg:
+            response = json.loads(e.msg)
+        else:
+            response = {}
+
+        LOG.info("HTTPError response=%s" % (response))
+    except urllib2.URLError as urle:
+        LOG.debug("Connection refused")
+
+    return response
+
 
 class ServiceNodeCommand(base.APIBase):
     origin = wtypes.text
@@ -108,6 +191,7 @@ class ServiceNodeCommandResult(base.APIBase):
     # Result
     error_code = wtypes.text
     error_details = wtypes.text
+    impact_service_list = [wtypes.text]
 
 
 class ServiceNode(base.APIBase):
@@ -220,6 +304,12 @@ class ServiceNodeController(rest.RestController):
         LOG.debug("sm-api have_active_sm_services: False")
         return swactable_sm_services
 
+    def _is_aa_service_group(self, sdm):
+        if SM_SERVICE_DOMAIN_MEMBER_REDUNDANCY_MODEL_N == \
+                sdm.redundancy_model and 2 == sdm.n_active:
+            return True
+        return False
+
     def _swact_pre_check(self, hostname):
         # run pre-swact checks, verify that services are in the right state
         # to accept service
@@ -250,15 +340,22 @@ class ServiceNodeController(rest.RestController):
                                     % (sm_sda.node_name, sm_sda.node_name))
                     break
 
-                # Verify that 
-                # all the services are in the standby or active
-                #   state on the other host
+                # degraded or failure of A/A service on the target host
+                # would not stop swact
+                sdm = self._sm_sdm_get(sm_sda.name,
+                                               sm_sda.service_group_name)
+                if (self._is_aa_service_group(sdm)):
+                    continue
+
+                # Verify that
+                # all the services are in the standby state on the
+                #     other host
                 # or service only provisioned in the other host
                 # or service state are the same on both hosts 
                 if SM_SERVICE_GROUP_STATE_ACTIVE != sm_sda.state \
-                        and SM_SERVICE_GROUP_STATE_STANDBY != sm_sda.state \
-                        and origin_state.has_key(sm_sda.service_group_name) \
-                        and origin_state[sm_sda.service_group_name] != sm_sda.state:
+                    and SM_SERVICE_GROUP_STATE_STANDBY != sm_sda.state \
+                    and origin_state.has_key(sm_sda.service_group_name) \
+                    and origin_state[sm_sda.service_group_name] != sm_sda.state:
                     check_result = (
                         "%s on %s is not ready to take service, "
                         "service not in the active or standby "
@@ -329,6 +426,91 @@ class ServiceNodeController(rest.RestController):
         LOG.info("%s" % sm_state_ht)
         return sm_state_ht
 
+    def get_remote_svc(self, hostname, service_name):
+        sm_api_port = 7777
+        sm_api_path = "http://{host}:{port}". \
+            format(host=hostname, port=sm_api_port)
+
+        api_cmd = sm_api_path
+        api_cmd += "/v1/services/%s" % service_name
+
+        api_cmd_headers = dict()
+        api_cmd_headers['Content-type'] = "application/json"
+        api_cmd_headers['Accept'] = "application/json"
+        api_cmd_headers['User-Agent'] = "sm/1.0"
+
+        response = rest_api_request(None, "GET", api_cmd, api_cmd_headers, None)
+
+        return response
+
+    def _lock_pre_check(self, hostname):
+        services = pecan.request.dbapi.sm_service_get_list()
+        ill_services = []
+        for service in services:
+            if (SM_SERVICE_STATE_ENABLED_ACTIVE == service.desired_state and
+                    SM_SERVICE_STATE_ENABLED_ACTIVE != service.state):
+                ill_services.append(service.name)
+
+        chk_list = {}
+        service_groups = pecan.request.dbapi.iservicegroup_get_list()
+        for service_group in service_groups:
+            sdm = pecan.request.dbapi.sm_sdm_get(
+                "controller", service_group.name)
+            if (SM_SERVICE_DOMAIN_MEMBER_REDUNDANCY_MODEL_N ==
+                    sdm.redundancy_model and 1 < sdm.n_active):
+                sgms = pecan.request.dbapi.sm_service_group_members_get_list(
+                    service_group.name)
+                for sgm in sgms:
+                    if (SM_SERVICE_SEVERITY_CRITICAL ==
+                            sgm.service_failure_impact and
+                            sgm.service_name in ill_services):
+                        if service_group.name in chk_list:
+                            chk_list[service_group.name].\
+                                append(sgm.service_name)
+                        else:
+                            chk_list[service_group.name] = [sgm.service_name]
+
+        if len(chk_list) == 0:
+            return None
+
+        sdas = pecan.request.dbapi.sm_sda_get_list()
+        for sda in sdas:
+            if (sda.node_name not in [LOCAL_HOST_NAME, hostname] and
+                    sda.service_group_name in chk_list):
+                for service_name in chk_list[sda.service_group_name]:
+                    rsvc = self.get_remote_svc(sda.node_name, service_name)
+                    if (SM_SERVICE_STATE_ENABLED_ACTIVE ==
+                            rsvc['desired_state'] and
+                                SM_SERVICE_STATE_ENABLED_ACTIVE == rsvc['state']):
+                        chk_list[sda.service_group_name].remove(service_name)
+
+        all_good = True
+        for svcs in chk_list.values():
+            if len(svcs) > 0:
+                all_good = False
+                break
+        if all_good:
+            return None
+
+        target_services = []
+        for sda in sdas:
+            if (sda.node_name == hostname and
+                        sda.service_group_name in chk_list):
+                for service_name in chk_list[sda.service_group_name]:
+                    LOG.info("checking %s on %s" % (service_name, hostname))
+                    rsvc = self.get_remote_svc(sda.node_name, service_name)
+                    if rsvc is None:
+                        continue
+                    if (SM_SERVICE_STATE_ENABLED_ACTIVE ==
+                            rsvc['desired_state'] and
+                        SM_SERVICE_STATE_ENABLED_ACTIVE == rsvc['state']):
+                        LOG.info("which is %s %s" % (rsvc['desired_state'], rsvc['state']))
+                        target_services.append(service_name)
+        LOG.info("services %s solely running on %s" % (','.join(target_services), hostname))
+        if len(target_services) > 0:
+            return target_services
+        return None
+
     def _do_modify_command(self, hostname, command):
 
         if command.action == smc_api.SM_NODE_ACTION_SWACT_PRE_CHECK or \
@@ -351,6 +533,31 @@ class ServiceNodeController(rest.RestController):
                     admin=command.admin, oper=command.oper,
                     avail=command.avail, error_code=ERR_CODE_SUCCESS,
                     error_details=check_result)
+                return wsme.api.Response(result, status_code=200)
+        elif command.action in [smc_api.SM_NODE_ACTION_LOCK,
+                                smc_api.SM_NODE_ACTION_LOCK_PRE_CHECK]:
+            impact_services = self._lock_pre_check(hostname)
+            if impact_services is not None:
+                result = ServiceNodeCommandResult(
+                    origin="sm", hostname=hostname, action=command.action,
+                    admin=command.admin, oper=command.oper,
+                    avail=command.avail,
+                    error_code=ERR_CODE_LOCK_SOLE_SERVICE_PROVIDER,
+                    impact_service_list=impact_services,
+                    error_details="%s is the sole provider of some services."
+                                  % hostname)
+
+                if command.action == smc_api.SM_NODE_ACTION_LOCK_PRE_CHECK:
+                    return wsme.api.Response(result, status_code=200)
+
+                return wsme.api.Response(result, status_code=400)
+            elif smc_api.SM_NODE_ACTION_LOCK_PRE_CHECK == command.action:
+                result = ServiceNodeCommandResult(
+                    origin="sm", hostname=hostname, action=command.action,
+                    admin=command.admin, oper=command.oper,
+                    avail=command.avail, error_code=ERR_CODE_SUCCESS,
+                    impact_service_list=impact_services,
+                    error_details=None)
                 return wsme.api.Response(result, status_code=200)
 
         if command.action == smc_api.SM_NODE_ACTION_UNLOCK or \

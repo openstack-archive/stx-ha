@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014-2018 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -142,6 +142,12 @@ extern SmErrorT sm_service_domain_utils_service_domain_active_self( char name[] 
 // ===========================================
 extern SmErrorT sm_service_domain_utils_service_domain_neighbor_cleanup(
     char name[], char node_name[] );
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Domain Utilities is aa service group
+// ==============================
+extern bool sm_is_aa_service_group(char* service_group_name);
 // ****************************************************************************
 
 // ****************************************************************************

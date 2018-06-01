@@ -1061,6 +1061,25 @@ SmErrorT sm_service_domain_utils_service_domain_neighbor_cleanup(
 // ****************************************************************************
 
 // ****************************************************************************
+// Service Domain Utilities is aa service group
+// =====================================
+bool sm_is_aa_service_group(char* service_group_name)
+{
+    SmServiceDomainMemberT* service_domain_member;
+    service_domain_member = sm_service_domain_member_table_read_service_group( service_group_name );
+    if( NULL != service_domain_member )
+    {
+        if( SM_SERVICE_DOMAIN_MEMBER_REDUNDANCY_MODEL_N == service_domain_member->redundancy_model &&
+            service_domain_member->n_active > 1 )
+        {
+            return true;
+        }
+    }
+    return false;
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Service Domain Utilities - Initialize
 // =====================================
 SmErrorT sm_service_domain_utils_initialize( void )

@@ -170,6 +170,13 @@ class Connection(object):
 
     @abc.abstractmethod
     def sm_service_get_by_name(self, name):
-        """Return a list of services by name.
+        """Return a service by name.
            :param name: The name of the services.
+        """
+
+
+    @abc.abstractmethod
+    def sm_service_group_members_get_list(self, service_group_name):
+        """Return service group members in a service group
+            :param service_group_name: service group name
         """

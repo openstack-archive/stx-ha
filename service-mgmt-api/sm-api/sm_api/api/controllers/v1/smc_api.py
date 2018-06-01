@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -38,6 +38,8 @@ SM_API_MAX_MSG_SIZE = 2048
 
 SM_NODE_ACTION_UNLOCK = "unlock"
 SM_NODE_ACTION_LOCK = "lock"
+SM_NODE_ACTION_LOCK_FORCE = "lock-force"
+SM_NODE_ACTION_LOCK_PRE_CHECK = "lock-pre-check"
 SM_NODE_ACTION_SWACT_PRE_CHECK = "swact-pre-check"
 SM_NODE_ACTION_SWACT = "swact"
 SM_NODE_ACTION_SWACT_FORCE = "swact-force"

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014-2018 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -56,6 +56,7 @@ typedef struct
     bool disable_check_dependency;
     //flag to indicate disable a service without disabling its dependency
     bool disable_skip_dependent;
+    char group_name[SM_SERVICE_GROUP_NAME_MAX_CHAR];
 } SmServiceT;
 
 typedef void (*SmServiceTableForEachCallbackT) 

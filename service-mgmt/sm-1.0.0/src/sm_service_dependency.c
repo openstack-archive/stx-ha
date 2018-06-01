@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014-2018 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -13,6 +13,7 @@
 #include "sm_time.h"
 #include "sm_service_table.h"
 #include "sm_service_dependency_table.h"
+#include "sm_service_domain_member_table.h"
 
 // ****************************************************************************
 // Service Dependency - Dependent State Compare
@@ -148,29 +149,81 @@ SmErrorT sm_service_dependency_go_standby_met( SmServiceT* service, bool* met )
 // ****************************************************************************
 
 // ****************************************************************************
+// Service Dependency - Enable Met, per dependent
+// ================================
+static void _sm_service_enable_dependency_met(
+    void* user_data[], SmServiceDependencyT* service_dependency )
+{
+    bool *dependency_met = (bool*)user_data[0];
+    if( '\0' == service_dependency->dependent[0] )
+    {
+        DPRINTFD( "Service (%s) has no dependencies.", service_dependency->service_name );
+        return;
+    }
+
+    SmServiceT* dependent_service = sm_service_table_read( service_dependency->dependent );
+    if( NULL == dependent_service )
+    {
+        DPRINTFE( "Failed to read service (%s), error=%s.",
+                  service_dependency->service_name,
+                  sm_error_str(SM_NOT_FOUND) );
+        return;
+    }
+
+    if( SM_SERVICE_STATE_ENABLED_ACTIVE != dependent_service->state &&
+        SM_SERVICE_STATE_ENABLED_STANDBY != dependent_service->desired_state)
+    {
+        *dependency_met = false;
+    }
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Service Dependency - Enable Met 
 // ===============================
 SmErrorT sm_service_dependency_enable_met( SmServiceT* service, bool* met )
 {
-    bool at_least_one = false;
     bool dependency_met = true;
-    SmCompareOperatorT compare_operator = SM_COMPARE_OPERATOR_LE;
-    void* user_data[] = {service, &dependency_met, &compare_operator,
-                         &at_least_one};
+    void* user_data[] = {&dependency_met};
 
     *met = false;
     sm_service_dependency_table_foreach( SM_SERVICE_DEPENDENCY_TYPE_ACTION,
             service->name, SM_SERVICE_STATE_NA, SM_SERVICE_ACTION_ENABLE,
-            user_data, sm_service_dependency_dependent_state_compare );
+            user_data, _sm_service_enable_dependency_met );
 
-    if( at_least_one )
-    {
-        *met = dependency_met;
-    } else {
-        *met = true;
-    }
+    *met = dependency_met;
 
     return( SM_OKAY );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Dependency - Disable Met per dependent
+// ================================
+static void _sm_service_disable_dependency_met(
+    void* user_data[], SmServiceDependencyT* service_dependency )
+{
+    bool *dependency_met = (bool*)user_data[0];
+    if( '\0' == service_dependency->dependent[0] )
+    {
+        DPRINTFD( "Service (%s) has no dependencies.", service_dependency->service_name );
+        return;
+    }
+
+    SmServiceT* dependent_service = sm_service_table_read( service_dependency->dependent );
+    if( NULL == dependent_service )
+    {
+        DPRINTFE( "Failed to read service (%s), error=%s.",
+                  service_dependency->service_name,
+                  sm_error_str(SM_NOT_FOUND) );
+        return;
+    }
+
+    if( SM_SERVICE_STATE_DISABLED != dependent_service->state &&
+        SM_SERVICE_STATE_ENABLED_ACTIVE != dependent_service->desired_state)
+    {
+        *dependency_met = false;
+    }
 }
 // ****************************************************************************
 
@@ -179,23 +232,15 @@ SmErrorT sm_service_dependency_enable_met( SmServiceT* service, bool* met )
 // ================================
 SmErrorT sm_service_dependency_disable_met( SmServiceT* service, bool* met )
 {
-    bool at_least_one = false;
     bool dependency_met = true;
-    SmCompareOperatorT compare_operator = SM_COMPARE_OPERATOR_GE;
-    void* user_data[] = {service, &dependency_met, &compare_operator,
-                         &at_least_one};
+    void* user_data[] = {&dependency_met};
 
     *met = false;
     sm_service_dependency_table_foreach( SM_SERVICE_DEPENDENCY_TYPE_ACTION,
             service->name, SM_SERVICE_STATE_NA, SM_SERVICE_ACTION_DISABLE,
-            user_data, sm_service_dependency_dependent_state_compare );
+            user_data, _sm_service_disable_dependency_met );
 
-    if( at_least_one )
-    {
-        *met = dependency_met;
-    } else {
-        *met = true;
-    }
+    *met = dependency_met;
 
     return( SM_OKAY );
 }

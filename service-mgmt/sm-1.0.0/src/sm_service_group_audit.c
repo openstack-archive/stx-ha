@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014-2018 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -16,6 +16,7 @@
 #include "sm_service_group_member_table.h"
 #include "sm_service_api.h"
 #include "sm_service_group_health.h"
+#include "sm_service_domain_utils.h"
 
 // ****************************************************************************
 // Service Group Audit - Set Service Reason Text
@@ -146,15 +147,18 @@ static void sm_service_group_audit_service_for_status( void* user_data[],
     int* failed = (int*) user_data[3];
     int* degraded = (int*) user_data[4];
     int* warn = (int*) user_data[5];
-    bool* reason_text_writable = (bool*) user_data[6];
-    char* reason_text = (char*) user_data[7];
-    int reason_text_size = *(int*) user_data[8];
+    int* healthy = (int*) user_data[6];
+    bool* reason_text_writable = (bool*) user_data[7];
+    char* reason_text = (char*) user_data[8];
+    int reason_text_size = *(int*) user_data[9];
     SmServiceGroupStatusT prev_status = *status;
     SmServiceGroupConditionT prev_condition = *condition;
+    SmServiceStatusT sgm_imply_status;
     SmServiceGroupStatusT mapped_status;
     SmServiceGroupConditionT mapped_condition;
     char service_reason_text[SM_SERVICE_GROUP_REASON_TEXT_MAX_CHAR] = "";
 
+    sgm_imply_status = service_group_member->service_status;
     if( 0 != service_group_member->service_failure_timestamp )
     {
         elapsed_ms = sm_time_get_elapsed_ms( NULL );
@@ -162,27 +166,34 @@ static void sm_service_group_audit_service_for_status( void* user_data[],
 
         if( service_group->failure_debounce_in_ms >= delta_ms )
         {
-            DPRINTFD( "Service group (%s) member (%s) failure debounce "
-                      "still in effect, indicating member as unhealthy, "
+            DPRINTFD( "Service group (%s) member (%s) failure debounce (%d) "
+                      "still in effect since (%li), indicating member as unhealthy, "
                       "delta_ms=%li.", service_group->name,
-                      service_group_member->service_name, delta_ms );
+                      service_group_member->service_name,
+                      service_group->failure_debounce_in_ms,
+                      service_group_member->service_failure_timestamp,
+                      delta_ms );
 
             do_increment = false;
 
             switch( service_group_member->service_failure_impact )
             {
                 case SM_SERVICE_SEVERITY_NONE:
+                    sgm_imply_status  = SM_SERVICE_STATUS_NONE;
                 break;
 
                 case SM_SERVICE_SEVERITY_MINOR:
+                    sgm_imply_status  = SM_SERVICE_STATUS_NONE;
                     ++(*warn);
                 break;
 
                 case SM_SERVICE_SEVERITY_MAJOR:
+                    sgm_imply_status  = SM_SERVICE_STATUS_DEGRADED;
                     ++(*degraded);
                 break;
 
                 case SM_SERVICE_SEVERITY_CRITICAL:
+                    sgm_imply_status  = SM_SERVICE_STATUS_FAILED;
                     ++(*failed);
                 break;
 
@@ -190,13 +201,17 @@ static void sm_service_group_audit_service_for_status( void* user_data[],
                 break;
             }
         } else {
+            ++(*healthy);
             DPRINTFD( "Service group (%s) member (%s) failure debounce "
                       "no longer in effect, delta_ms=%li.", service_group->name,
                       service_group_member->service_name, delta_ms );
         }
+    }else
+    {
+        ++(*healthy);
     }
 
-    switch( service_group_member->service_status )
+    switch( sgm_imply_status )
     {
         case SM_SERVICE_STATUS_NONE:
             mapped_status = SM_SERVICE_GROUP_STATUS_NONE;
@@ -452,7 +467,7 @@ static void sm_service_group_audit_service_for_status( void* user_data[],
 // ============================
 SmErrorT sm_service_group_audit_status( SmServiceGroupT* service_group )
 {
-    int failed=0, degraded=0, warn=0;
+    int failed=0, degraded=0, warn=0, healthy=0;
     SmServiceGroupStatusT audit_status = SM_SERVICE_GROUP_STATUS_NONE;
     SmServiceGroupConditionT audit_condition = SM_SERVICE_GROUP_CONDITION_NONE;
     int64_t audit_health = 0;
@@ -460,7 +475,7 @@ SmErrorT sm_service_group_audit_status( SmServiceGroupT* service_group )
     char reason_text[SM_SERVICE_GROUP_REASON_TEXT_MAX_CHAR] = "";
     int reason_text_size = SM_SERVICE_GROUP_REASON_TEXT_MAX_CHAR;
     void* user_data[] = { service_group, &audit_status, &audit_condition,
-                          &failed, &degraded, &warn, &reason_text_writable,
+                          &failed, &degraded, &warn, &healthy, &reason_text_writable,
                           reason_text, &reason_text_size };
 
     sm_service_group_member_table_foreach_member( service_group->name,
@@ -468,7 +483,14 @@ SmErrorT sm_service_group_audit_status( SmServiceGroupT* service_group )
 
     audit_health = sm_service_group_health_calculate( failed, degraded, warn );
 
-    service_group->status = audit_status;
+    if(SM_SERVICE_GROUP_STATUS_FAILED == audit_status && 0 < healthy &&
+        sm_is_aa_service_group(service_group->name))
+    {
+        service_group->status = SM_SERVICE_GROUP_STATUS_DEGRADED;
+    }else
+    {
+        service_group->status = audit_status;
+    }
     service_group->condition = audit_condition;
     service_group->health = audit_health;
 

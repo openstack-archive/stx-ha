@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014-2018 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -22,6 +22,8 @@
 #include "sm_service_go_active.h"
 #include "sm_service_go_standby.h"
 #include "sm_service_audit.h"
+#include "sm_service_group_table.h"
+#include "sm_service_group_member_table.h"
 
 static SmListT* _services = NULL;
 static SmDbHandleT* _sm_db_handle = NULL;
@@ -352,6 +354,38 @@ SmErrorT sm_service_table_persist( SmServiceT* service )
 // ****************************************************************************
 
 // ****************************************************************************
+// Service - Loop service members
+// ===============================
+static void _sm_loop_service_group_members( void* user_data[],
+    SmServiceGroupMemberT* service_group_member )
+{
+    SmServiceT* service;
+    service = sm_service_table_read( service_group_member->service_name );
+    if( NULL == service )
+    {
+        DPRINTFE( "Could not find service (%s) of "
+                  "service group (%s).",
+                  service_group_member->service_name,
+                  service_group_member->name);
+        return;
+    }
+
+    snprintf(service->group_name, sizeof(service->group_name), "%s", service_group_member->name);
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Table - Loop service groups
+// =================================================
+static void _sm_loop_service_groups(
+    void* user_data[], SmServiceGroupT* service_group )
+{
+    sm_service_group_member_table_foreach_member( service_group->name,
+                NULL, _sm_loop_service_group_members );
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Service Table - Initialize
 // ==========================
 SmErrorT sm_service_table_initialize( void )
@@ -375,6 +409,8 @@ SmErrorT sm_service_table_initialize( void )
                   sm_error_str( error ) );
         return( error );
     }
+
+    sm_service_group_table_foreach( NULL, _sm_loop_service_groups );
 
     return( SM_OKAY );
 }

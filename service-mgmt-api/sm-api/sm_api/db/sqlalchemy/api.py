@@ -15,7 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 
 
@@ -259,9 +259,18 @@ class Connection(api.Connection):
     def sm_service_get_by_name(self, name):
         result = model_query(models.service, read_deleted="no").\
                              filter_by(name=name)
-                             # first() since want a list
 
         if not result:
-            raise exception.NodeNotFound(node=name)
+            raise exception.ServiceNotFound(service=name)
+
+        return result
+
+
+    @objects.objectify(objects.service_group_member)
+    def sm_service_group_members_get_list(self, service_group_name):
+        result = model_query(models.sm_service_group_member,
+                             read_deleted="no").\
+            filter_by(provisioned='yes').\
+            filter_by(name=service_group_name)
 
         return result

@@ -18,7 +18,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 
 
@@ -28,6 +28,7 @@ import logging
 import os.path
 import sys
 import time
+import socket
 
 
 from oslo_config import cfg
@@ -62,9 +63,7 @@ def main():
     sm_api_service.prepare_service(sys.argv)
 
     # Build and start the WSGI app
-    # host = CONF.sm_api_api_bind_ip
-    # port = CONF.sm_api_api_port
-    host = 'localhost'
+    host = socket.gethostname()
     port = 7777
     wsgi = simple_server.make_server(host, port,
                                      app.VersionSelectorApplication(),

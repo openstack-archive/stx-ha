@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -113,8 +113,12 @@ class ServicesController(rest.RestController):
     @wsme_pecan.wsexpose(Services, unicode)
     def get_one(self, uuid):
         rpc_sg = objects.service.get_by_uuid(pecan.request.context, uuid)
+        return Services.convert_with_links(rpc_sg)
 
-        return  Services.convert_with_links(rpc_sg)
+    @wsme_pecan.wsexpose(Services, unicode)
+    def get_service(self, name):
+        rpc_sg = objects.service.get_by_name(pecan.request.context, name)
+        return Services.convert_with_links(rpc_sg)
 
     @wsme_pecan.wsexpose(ServicesCollection, unicode, int,
                          unicode, unicode)

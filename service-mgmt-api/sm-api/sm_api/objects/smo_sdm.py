@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -22,6 +22,8 @@ class sm_sdm(base.Sm_apiObject):
             'name': utils.str_or_none,
             'service_group_name': utils.str_or_none,
             'redundancy_model': utils.str_or_none,
+            'n_active': int,
+            'm_standby': int,
             }
 
     @staticmethod

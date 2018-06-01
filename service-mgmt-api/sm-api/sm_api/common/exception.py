@@ -399,3 +399,7 @@ class Unauthorized(SmApiException):
 
 class HTTPNotFound(NotFound):
     pass
+
+
+class ServiceNotFound(NotFound):
+    message = _("service %(service)s could not be found.")

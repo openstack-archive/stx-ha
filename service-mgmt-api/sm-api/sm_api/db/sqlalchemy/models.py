@@ -15,7 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 
 
@@ -126,6 +126,8 @@ class sm_sdm(Base):
     name = Column(String(255))
     service_group_name = Column(String(255))
     redundancy_model = Column(String(255))  # sm_types.h
+    n_active = Column(Integer)
+    m_standby = Column(Integer)
 
 
 # sm_service_domain_assignments
@@ -152,3 +154,13 @@ class sm_node(Base):
     operational_state = Column(String(255))
     availability_status = Column(String(255))
     ready_state = Column(String(255))
+
+
+class sm_service_group_member(Base):
+    __tablename__ = 'service_group_members'
+
+    id = Column(Integer, primary_key=True)
+    provisioned = Column(String(255))
+    name = Column(String(255))
+    service_name = Column(String(255))
+    service_failure_impact = Column(String(255))

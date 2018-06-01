@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 
 
@@ -23,6 +23,7 @@ from sm_api.objects import smo_service
 from sm_api.objects import smo_sdm
 from sm_api.objects import smo_sda
 from sm_api.objects import smo_node
+from sm_api.objects import smo_sgm
 
 
 def objectify(klass):
@@ -46,9 +47,11 @@ service = smo_service.service
 sm_sdm = smo_sdm.sm_sdm
 sm_sda = smo_sda.sm_sda
 sm_node = smo_node.sm_node
+service_group_member = smo_sgm.service_group_member
 
 __all__ = (
            service_groups,
+           service_group_member,
            service,
            sm_sdm,
            sm_sda,

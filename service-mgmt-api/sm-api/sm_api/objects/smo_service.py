@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -36,7 +36,7 @@ class service(base.Sm_apiObject):
 
     @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
-        """Find a server based on uuid and return a Node object.
+        """Find a service based on uuid and return a service object.
 
         :param uuid: the uuid of a server.
         :returns: a :class:`Node` object.
@@ -44,6 +44,16 @@ class service(base.Sm_apiObject):
         # TODO(deva): enable getting ports for this server
         db_server = cls.dbapi.sm_service_get(uuid)
         return service._from_db_object(cls(), db_server)
+
+    @base.remotable_classmethod
+    def get_by_name(cls, context, name):
+        """Find a service based on service name .
+
+        :param name: the name of a service.
+        :returns: a :class:`service` object.
+        """
+        service = cls.dbapi.sm_service_get_by_name(name)
+        return service._from_db_object(cls(), service)
 
     @base.remotable
     def save(self, context):
