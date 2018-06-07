@@ -53,6 +53,15 @@ def get_handler_cls():
     return MyHandler
 
 
+def get_ipv6_server_cls():
+    cls = simple_server.WSGIServer
+
+    class MyServerClassIPv6(cls, object):
+        address_family = socket.AF_INET6
+
+    return MyServerClassIPv6
+
+
 def main():
     # Parse config file and command line options, then start logging
 
@@ -65,14 +74,24 @@ def main():
     # Build and start the WSGI app
     host = socket.gethostname()
     port = 7777
+
+    addrinfo_list = socket.getaddrinfo(host, port)
+    addrinfo = addrinfo_list[0]
+    socket_family = addrinfo[0]
+
+    server_cls = simple_server.WSGIServer
+    if socket.AF_INET6 == socket_family:
+        server_cls = get_ipv6_server_cls()
+
     wsgi = simple_server.make_server(host, port,
                                      app.VersionSelectorApplication(),
+                                     server_class=server_cls,
                                      handler_class=get_handler_cls())
 
     LOG = log.getLogger(__name__)
-    LOG.info(_("Serving on http://%(host)s:%(port)s") %
+    LOG.info("Serving on http://%(host)s:%(port)s" %
              {'host': host, 'port': port})
-    LOG.info(_("Configuration:"))
+    LOG.info("Configuration:")
     CONF.log_opt_values(LOG, logging.INFO)
 
     try:
