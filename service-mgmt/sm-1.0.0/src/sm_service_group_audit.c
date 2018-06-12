@@ -183,7 +183,7 @@ static void sm_service_group_audit_service_for_status( void* user_data[],
                 break;
 
                 case SM_SERVICE_SEVERITY_MINOR:
-                    sgm_imply_status  = SM_SERVICE_STATUS_NONE;
+                    sgm_imply_status  = SM_SERVICE_STATUS_WARN;
                     ++(*warn);
                 break;
 
