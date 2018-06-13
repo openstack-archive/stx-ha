@@ -70,8 +70,6 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(35,'yes','cloud-services','nova-novnc
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(36,'yes','cloud-services','cinder-api','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(37,'yes','cloud-services','cinder-scheduler','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(38,'yes','cloud-services','cinder-volume','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(40,'yes','cloud-services','ceilometer-collector','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(41,'yes','cloud-services','ceilometer-api','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(44,'yes','cloud-services','ceilometer-agent-notification','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(45,'yes','cloud-services','heat-engine','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(46,'yes','cloud-services','heat-api','critical');
@@ -166,8 +164,6 @@ INSERT INTO "SERVICES" VALUES(34,'yes','nova-novnc','initial','initial','none','
 INSERT INTO "SERVICES" VALUES(35,'yes','cinder-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/cinder-api.pid');
 INSERT INTO "SERVICES" VALUES(36,'yes','cinder-scheduler','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/cinder-scheduler.pid');
 INSERT INTO "SERVICES" VALUES(37,'yes','cinder-volume','initial','initial','none','none',32,16,180000,4,16,'/var/run/resource-agents/cinder-volume.pid');
-INSERT INTO "SERVICES" VALUES(39,'yes','ceilometer-collector','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/ceilometer-collector.pid');
-INSERT INTO "SERVICES" VALUES(40,'yes','ceilometer-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/ceilometer-api.pid');
 INSERT INTO "SERVICES" VALUES(43,'yes','ceilometer-agent-notification','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/ceilometer-agent-notification.pid');
 INSERT INTO "SERVICES" VALUES(44,'yes','heat-engine','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/heat-engine.pid');
 INSERT INTO "SERVICES" VALUES(45,'yes','heat-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/heat-api.pid');
@@ -295,11 +291,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-volume','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-volume','not-applicable','enable','cgcs-nfs-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-api','not-applicable','enable','cinder-scheduler','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-api','not-applicable','enable','cinder-volume','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-collector','not-applicable','enable','postgres','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-collector','not-applicable','enable','rabbit','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-collector','not-applicable','enable','cgcs-nfs-ip','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-api','not-applicable','enable','ceilometer-collector','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-agent-notification','not-applicable','enable','ceilometer-api','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-agent-notification','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-engine','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-engine','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-engine','not-applicable','enable','cgcs-nfs-ip','enabled-active');
@@ -338,7 +330,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable',
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','nova-console-auth','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','cinder-scheduler','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','cinder-volume','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','ceilometer-collector','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','heat-engine','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-fs','not-applicable','disable','platform-export-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','snmp','disabled');
@@ -351,7 +342,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','di
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','nova-console-auth','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','cinder-scheduler','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','cinder-volume','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','ceilometer-collector','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','heat-engine','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','sysinv-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','keystone','disabled');
@@ -362,7 +352,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disa
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','nova-console-auth','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','cinder-scheduler','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','cinder-volume','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','ceilometer-collector','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','ceilometer-agent-notification','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','heat-engine','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','sysinv-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-export-fs','not-applicable','disable','cgcs-nfs-ip','disabled');
@@ -385,8 +375,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nova-conductor','not-applicabl
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nova-api','not-applicable','disable','nova-api-proxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-scheduler','not-applicable','disable','cinder-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-volume','not-applicable','disable','cinder-api','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-collector','not-applicable','disable','ceilometer-api','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-api','not-applicable','disable','ceilometer-agent-notification','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-engine','not-applicable','disable','heat-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-api','not-applicable','disable','heat-api-cfn','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-api-cfn','not-applicable','disable','heat-api-cloudwatch','disabled');
@@ -425,8 +413,8 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','murano-rabbit','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','murano-api','not-applicable','enable','murano-rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','murano-rabbit','not-applicable','disable','murano-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','dnsmasq','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','panko-api','not-applicable','enable','ceilometer-collector','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-collector','not-applicable','disable','panko-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','panko-api','not-applicable','enable','ceilometer-agent-notification','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-agent-notification','not-applicable','disable','panko-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','magnum-conductor','not-applicable','enable','magnum-api','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','magnum-api','not-applicable','disable','magnum-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','magnum-conductor','not-applicable','enable','postgres','enabled-active');
@@ -686,14 +674,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-volume','enable','ocf-script','open
 INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-volume','disable','ocf-script','openstack','cinder-volume','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-volume','audit-enabled','ocf-script','openstack','cinder-volume','monitor','',2,2,2,30,60);
 INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-volume','audit-disabled','ocf-script','openstack','cinder-volume','monitor','',0,0,0,30,20);
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-collector','enable','ocf-script','openstack','ceilometer-collector','start','',2,2,2,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-collector','disable','ocf-script','openstack','ceilometer-collector','stop','',1,1,1,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-collector','audit-enabled','ocf-script','openstack','ceilometer-collector','monitor','',2,2,2,30,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-collector','audit-disabled','ocf-script','openstack','ceilometer-collector','monitor','',0,0,0,30,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-api','enable','ocf-script','openstack','ceilometer-api','start','',2,2,2,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-api','disable','ocf-script','openstack','ceilometer-api','stop','',1,1,1,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-api','audit-enabled','ocf-script','openstack','ceilometer-api','monitor','',2,2,2,30,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-api','audit-disabled','ocf-script','openstack','ceilometer-api','monitor','',0,0,0,30,30);
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-agent-notification','enable','ocf-script','openstack','ceilometer-agent-notification','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-agent-notification','disable','ocf-script','openstack','ceilometer-agent-notification','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-agent-notification','audit-enabled','ocf-script','openstack','ceilometer-agent-notification','monitor','',2,2,2,30,30);
@@ -999,5 +979,26 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','audit-enabled','
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','audit-disabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',0,0,0,20,28);
 
 update "SERVICE_ACTIONS" set TIMEOUT_IN_SECS=60 where action in ('enable', 'audit-enabled') and service_name = 'glance-registry';
-
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','gnocchi-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/gnocchi-api.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','gnocchi-metricd','initial','initial','none','none',2,1,90000,4,16,'/var/run/gnocchi-metricd.pid' FROM "SERVICES";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','gnocchi-api','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','gnocchi-metricd','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','gnocchi-api','not-applicable','enable','postgres','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','gnocchi-api','not-applicable','enable','cgcs-nfs-ip','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','gnocchi-api','not-applicable','enable','drbd-cgcs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','gnocchi-metricd','not-applicable','enable','gnocchi-api','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-agent-notification','not-applicable','enable','gnocchi-api','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','gnocchi-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','gnocchi-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cgcs','not-applicable','disable','gnocchi-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','gnocchi-api','not-applicable','disable','gnocchi-metricd','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','gnocchi-api','not-applicable','disable','ceilometer-agent-notification','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('gnocchi-api','enable','lsb-script','','gnocchi-api','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('gnocchi-api','disable','lsb-script','','gnocchi-api','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('gnocchi-api','audit-enabled','lsb-script','','gnocchi-api','status','',2,2,2,30,30);
+INSERT INTO "SERVICE_ACTIONS" VALUES('gnocchi-api','audit-disabled','lsb-script','','gnocchi-api','status','',0,0,0,30,30);
+INSERT INTO "SERVICE_ACTIONS" VALUES('gnocchi-metricd','enable','lsb-script','','gnocchi-metricd','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('gnocchi-metricd','disable','lsb-script','','gnocchi-metricd','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('gnocchi-metricd','audit-enabled','lsb-script','','gnocchi-metricd','status','',2,2,2,30,30);
+INSERT INTO "SERVICE_ACTIONS" VALUES('gnocchi-metricd','audit-disabled','lsb-script','','gnocchi-metricd','status','',0,0,0,30,30);
 COMMIT;
