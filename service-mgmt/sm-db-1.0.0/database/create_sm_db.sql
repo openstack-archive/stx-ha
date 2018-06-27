@@ -969,6 +969,34 @@ INSERT INTO "CONFIGURATION" VALUES(1,'ENABLING_THROTTLE','2');
 -- to add new service or service memeber, follow the examples below, avoid using a hardcoded id
 -- INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','drbd-patch-vault','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 -- INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcorch-nova-api-proxy','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','docker-distribution','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','docker-distribution','initial','initial','none','none',2,1,90000,4,16,'/var/run/docker-distribution.pid' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','enable','cgcs-fs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-fs','not-applicable','disable','docker-distribution','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','enable','management-ip','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','docker-distribution','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('docker-distribution','enable','lsb-script','','docker-distribution','start','',2,2,2,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('docker-distribution','disable','lsb-script','','docker-distribution','stop','',1,1,1,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('docker-distribution','audit-enabled','lsb-script','','docker-distribution','status','',2,2,2,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('docker-distribution','audit-disabled','lsb-script','','docker-distribution','status','',0,0,0,15,40);
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','dockerdistribution-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dockerdistribution-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dockerdistribution-fs','not-applicable','enable','drbd-dockerdistribution','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','enable','dockerdistribution-fs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dockerdistribution','not-applicable','go-standby','dockerdistribution-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dockerdistribution-fs','not-applicable','disable','docker-distribution','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dockerdistribution-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dockerdistribution-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dockerdistribution-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dockerdistribution-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','drbd-dockerdistribution','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','drbd-dockerdistribution','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','enable','ocf-script','linbit','drbd','start','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,90,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','disable','ocf-script','linbit','drbd','stop','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',1,1,1,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','go-active','ocf-script','linbit','drbd','promote','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','go-standby','ocf-script','linbit','drbd','demote','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','audit-enabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,20,30);
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','audit-disabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',0,0,0,20,28);
 
 update "SERVICE_ACTIONS" set TIMEOUT_IN_SECS=60 where action in ('enable', 'audit-enabled') and service_name = 'glance-registry';
 
