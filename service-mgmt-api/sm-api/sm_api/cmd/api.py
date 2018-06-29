@@ -66,14 +66,13 @@ def main():
     # Parse config file and command line options, then start logging
 
     # Periodically check every minute for want_sm_config
-    while os.path.exists("/etc/sm/.not_want_sm_config"):
-        time.sleep(60)
+    LOG = log.getLogger(__name__)
 
     sm_api_service.prepare_service(sys.argv)
 
     # Build and start the WSGI app
-    host = socket.gethostname()
-    port = 7777
+    host = CONF.sm_api_bind_ip or socket.gethostname()
+    port = CONF.sm_api_port
 
     addrinfo_list = socket.getaddrinfo(host, port)
     addrinfo = addrinfo_list[0]
@@ -88,7 +87,6 @@ def main():
                                      server_class=server_cls,
                                      handler_class=get_handler_cls())
 
-    LOG = log.getLogger(__name__)
     LOG.info("Serving on http://%(host)s:%(port)s" %
              {'host': host, 'port': port})
     LOG.info("Configuration:")

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -17,8 +17,6 @@ from sm_api.common import utils
 from sm_api.common import config
 from sm_api.db import api as dbapi
 from sm_api.openstack.common import policy
-
-
 
 
 class ConfigHook(hooks.PecanHook):
@@ -76,7 +74,7 @@ class ContextHook(hooks.PecanHook):
         auth_token = state.request.headers.get('X-Auth-Token', None)
         creds = {'roles': state.request.headers.get('X-Roles', '').split(',')}
 
-        is_admin = policy.check('is_admin', state.request.headers, creds)
+        is_admin = policy.check('admin', state.request.headers, creds)
 
         path = utils.safe_rstrip(state.request.path, '/')
         is_public_api = path in self.public_api_routes

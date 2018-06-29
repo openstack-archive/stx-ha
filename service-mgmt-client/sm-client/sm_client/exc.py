@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -14,7 +14,7 @@ class BaseException(Exception):
         self.message = message
 
     def __str__(self):
-        return self.message or self.__class__.__doc__
+        return str(self.message) or self.__class__.__doc__
 
 
 class CommandError(BaseException):
@@ -41,8 +41,8 @@ class HTTPException(ClientException):
         self.details = details
 
     def __str__(self):
-        return self.details or "%s (HTTP %s)" % (self.__class__.__name__,
-                                                 self.code)
+        return str(self.details) or "%s (HTTP %s)" % (self.__class__.__name__,
+                                                      self.code)
 
 
 class HTTPMultipleChoices(HTTPException):
@@ -134,7 +134,7 @@ class HTTPServiceUnavailable(ServiceUnavailable):
     pass
 
 
-#NOTE(bcwaldon): Build a mapping of HTTP codes to corresponding exception
+# NOTE(bcwaldon): Build a mapping of HTTP codes to corresponding exception
 # classes
 _code_map = {}
 for obj_name in dir(sys.modules[__name__]):
@@ -143,10 +143,11 @@ for obj_name in dir(sys.modules[__name__]):
         _code_map[obj.code] = obj
 
 
-def from_response(response, error=None):
+def from_response(response, message=None, traceback=None,
+                  method=None, url=None):
     """Return an instance of an HTTPException based on httplib response."""
     cls = _code_map.get(response.status, HTTPException)
-    return cls(error)
+    return cls(message)
 
 
 class NoTokenLookupException(Exception):
@@ -159,8 +160,18 @@ class EndpointNotFound(Exception):
     pass
 
 
+class AmbiguousAuthSystem(ClientException):
+    """Could not obtain token and endpoint using provided credentials."""
+    pass
+
+# Alias for backwards compatibility
+AmbigiousAuthSystem = AmbiguousAuthSystem
+
+
 class InvalidAttribute(ClientException):
     pass
 
+
 class InvalidAttributeValue(ClientException):
     pass
+#

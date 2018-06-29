@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2015 Wind River Systems, Inc.
+# Copyright (c) 2014-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -12,6 +12,7 @@ Command-line interface for Service Manager (SM)
 import argparse
 import httplib2
 import logging
+import socket
 import sys
 
 import sm_client
@@ -97,20 +98,6 @@ class SmcShell(object):
         parser.add_argument('--os_password',
                             help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-tenant-id',
-                            default=utils.env('OS_TENANT_ID'),
-                            help='Defaults to env[OS_TENANT_ID]')
-
-        parser.add_argument('--os_tenant_id',
-                            help=argparse.SUPPRESS)
-
-        parser.add_argument('--os-tenant-name',
-                            default=utils.env('OS_TENANT_NAME'),
-                            help='Defaults to env[OS_TENANT_NAME]')
-
-        parser.add_argument('--os_tenant_name',
-                            help=argparse.SUPPRESS)
-
         parser.add_argument('--os-auth-url',
                             default=utils.env('OS_AUTH_URL'),
                             help='Defaults to env[OS_AUTH_URL]')
@@ -132,9 +119,11 @@ class SmcShell(object):
         parser.add_argument('--os_auth_token',
                             help=argparse.SUPPRESS)
 
+        smc_url = "http://{host}:{port}".format(
+            host=socket.gethostname(), port=7777)
         parser.add_argument('--smc-url',
                             # default=utils.env('SMC_URL'),
-                            default="http://localhost:7777",
+                            default=smc_url,
                             help='Defaults to env[SMC_URL]')
 
         parser.add_argument('--smc_url',
@@ -162,6 +151,36 @@ class SmcShell(object):
 
         parser.add_argument('--os_endpoint_type',
                             help=argparse.SUPPRESS)
+
+        parser.add_argument('--os-user-domain-id',
+                            default=utils.env('OS_USER_DOMAIN_ID'),
+                            help='Defaults to env[OS_USER_DOMAIN_ID].')
+
+        parser.add_argument('--os-user-domain-name',
+                            default=utils.env('OS_USER_DOMAIN_NAME'),
+                            help='Defaults to env[OS_USER_DOMAIN_NAME].')
+
+        parser.add_argument('--os-project-id',
+                            default=utils.env('OS_PROJECT_ID'),
+                            help='Another way to specify tenant ID. '
+                                 'This option is mutually exclusive with '
+                                 ' --os-tenant-id. '
+                                 'Defaults to env[OS_PROJECT_ID].')
+
+        parser.add_argument('--os-project-name',
+                            default=utils.env('OS_PROJECT_NAME'),
+                            help='Another way to specify tenant name. '
+                                 'This option is mutually exclusive with '
+                                 ' --os-tenant-name. '
+                                 'Defaults to env[OS_PROJECT_NAME].')
+
+        parser.add_argument('--os-project-domain-id',
+                            default=utils.env('OS_PROJECT_DOMAIN_ID'),
+                            help='Defaults to env[OS_PROJECT_DOMAIN_ID].')
+
+        parser.add_argument('--os-project-domain-name',
+                            default=utils.env('OS_PROJECT_DOMAIN_NAME'),
+                            help='Defaults to env[OS_PROJECT_DOMAIN_NAME].')
 
         return parser
 
@@ -222,11 +241,6 @@ class SmcShell(object):
                 raise exc.CommandError("You must provide a password via "
                                        "either --os-password or via "
                                        "env[OS_PASSWORD]")
-
-            if not (args.os_tenant_id or args.os_tenant_name):
-                raise exc.CommandError("You must provide a tenant_id via "
-                                       "either --os-tenant-id or via "
-                                       "env[OS_TENANT_ID]")
 
             if not args.os_auth_url:
                 raise exc.CommandError("You must provide an auth url via "
