@@ -1,0 +1,10 @@
+Code-Review+2: John Kung <john.kung@windriver.com>
+Code-Review+1: Sen Yang <sen.yang@windriver.com>
+Code-Review+2: Bin Qian <bin.qian@windriver.com>
+Workflow+1: Bin Qian <bin.qian@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Fri, 29 Jun 2018 12:36:12 +0000
+Reviewed-on: https://review.openstack.org/578980
+Project: openstack/stx-ha
+Branch: refs/heads/master
