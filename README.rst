@@ -2,4 +2,4 @@
 stx-ha
 ======
 
-SterlingX Service Management
+StarlingX Service Management
