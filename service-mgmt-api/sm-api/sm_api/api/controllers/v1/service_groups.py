@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -15,7 +15,7 @@ from sm_api.api.controllers.v1 import base
 from sm_api.api.controllers.v1 import collection
 from sm_api.api.controllers.v1 import link
 from sm_api.api.controllers.v1 import utils
-
+from sm_api.common import exception
 from sm_api.common import log
 from sm_api import objects
 
@@ -43,27 +43,32 @@ class ServiceGroupCommandResult(wsme_types.Base):
 
 
 class ServiceGroup(base.APIBase):
-    name = wsme_types.text
-    state = wsme_types.text
-    status = wsme_types.text
-
-    # JKUNG new
-    uuid = wsme_types.text
-    "The UUID of the service_groups"
-
     id = int
+    uuid = wsme_types.text
+    "The UUID of the sm_sda"
+
+    name = wsme_types.text
+    node_name = wsme_types.text
+    service_group_name = wsme_types.text
+    state = wsme_types.text
+    desired_state = wsme_types.text
+    status = wsme_types.text
+    condition = wsme_types.text
 
     links = [link.Link]
-    "A list containing a self link and associated service_groups links"
+    "A list containing a self link and associated sm_sda links"
 
     def __init__(self, **kwargs):
-        self.fields = objects.service_groups.fields.keys()
+        self.fields = objects.sm_sda.fields.keys()
         for k in self.fields:
             setattr(self, k, kwargs.get(k))
 
     @classmethod
     def convert_with_links(cls, rpc_service_groups, expand=True):
-        minimum_fields = ['id', 'name', 'state', 'status']
+        minimum_fields = ['id', 'uuid', 'name', 'node_name',
+                          'service_group_name', 'desired_state',
+                          'state', 'status', 'condition']
+
         fields = minimum_fields if not expand else None
         service_groups = ServiceGroup.from_rpc_object(
                            rpc_service_groups, fields)
@@ -86,7 +91,7 @@ class ServiceGroupCollection(collection.Collection):
         collection = ServiceGroupCollection()
         collection.service_groups = [
                     ServiceGroup.convert_with_links(ch, expand)
-                              for ch in service_groups]
+                    for ch in service_groups]
         url = url or None
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
@@ -104,20 +109,29 @@ class ServiceGroupController(rest.RestController):
         sort_dir = utils.validate_sort_dir(sort_dir)
         marker_obj = None
         if marker:
-            marker_obj = objects.service_groups.get_by_uuid(
-                                 pecan.request.context, marker)
+            marker_obj = objects.sm_sda.get_by_uuid(pecan.request.context,
+                                                    marker)
 
-        service_groups = pecan.request.dbapi.iservicegroup_get_list(limit,
-                                                 marker_obj,
-                                                 sort_key=sort_key,
-                                                 sort_dir=sort_dir)
-        return service_groups
+        sm_sdas = pecan.request.dbapi.sm_sda_get_list(limit,
+                                                      marker_obj,
+                                                      sort_key=sort_key,
+                                                      sort_dir=sort_dir)
+
+        # Remap OpenStack_Services to Cloud_Services
+        for sm_sda in sm_sdas:
+            if sm_sda.service_group_name.lower() == "openstack_services":
+                sm_sda.service_group_name = "Cloud_Services"
+
+        return sm_sdas
 
     @wsme_pecan.wsexpose(ServiceGroup, unicode)
     def get_one(self, uuid):
-        rpc_sg = objects.service_groups.get_by_uuid(pecan.request.context, uuid)
+        try:
+            rpc_sg = objects.sm_sda.get_by_uuid(pecan.request.context, uuid)
+        except exception.ServerNotFound:
+            return None
 
-        return  ServiceGroup.convert_with_links(rpc_sg)
+        return ServiceGroup.convert_with_links(rpc_sg)
 
     @wsme_pecan.wsexpose(ServiceGroupCollection, unicode, int,
                          unicode, unicode)
@@ -133,23 +147,6 @@ class ServiceGroupController(rest.RestController):
         return ServiceGroupCollection.convert_with_links(service_groups, limit,
                                                  sort_key=sort_key,
                                                  sort_dir=sort_dir)
-
-        # cursor = pecan.request.database.cursor()
-
-        # cursor.execute("SELECT name, state from service_groups")
-
-        # data = cursor.fetchall()
-
-        # if data is not None:
-        #     service_groups = []
-
-        #     for row in data:
-        #         service_groups.append({'name': row[0], 'state': row[1]})
-
-        #     return ServiceGroups(service_groups=json.dumps(service_groups))
-
-        #return wsme.api.Response(ServiceGroups(service_groups=json.dumps([])),
-        #                          status_code=404)
 
     @wsme_pecan.wsexpose(ServiceGroupCommandResult, unicode,
                          body=ServiceGroupCommand)

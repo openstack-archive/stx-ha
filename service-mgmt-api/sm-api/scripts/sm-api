@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -32,6 +32,7 @@ LSB_NOT_RUNNING=7
 
 SM_API_NAME="sm-api"
 SM_API="/usr/bin/${SM_API_NAME}"
+SM_API_CONFIG_FILE="/etc/sm-api/sm-api.conf"
 
 daemon_pidfile="/var/run/${SM_API_NAME}.pid"
 
@@ -51,7 +52,7 @@ case "$1" in
             echo -n "is already running "
             RETVAL=0
         else
-            /bin/sh -c "${SM_API} --debug --verbose --use-syslog --syslog-log-facility local1"' >> /dev/null 2>&1 & echo $!' > ${daemon_pidfile}
+            /bin/sh -c "${SM_API} --config-file=${SM_API_CONFIG_FILE} --verbose --use-syslog --syslog-log-facility local1"' >> /dev/null 2>&1 & echo $!' > ${daemon_pidfile}
             RETVAL=$?
         fi
         if [ ${RETVAL} -eq 0 ] ; then

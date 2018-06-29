@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -8,19 +8,15 @@
 
 
 from sm_client.common import utils
-from sm_client.v1 import iservicegroup_shell
-from sm_client.v1 import iservice_shell
-from sm_client.v1 import smservicenode_shell
-from sm_client.v1 import sm_sda_shell
-from sm_client.v1 import sm_nodes_shell
+from sm_client.v1 import smc_service_shell
+from sm_client.v1 import smc_service_node_shell
+from sm_client.v1 import smc_servicegroup_shell
 
 COMMAND_MODULES = [
-    iservicegroup_shell,
-    iservice_shell,
-    smservicenode_shell,
-    sm_sda_shell,
-    sm_nodes_shell
-]
+    smc_service_shell,
+    smc_service_node_shell,
+    smc_servicegroup_shell,
+ ]
 
 
 def enhance_parser(parser, subparsers, cmd_mapper):

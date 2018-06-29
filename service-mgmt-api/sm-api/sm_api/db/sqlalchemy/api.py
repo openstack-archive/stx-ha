@@ -76,7 +76,7 @@ def model_query(model, *args, **kwargs):
     return query
 
 
-def add_identity_filter(query, value, use_name=False):
+def add_identity_filter(query, value, model, use_name=False):
     """Adds an identity filter to a query.
 
     Filters results by ID, if supplied value is a valid integer.
@@ -86,9 +86,9 @@ def add_identity_filter(query, value, use_name=False):
     :param value: Value for filtering results by.
     :return: Modified query.
     """
-    if utils.is_int_like(value):
+    if utils.is_int_like(value) and hasattr(model, "id"):
         return query.filter_by(id=value)
-    elif uuidutils.is_uuid_like(value):
+    elif uuidutils.is_uuid_like(value) and hasattr(model, "uuid"):
         return query.filter_by(uuid=value)
     else:
         if use_name:
@@ -129,7 +129,8 @@ class Connection(api.Connection):
     @objects.objectify(objects.service_groups)
     def iservicegroup_get(self, server):
         query = model_query(models.iservicegroup)
-        query = add_identity_filter(query, server, use_name=True)
+        query = add_identity_filter(
+            query, server, models.iservicegroup, use_name=True)
 
         try:
             result = query.one()
@@ -149,7 +150,8 @@ class Connection(api.Connection):
         # server may be passed as a string. It may be uuid or Int.
         # server = int(server)
         query = model_query(models.service)
-        query = add_identity_filter(query, server, use_name=True)
+        query = add_identity_filter(
+            query, server, models.service, use_name=True)
 
         try:
             result = query.one()
@@ -191,7 +193,8 @@ class Connection(api.Connection):
     @objects.objectify(objects.sm_sda)
     def sm_sda_get(self, server):
         query = model_query(models.sm_sda)
-        query = add_identity_filter(query, server, use_name=True)
+        query = add_identity_filter(
+            query, server, models.sm_sda, use_name=True)
 
         try:
             result = query.one()
@@ -215,7 +218,8 @@ class Connection(api.Connection):
     @objects.objectify(objects.sm_node)
     def sm_node_get(self, server):
         query = model_query(models.sm_node)
-        query = add_identity_filter(query, server, use_name=True)
+        query = add_identity_filter(
+            query, server, models.sm_node, use_name=True)
 
         try:
             result = query.one()
@@ -240,7 +244,8 @@ class Connection(api.Connection):
         # server may be passed as a string. It may be uuid or Int.
         # server = int(server)
         query = model_query(models.service)
-        query = add_identity_filter(query, server, use_name=True)
+        query = add_identity_filter(
+            query, server, models.service, use_name=True)
 
         try:
             result = query.one()

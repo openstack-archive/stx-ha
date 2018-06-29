@@ -13,16 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 
 
 from sm_client.common import http
-from sm_client.v1 import iservice
-from sm_client.v1 import iservicegroup
 from sm_client.v1 import sm_sda
-from sm_client.v1 import smservicenode
 from sm_client.v1 import sm_nodes
+from sm_client.v1 import smc_service
+from sm_client.v1 import smc_service_node
+from sm_client.v1 import smc_servicegroup
 
 
 class Client(http.HTTPClient):
@@ -38,8 +38,8 @@ class Client(http.HTTPClient):
     def __init__(self, *args, **kwargs):
         """Initialize a new client for the Smc v1 API."""
         super(Client, self).__init__(*args, **kwargs)
-        self.iservice = iservice.iServiceManager(self)
-        self.iservicegroup = iservicegroup.iServiceGroupManager(self)
         self.sm_sda = sm_sda.Sm_SdaManager(self)
         self.sm_nodes = sm_nodes.Sm_NodesManager(self)
-        self.smservicenode = smservicenode.smServiceNodeManager(self)
+        self.smc_service = smc_service.SmcServiceManager(self)
+        self.smc_service_node = smc_service_node.SmcNodeManager(self)
+        self.smc_servicegroup = smc_servicegroup.SmcServiceGroupManager(self)

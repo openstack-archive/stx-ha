@@ -36,11 +36,13 @@ Requires:  cgts-mtce-common-pmon
 install -d %{buildroot}/etc/sm
 install -d %{buildroot}/etc/init.d
 install -d %{buildroot}/etc/pmon.d
+install -d %{buildroot}/etc/sm-api
 install -d %{buildroot}%{_unitdir}
 install -m 644 %{_buildsubdir}/scripts/sm_api.ini %{buildroot}/etc/sm
 install -m 755 %{_buildsubdir}/scripts/sm-api %{buildroot}/etc/init.d
 install -m 644 %{_buildsubdir}/scripts/sm-api.service %{buildroot}%{_unitdir}
 install -m 644 %{_buildsubdir}/scripts/sm-api.conf %{buildroot}/etc/pmon.d
+install -m 644 %{_buildsubdir}/etc/sm-api/policy.json %{buildroot}/etc/sm-api
 
 %description
 Service Management API
@@ -72,6 +74,7 @@ Service Management API
 %dir "/etc/sm"
 "/etc/init.d/sm-api"
 "/etc/pmon.d/sm-api.conf"
+"/etc/sm-api/policy.json"
 "/etc/sm/sm_api.ini"
 %{_unitdir}/*
 

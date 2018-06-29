@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -11,16 +11,16 @@ Application
 from oslo_config import cfg
 import pecan
 
+from sm_api.api import acl
 from sm_api.api import config
 from sm_api.api import hooks
-
-from sm_api.api import acl
 from sm_api.api import middleware
+from sm_api.common import policy
 
 
 auth_opts = [
     cfg.StrOpt('auth_strategy',
-        default='noauth',
+        default='keystone',
         help='Method to use for auth: noauth or keystone.'),
     ]
 
@@ -52,6 +52,8 @@ def create_app():
 
 
 def setup_app(pecan_config=None, extra_hooks=None):
+    policy.init()
+
     app_hooks = [hooks.ConfigHook(),
                  hooks.DatabaseHook(),
                  hooks.ContextHook(pecan_config.app.acl_public_routes),
