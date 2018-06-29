@@ -118,8 +118,6 @@ LOCAL_HOST_NAME = socket.gethostname()
 
 def rest_api_request(token, method, api_cmd, api_cmd_headers=None,
                      api_cmd_payload=None, timeout=10):
-
-
     """
     Make a rest-api request
     Returns: response as a dictionary
@@ -133,7 +131,7 @@ def rest_api_request(token, method, api_cmd, api_cmd_headers=None,
         request_info = urllib2.Request(api_cmd)
         request_info.get_method = lambda: method
         if token:
-            request_info.add_header("X-Auth-Token", token.get_id())
+            request_info.add_header("X-Auth-Token", token)
         request_info.add_header("Accept", "application/json")
 
         if api_cmd_headers is not None:
@@ -155,9 +153,6 @@ def rest_api_request(token, method, api_cmd, api_cmd_headers=None,
         LOG.info("Response=%s" % response)
 
     except urllib2.HTTPError as e:
-        if 401 == e.code:
-            if token:
-                token.set_expired()
         LOG.warn("HTTP Error e.code=%s e=%s" % (e.code, e))
         if hasattr(e, 'msg') and e.msg:
             response = json.loads(e.msg)
@@ -438,8 +433,12 @@ class ServiceNodeController(rest.RestController):
         api_cmd_headers['Content-type'] = "application/json"
         api_cmd_headers['Accept'] = "application/json"
         api_cmd_headers['User-Agent'] = "sm/1.0"
-
-        response = rest_api_request(None, "GET", api_cmd, api_cmd_headers, None)
+        auth_token = pecan.request.context.auth_token
+        response = rest_api_request(auth_token,
+                                    "GET",
+                                    api_cmd,
+                                    api_cmd_headers,
+                                    None)
 
         return response
 

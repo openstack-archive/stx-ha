@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -28,14 +28,20 @@ class Version1(wsme_types.Base):
     links = [link.Link]
     "Links that point to a specific URL for this version and documentation"
 
-    service_group = [link.Link]
+    nodes = [link.Link]
+    "Links to the SM node resource"
+
+    service_groups = [link.Link]
     "Links to the SM service-group resource"
 
+    services = [link.Link]
+    "Links to the SM service resource"
+
     servicenode = [link.Link]
-    "Links to the SM service node resource"
+    "Links to the SM node operation resource"
 
     sm_sda = [link.Link]
-    "Links to the SM service domain assignments resource "
+    "Links to the SM service domain assignement resource"
 
     @classmethod
     def convert(cls):
@@ -43,6 +49,14 @@ class Version1(wsme_types.Base):
         v1.id = "v1"
         v1.links = [link.Link.make_link('self', pecan.request.host_url,
                                         'v1', '', bookmark=True)]
+        v1.nodes = [link.Link.make_link('self',
+                                        pecan.request.host_url,
+                                        'nodes', ''),
+                    link.Link.make_link('bookmark',
+                                        pecan.request.host_url,
+                                        'nodes', '',
+                                        bookmark=True)]
+
         v1.service_groups = [link.Link.make_link('self',
                                                  pecan.request.host_url,
                                                  'service_groups', ''),
@@ -61,26 +75,17 @@ class Version1(wsme_types.Base):
         v1.servicenode = [link.Link.make_link('self',
                                               pecan.request.host_url,
                                               'servicenode', ''),
-                             link.Link.make_link('bookmark',
-                                                 pecan.request.host_url,
-                                                 'servicenode', '',
-                                                 bookmark=True)]
-
+                         link.Link.make_link('bookmark',
+                                             pecan.request.host_url,
+                                             'servicenode', '',
+                                             bookmark=True)]
         v1.sm_sda = [link.Link.make_link('self',
                                          pecan.request.host_url,
                                          'sm_sda', ''),
-                             link.Link.make_link('bookmark',
-                                                 pecan.request.host_url,
-                                                 'sm_sda', '',
-                                                 bookmark=True)]
-
-        v1.nodes = [link.Link.make_link('self',
+                     link.Link.make_link('bookmark',
                                          pecan.request.host_url,
-                                         'nodes', ''),
-                             link.Link.make_link('bookmark',
-                                                 pecan.request.host_url,
-                                                 'nodes', '',
-                                                 bookmark=True)]
+                                         'sm_sda', '',
+                                         bookmark=True)]
 
         return v1
 

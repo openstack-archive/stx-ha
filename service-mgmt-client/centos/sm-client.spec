@@ -23,6 +23,8 @@ Requires: python-libs
 %install
 %global _buildsubdir %{_builddir}/%{name}-%{version}
 %{__python2} setup.py install -O1 --skip-build --root %{buildroot}
+install -d %{buildroot}/usr/bin
+install -m 755 %{_buildsubdir}/usr/bin/smc %{buildroot}/usr/bin
 
 %description
 Service Management Client and CLI 
@@ -46,6 +48,7 @@ Service Management Client and CLI
 %defattr(-,root,root,-)
 %dir "/usr/lib/python2.7/site-packages/sm_client"
 /usr/lib/python2.7/site-packages/sm_client/*
+"/usr/bin/smc"
 %dir "/usr/lib/python2.7/site-packages/sm_client-1.0.0-py2.7.egg-info"
 /usr/lib/python2.7/site-packages/sm_client-1.0.0-py2.7.egg-info/*
 
