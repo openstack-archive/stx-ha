@@ -1,5 +1,5 @@
 The SM database can be generated off of an excel spreadsheet
-(cgcs-root/addons/wr-cgcs/layers/mwa-thales/service-mgmt/sm-db-1.0.0/database/sm_database.xlsb)
+(cgcs-root/stx/stx-ha/service-mgmt/sm-db-1.0.0/database/sm_database.xlsb)
 
 Instructions:
 1. Update the SM excel spreadsheet (sm_database.xlsb) with your changes,
