@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -15,7 +15,7 @@ from sm_api.api.controllers.v1 import base
 from sm_api.api.controllers.v1 import collection
 from sm_api.api.controllers.v1 import link
 from sm_api.api.controllers.v1 import utils
-
+from sm_api.common import exception
 from sm_api.common import log
 from sm_api import objects
 
@@ -112,7 +112,10 @@ class NodesController(rest.RestController):
 
     @wsme_pecan.wsexpose(Nodes, unicode)
     def get_one(self, uuid):
-        rpc_sg = objects.sm_node.get_by_uuid(pecan.request.context, uuid)
+        try:
+            rpc_sg = objects.sm_node.get_by_uuid(pecan.request.context, uuid)
+        except exception.ServerNotFound:
+            return None
 
         return  Nodes.convert_with_links(rpc_sg)
 

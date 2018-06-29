@@ -1,13 +1,12 @@
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
 
 
 from sm_client.common import utils
-from keystoneclient.v2_0 import client as ksclient
-
+from keystoneclient.v3 import client as ksclient
 
 def _get_ksclient(**kwargs):
     """Get an endpoint and auth token from Keystone.
@@ -21,17 +20,19 @@ def _get_ksclient(**kwargs):
     """
     return ksclient.Client(username=kwargs.get('username'),
                            password=kwargs.get('password'),
-                           tenant_id=kwargs.get('tenant_id'),
-                           tenant_name=kwargs.get('tenant_name'),
+                           user_domain_name=kwargs.get('user_domain_name'),
+                           project_domain_name=kwargs.get('project_domain_name'),
+                           project_name=kwargs.get('project_name'),
                            auth_url=kwargs.get('auth_url'),
+                           cacert=kwargs.get('os_cacert'),
                            insecure=kwargs.get('insecure'))
 
 
 def _get_endpoint(client, **kwargs):
     """Get an endpoint using the provided keystone client."""
     return client.service_catalog.url_for(
-        service_type=kwargs.get('service_type') or 'baremetal',
-        endpoint_type=kwargs.get('endpoint_type') or 'publicURL',
+        service_type=kwargs.get('service_name') or 'smapi',
+        endpoint_type=kwargs.get('endpoint_type') or 'public',
         region_name=kwargs.get('os_region_name') or 'RegionOne')
 
 
@@ -54,31 +55,30 @@ def get_client(api_version, **kwargs):
     if kwargs.get('os_auth_token') and kwargs.get('smc_url'):
         token = kwargs.get('os_auth_token')
         endpoint = kwargs.get('smc_url')
+        auth_ref = None
     elif (kwargs.get('os_username') and
           kwargs.get('os_password') and
-          kwargs.get('os_auth_url') and
-          (kwargs.get('os_tenant_id') or kwargs.get('os_tenant_name'))):
+          kwargs.get('os_auth_url')):
 
         ks_kwargs = {
             'username': kwargs.get('os_username'),
             'password': kwargs.get('os_password'),
-            'tenant_id': kwargs.get('os_tenant_id'),
-            'tenant_name': kwargs.get('os_tenant_name'),
             'auth_url': kwargs.get('os_auth_url'),
+            'project_id': kwargs.get('os_project_id'),
+            'project_name': kwargs.get('os_project_name'),
+            'user_domain_id': kwargs.get('os_user_domain_id'),
+            'user_domain_name': kwargs.get('os_user_domain_name'),
+            'project_domain_id': kwargs.get('os_project_domain_id'),
+            'project_domain_name': kwargs.get('os_project_domain_name'),
             'service_type': kwargs.get('os_service_type'),
             'endpoint_type': kwargs.get('os_endpoint_type'),
             'insecure': kwargs.get('insecure'),
         }
         _ksclient = _get_ksclient(**ks_kwargs)
-        token = ((lambda: kwargs.get('os_auth_token'))
-                 if kwargs.get('os_auth_token')
-                 else (lambda: _ksclient.auth_token))
-
+        token = kwargs.get('os_auth_token') if kwargs.get('os_auth_token') else _ksclient.auth_ref.auth_token
         ep_kwargs = {
             'username': kwargs.get('os_username'),
             'password': kwargs.get('os_password'),
-            'tenant_id': kwargs.get('os_tenant_id'),
-            'tenant_name': kwargs.get('os_tenant_name'),
             'auth_url': kwargs.get('os_auth_url'),
             'service_type': kwargs.get('os_service_type'),
             'endpoint_type': kwargs.get('os_endpoint_type'),
@@ -89,8 +89,7 @@ def get_client(api_version, **kwargs):
         endpoint = kwargs.get('smc_url') or \
             _get_endpoint(_ksclient, **ep_kwargs)
 
-        #region_name=kwargs.get('os_region_name') or 'RegionOne'
-        # neutron_endpoint = _get_endpoint(_ksclient, service_type='network', endpoint_type='internalURL', region_name=region_name )
+        auth_ref = _ksclient.auth_ref
 
     cli_kwargs = {
         'token': token,
@@ -99,7 +98,8 @@ def get_client(api_version, **kwargs):
         'ca_file': kwargs.get('ca_file'),
         'cert_file': kwargs.get('cert_file'),
         'key_file': kwargs.get('key_file'),
-        # 'neutron_endpoint': neutron_endpoint,
+        'auth_ref': auth_ref,
+        'auth_url': kwargs.get('os_auth_url'),
     }
 
     return Client(api_version, endpoint, **cli_kwargs)

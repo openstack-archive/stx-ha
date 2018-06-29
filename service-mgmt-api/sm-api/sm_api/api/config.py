@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014-2018 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -12,6 +12,6 @@ app = {'root': 'sm_api.api.controllers.root.RootController',
        'modules': ['sm_api'],
        'static_root': '',
        'debug': False,
-       'enable_acl': False,
+       'enable_acl': True,
        'acl_public_routes': ['/', '/v1']
       }

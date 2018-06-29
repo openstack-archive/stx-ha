@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2018 Wind River Systems, Inc.
 #
 
 
@@ -118,11 +118,42 @@ def print_tuple_list(tuples, tuple_labels=[]):
     print pt.get_string()
 
 
-def print_dict(d, dict_property="Property", wrap=0):
+def print_mapping(data, fields, dict_property="Property", wrap=0):
     pt = prettytable.PrettyTable([dict_property, 'Value'],
                                  caching=False, print_empty=False)
     pt.align = 'l'
-    for k, v in d.iteritems():
+    for k in fields:
+        if hasattr(data, k):
+            v = getattr(data, k, '')
+        else:
+            v = ''
+        # convert dict to str to check length
+        if isinstance(v, dict):
+            v = str(v)
+        if wrap > 0:
+            v = textwrap.fill(str(v), wrap)
+        # if value has a newline, add in multiple rows
+        # e.g. fault with stacktrace
+        if v and isinstance(v, basestring) and r'\n' in v:
+            lines = v.strip().split(r'\n')
+            col1 = k
+            for line in lines:
+                pt.add_row([col1, line])
+                col1 = ''
+        else:
+            pt.add_row([k, v])
+    print pt.get_string()
+
+def print_dict(d, fields, dict_property="Property", wrap=0):
+    pt = prettytable.PrettyTable([dict_property, 'Value'],
+                                 caching=False, print_empty=False)
+    pt.align = 'l'
+    for k in fields:
+        if k in d:
+            v = d[k]
+        else:
+            v = ''
+
         # convert dict to str to check length
         if isinstance(v, dict):
             v = str(v)
