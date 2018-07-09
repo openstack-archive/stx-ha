@@ -63,10 +63,11 @@ def get_ipv6_server_cls():
 
 
 def main():
-    # Parse config file and command line options, then start logging
-
-    # Periodically check every minute for want_sm_config
     LOG = log.getLogger(__name__)
+    LOG.info("Wait for sm to start...")
+    # wait until sm start configuring before starting
+    while not os.path.exists("/var/run/sm/sm.db"):
+        time.sleep(5)
 
     sm_api_service.prepare_service(sys.argv)
 
