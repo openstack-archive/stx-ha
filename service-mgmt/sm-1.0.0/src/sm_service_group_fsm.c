@@ -212,7 +212,7 @@ static SmErrorT sm_service_group_fsm_enter_state( SmServiceGroupT* service_group
         break;
 
         case SM_SERVICE_GROUP_STATE_DISABLED:
-            // US102803: This is a workaround for lack of sm message that
+            // This is a workaround for lack of sm message that
             // signifies the "end-of-swact" state on both controller nodes.
             //
             // As all service groups have to transition to disabled state

@@ -351,7 +351,7 @@ static SmErrorT sm_process_initialize( void )
         return( SM_FAILED );
     }
 
-    // US102803: Start a task affining thread for AIO duplex system
+    // Start a task affining thread for AIO duplex system
     if(_is_aio_duplex)
     {
         error = sm_task_affining_thread_start();
@@ -374,7 +374,7 @@ static SmErrorT sm_process_finalize( void )
 {
     SmErrorT error;
 
-    // US102803: Stop the task affining thread if it is AIO duplex
+    // Stop the task affining thread if it is AIO duplex
     if(_is_aio_duplex)
     {
         error = sm_task_affining_thread_stop();

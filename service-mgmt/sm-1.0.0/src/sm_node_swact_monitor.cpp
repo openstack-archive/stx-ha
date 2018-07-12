@@ -18,7 +18,7 @@ void SmNodeSwactMonitor::SwactStart(SmNodeScheduleStateT my_role)
     sm_node_utils_is_aio_duplex(&duplex);
     if( duplex )
     {
-        // US102803: Set the swact state to start so task affining thread
+        // Set the swact state to start so task affining thread
         // can affine tasks to all idle cores to speed up swact activity.
         DPRINTFI("Start of swact: affining tasks to idle cores...");
         sm_set_swact_state(SM_SWACT_STATE_START);
@@ -48,7 +48,7 @@ void SmNodeSwactMonitor::SwactCompleted(bool result)
 {
     if( duplex )
     {
-        // US102803: Set the swact state to end so task affining thread
+        // Set the swact state to end so task affining thread
         // can reaffine tasks back to the platform cores.
         DPRINTFI("End of swact: reaffining tasks back to platform cores...");
         sm_set_swact_state(SM_SWACT_STATE_END);
