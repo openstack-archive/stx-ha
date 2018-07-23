@@ -1,0 +1,8 @@
+Code-Review+2: John Kung <john.kung@windriver.com>
+Workflow+1: Jack Ding <Jack.Ding@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Mon, 23 Jul 2018 17:25:56 +0000
+Reviewed-on: https://review.openstack.org/584958
+Project: openstack/stx-ha
+Branch: refs/heads/master
