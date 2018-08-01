@@ -1,0 +1,8 @@
+Code-Review+2: Bin Qian <bin.qian@windriver.com>
+Workflow+1: Bin Qian <bin.qian@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Wed, 01 Aug 2018 13:34:25 +0000
+Reviewed-on: https://review.openstack.org/587427
+Project: openstack/stx-ha
+Branch: refs/heads/master
