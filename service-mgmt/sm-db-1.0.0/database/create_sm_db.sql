@@ -7,7 +7,7 @@ INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(1,'yes','controller','management-
 INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(2,'yes','controller','oam-interface','secondary','hmac-sha512','titanium-server','','','','','','','','','','','tor');
 INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(3,'yes','controller','infrastructure-interface','secondary','none','','','','','','','','','','','','tor');
 CREATE TABLE SERVICE_DOMAINS ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), ORCHESTRATION CHAR(32), DESIGNATION CHAR(32), PREEMPT CHAR(32), PRIORITY INT, HELLO_INTERVAL INT, DEAD_INTERVAL INT, WAIT_INTERVAL INT, EXCHANGE_INTERVAL INT, STATE CHAR(32), SPLIT_BRAIN_RECOVERY CHAR(32), LEADER CHAR(32), GENERATION INT);
-INSERT INTO "SERVICE_DOMAINS" VALUES(1,'yes','controller','regional','unknown','no',230,200,800,2500,2000,'initial','select-best-active','',1);
+INSERT INTO "SERVICE_DOMAINS" VALUES(1,'yes','controller','regional','unknown','no',230,200,800,5000,2000,'initial','select-best-active','',1);
 CREATE TABLE SERVICE_DOMAIN_MEMBERS ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), SERVICE_GROUP_NAME CHAR(32), REDUNDANCY_MODEL CHAR(32), N_ACTIVE INT, M_STANDBY INT, SERVICE_GROUP_AGGREGATE CHAR(32), ACTIVE_ONLY_IF_ACTIVE CHAR(32) );
 INSERT INTO "SERVICE_DOMAIN_MEMBERS" VALUES(1,'yes','controller','oam-services','N + M',1,1,'controller-aggregate','directory-services');
 INSERT INTO "SERVICE_DOMAIN_MEMBERS" VALUES(2,'yes','controller','controller-services','N + M',1,1,'controller-aggregate','directory-services');
