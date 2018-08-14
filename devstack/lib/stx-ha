@@ -1,0 +1,159 @@
+export BIN_DIR=${BIN_DIR:-"/usr/local/bin"}
+export LIB_DIR=${LIB_DIR:-"/usr/local/lib"}
+export INC_DIR=${INC_DIR:-"/usr/local/include"}
+export CGCS_DOC_DEPLOY_DIR=/opt/deploy/cgcs_doc
+
+export UNIT_DIR=/etc/systemd/system/
+
+export MAJOR=${MAJOR:-1}
+export MINOR=${MINOR:-0}
+
+SM_VERSION="1.0.0"
+SM_COMMON_VERSION="1.0.0"
+SM_DB_VERSION="1.0.0"
+
+SM_DIR=$DEST/stx-ha/service-mgmt/sm-${SM_VERSION}
+SM_COMMON_DIR=$DEST/stx-ha/service-mgmt/sm-common-${SM_COMMON_VERSION}
+SM_DB_DIR=$DEST/stx-ha/service-mgmt/sm-db-${SM_DB_VERSION}
+SM_API_DIR=$DEST/stx-ha/service-mgmt-api/sm-api
+SM_CLIENT_DIR=$DEST/stx-ha/service-mgmt-client/sm-client
+SM_TOOLS_DIR=$DEST/stx-ha/service-mgmt-tools/sm-tools
+
+function install_sm_api(){
+    cd $SM_API_DIR
+    python2 setup.py build
+    sudo -E python2 setup.py install -O1 --skip-build
+
+    sudo install -d /etc/sm
+    sudo install -d /etc/sm-api
+    sudo install -d /etc/pmon.d
+    sudo install -m 644 scripts/sm_api.ini /etc/sm
+    sudo install -m 755 scripts/sm-api /etc/init.d
+    sudo install -m 644 scripts/sm-api.service $UNIT_DIR
+    sudo install -m 644 scripts/sm-api.conf /etc/pmon.d
+    sudo install -m 644 etc/sm-api/policy.json /etc/sm-api
+}
+
+function install_sm_client(){
+    cd $SM_CLIENT_DIR
+    python2 setup.py build
+    sudo python2 setup.py install -O1 --skip-build
+    sudo install -m 755 usr/bin/smc /usr/bin
+}
+
+function install_sm_tools(){
+    cd $SM_TOOLS_DIR
+    python2 setup.py build
+    sudo python2 setup.py install -O1 --skip-build
+}
+
+function install_sm(){
+    cd $SM_DIR
+
+    export VER=$SM_VERSION
+    export VER_MJR=`echo $VER | awk -F . '{print $1}'`
+
+    make -j"$(nproc)" build CCFLAGS=" -g -O2 -Wall -Wformat  -std=c++11 " \
+	 INCLUDES="-I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include"
+
+    sudo make UNIT_DIR=$UNIT_DIR install_non_bb
+
+}
+
+function enable_sm(){
+    # copy lsb functions to rpm-based path
+    if [[ "$os_VENDOR" =~ (Ubuntu) || "$os_VENDOR" =~ (Debian) ]] &&
+       [ ! -e /etc/init.d/functions ]; then
+	sudo cp /lib/lsb/init-functions /etc/init.d/functions
+    fi
+    /usr/bin/systemctl enable sm-eru.service >/dev/null 2>&1
+    /usr/bin/systemctl enable sm.service >/dev/null 2>&1
+    /usr/bin/systemctl enable sm-shutdown.service >/dev/null 2>&1
+}
+
+function install_sm_common(){
+    cd $SM_COMMON_DIR
+
+    export VER=$SM_COMMON_VERSION
+    export VER_MJR=`echo $VER | awk -F . '{print $1}'`
+
+    make INCLUDES="-I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include" CCFLAGS="-fPIC -g -Wall -Werror"
+
+    sudo -E make install_non_bb
+    sudo -E install -m 750 src/sm_eru $BIN_DIR/sm-eru
+    sudo -E install -m 750 -D src/sm_eru_dump $BIN_DIR/sm-eru-dump
+    sudo -E install -m 750 -p -D src/sm_watchdog $BIN_DIR/sm-watchdog
+
+    sudo -E install -m 644 -p -D scripts/sm-eru.service $UNIT_DIR/sm-eru.service
+    sudo -E install -m 644 -p -D scripts/sm-watchdog.service $UNIT_DIR/sm-watchdog.service
+
+    sudo install -m 750 -d /etc/pmon.d
+    sudo install -m 640 -p -D scripts/sm-eru.conf /etc/pmon.d/sm-eru.conf
+    sudo install -m 640 -p -D scripts/sm-watchdog.conf /etc/pmon.d/sm-watchdog.conf
+
+    sudo install -m 750 -p -D scripts/sm-eru /etc/init.d/sm-eru
+    sudo install -m 750 -p -D scripts/sm-watchdog /etc/init.d/sm-watchdog
+}
+
+function install_sm_db(){
+    cd $SM_DB_DIR
+
+    export VER=$SM_DB_VERSION
+    export VER_MJR=`echo $VER | awk -F . '{print $1}'`
+
+    sqlite3 database/sm.db < database/create_sm_db.sql
+    sqlite3 database/sm.hb.db < database/create_sm_hb_db.sql
+    make LDLIBS=" -lsqlite3 -lglib-2.0 -lrt -lsm_common -luuid"
+
+    sudo -E make install_non_bb
+}
+
+function clean_sm(){
+    cd $SM_DIR
+    make clean
+    file_list=(/usr/bin/sm \
+	      /usr/local/sbin/sm-notify \
+	      /usr/local/sbin/sm-troubleshoot \
+	      /usr/local/sbin/sm-notification \
+	      /etc/init.d/sm \
+	      /etc/init.d/sm-shutdown \
+	      /etc/pmon.d/sm.conf \
+	      /etc/logrotate.d/sm.logrotate)
+    for i in ${file_list[@]}; do
+	sudo rm -f $i
+    done
+}
+
+function clean_sm_common(){
+    /usr/bin/systemctl stop sm.service >/dev/null 2>&1
+    /usr/bin/systemctl stop sm-shutdown.service >/dev/null 2>&1
+    /usr/bin/systemctl disable sm.service >/dev/null 2>&1
+    /usr/bin/systemctl disable sm-shutdown.service >/dev/null 2>&1
+
+    file_list=(/etc/init.d/sm-watchdog \
+		   /etc/pmon.d/sm-watchdog.conf \
+		   /usr/bin/sm-watchdog \
+		   /usr/lib/systemd/system/sm-watchdog.service \
+		   /var/lib/sm/watchdog/modules/*.so.* \
+		   /etc/init.d/sm-eru \
+		   /etc/pmon.d/sm-eru.conf \
+		   /usr/bin/sm-eru \
+		   /usr/bin/sm-eru-dump \
+		   /usr/lib/systemd/system/sm-eru.service)
+
+    cd $SM_COMMON_DIR
+    make clean
+    for i in ${file_list[@]}; do
+	sudo rm -f $i
+    done
+    rm -rf /var/lib/sm
+}
+
+function clean_sm_db(){
+    cd $SM_DB_DIR
+    make clean
+    rm -rf database/*.db
+    sudo rm -rf /usr/lib64/libsm_db.so*
+    sudo rm -rf /var/lib/sm/
+
+}
