@@ -1,0 +1,4 @@
+libsqlite3-dev
+libglib2.0-dev
+libjson-c-dev
+facter
