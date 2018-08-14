@@ -1,0 +1,264 @@
+#!/bin/bash
+#
+# lib/stx-ha
+# Functions to control the configuration and operation of the **high availability** service
+
+export BIN_DIR=${BIN_DIR:-"/usr/local/bin"}
+export LIB_DIR=${LIB_DIR:-"/usr/local/lib"}
+export INC_DIR=${INC_DIR:-"/usr/local/include"}
+export CGCS_DOC_DEPLOY_DIR=/opt/deploy/cgcs_doc
+
+export UNIT_DIR=/etc/systemd/system/
+
+STX_HA_NAME=stx-ha
+
+SM_VERSION=$(cat $DEST/$STX_HA_NAME/centos_pkg_dirs | awk  -F '-' '/sm-[0-9]/ {print $3}')
+SM_COMMON_VERSION=$(cat $DEST/$STX_HA_NAME/centos_pkg_dirs | awk  -F '-' '/sm-common-[0-9]/ {print $4}')
+SM_DB_VERSION=$(cat $DEST/$STX_HA_NAME/centos_pkg_dirs | awk  -F '-' '/sm-db-[0-9]/ {print $4}')
+
+SM_DIR=$DEST/stx-ha/service-mgmt/sm-${SM_VERSION}
+SM_COMMON_DIR=$DEST/stx-ha/service-mgmt/sm-common-${SM_COMMON_VERSION}
+SM_DB_DIR=$DEST/stx-ha/service-mgmt/sm-db-${SM_DB_VERSION}
+SM_API_DIR=$DEST/stx-ha/service-mgmt-api/sm-api
+SM_CLIENT_DIR=$DEST/stx-ha/service-mgmt-client/sm-client
+SM_TOOLS_DIR=$DEST/stx-ha/service-mgmt-tools/sm-tools
+
+SM_RESTAPI_SERVICE_PROTOCOL=${SM_RESTAPI_SERVICE_PROTOCOL:-$SERVICE_PROTOCOL}
+SM_RESTAPI_SERVICE_HOST=${SM_RESTAPI_SERVICE_HOST:-$SERVICE_HOST}
+SM_RESTAPI_SERVICE_PORT=${SM_RESTAPI_SERVICE_PORT:-7777}
+
+function cleanup_sm(){
+    stop_sm
+    if is_service_enabled sm-common; then
+        clean_sm_common
+        clean_sm_client
+	clean_sm_tools
+    fi
+    if is_service_enabled sm-api; then
+	clean_sm_db
+	clean_sm
+        clean_sm_api
+    fi
+}
+
+function clean_sm(){
+    pushd $SM_DIR
+    make clean
+    file_list=(/usr/bin/sm \
+	      /usr/local/sbin/sm-notify \
+	      /usr/local/sbin/sm-troubleshoot \
+	      /usr/local/sbin/sm-notification \
+	      /etc/init.d/sm \
+	      /etc/init.d/sm-shutdown \
+	      /etc/pmon.d/sm.conf \
+	      /etc/logrotate.d/sm.logrotate)
+    for i in ${file_list[@]}; do
+	sudo rm -f $i
+    done
+    popd
+}
+
+function clean_sm_api(){
+    :
+}
+
+function clean_sm_db(){
+    pushd $SM_DB_DIR
+    make clean
+    rm -rf database/*.db
+    sudo rm -rf /usr/lib64/libsm_db.so*
+    sudo rm -rf /var/lib/sm/
+    popd
+}
+
+function clean_sm_client(){
+    :
+}
+
+function clean_sm_common(){
+    sudo /usr/bin/systemctl stop sm.service >/dev/null 2>&1
+    sudo /usr/bin/systemctl stop sm-shutdown.service >/dev/null 2>&1
+    sudo /usr/bin/systemctl disable sm.service >/dev/null 2>&1
+    sudo /usr/bin/systemctl disable sm-shutdown.service >/dev/null 2>&1
+
+    file_list=(/etc/init.d/sm-watchdog \
+		   /etc/pmon.d/sm-watchdog.conf \
+		   /usr/bin/sm-watchdog \
+		   /usr/lib/systemd/system/sm-watchdog.service \
+		   /var/lib/sm/watchdog/modules/*.so.* \
+		   /etc/init.d/sm-eru \
+		   /etc/pmon.d/sm-eru.conf \
+		   /usr/bin/sm-eru \
+		   /usr/bin/sm-eru-dump \
+		   /usr/lib/systemd/system/sm-eru.service)
+
+    pushd $SM_COMMON_DIR
+    make clean
+    for i in ${file_list[@]}; do
+	sudo rm -f $i
+    done
+    sudo rm -rf /var/lib/sm
+    sudo rm -rf /usr/local/lib/libsm_common.*
+    popd
+}
+
+function clean_sm_tools(){
+    :
+}
+
+function create_sm_accounts(){
+    if [[ "$ENABLED_SERVICES" =~ "sm-api" ]]; then
+        create_service_user "smapi"
+        get_or_create_service "smapi" "servicemanagement" "Service Management"
+        get_or_create_endpoint \
+            "servicemanagement" \
+            "$REGION_NAME" \
+            "$SM_RESTAPI_SERVICE_PROTOCOL://$SM_RESTAPI_SERVICE_HOST:$SM_RESTAPI_SERVICE_PORT/v1"
+    fi
+}
+
+function install_service_management(){
+    if is_service_enabled sm-common; then
+        install_sm_common
+        install_sm_client
+	install_sm_tools
+    fi
+    if is_service_enabled sm-api; then
+	install_sm_db
+	install_sm
+        install_sm_api
+    fi
+}
+
+function install_sm_api(){
+    pushd $SM_API_DIR
+    python2 setup.py build
+    sudo -E python2 setup.py install -O1 --skip-build
+
+    sudo install -d /etc/sm
+    sudo install -d /etc/sm-api
+    sudo install -d /etc/pmon.d
+    sudo install -m 644 scripts/sm_api.ini /etc/sm
+
+    sudo install -m 750 -p -D scripts/sm-api /etc/init.d/sm-api
+    # change sm-api BIN_DIR
+    sudo sed "s|SM_API=.*|SM_API=${BIN_DIR}/sm-api|g" -i /etc/init.d/sm-api
+
+    sudo install -m 644 scripts/sm-api.service $UNIT_DIR
+    sudo install -m 644 scripts/sm-api.conf /etc/pmon.d
+    sudo install -m 644 etc/sm-api/policy.json /etc/sm-api
+    popd
+}
+
+function install_sm_client(){
+    pushd $SM_CLIENT_DIR
+    python2 setup.py build
+    sudo python2 setup.py install -O1 --skip-build
+    sudo install -m 755 usr/bin/smc /usr/bin
+    popd
+}
+
+function install_sm_tools(){
+    pushd $SM_TOOLS_DIR
+    python2 setup.py build
+    sudo python2 setup.py install -O1 --skip-build
+    popd
+}
+
+function install_sm(){
+    pushd $SM_DIR
+
+    local semver=( ${SM_VERSION//./ } )
+    local major=${semver[0]}
+    local minor=${semver[1]}
+
+    make -j"$(nproc)" build CCFLAGS=" -g -O2 -Wall -Wformat  -std=c++11 " \
+	 INCLUDES="-I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include" \
+	 VER=$minor \
+	 VER_MJR=$major
+
+    sudo make UNIT_DIR=$UNIT_DIR install_non_bb
+
+    # change sm BIN_DIR
+    sudo sed "s|SM=.*|SM=${BIN_DIR}/sm|g" -i /etc/init.d/sm
+
+    popd
+}
+
+function enable_sm(){
+    # copy lsb functions to rpm-based path
+    if [[ "$os_VENDOR" =~ (Ubuntu) || "$os_VENDOR" =~ (Debian) ]] &&
+       [ ! -e /etc/init.d/functions ]; then
+	sudo cp /lib/lsb/init-functions /etc/init.d/functions
+    fi
+    sudo /usr/bin/systemctl enable sm-eru.service >/dev/null 2>&1
+    sudo /usr/bin/systemctl enable sm.service >/dev/null 2>&1
+    sudo /usr/bin/systemctl enable sm-shutdown.service >/dev/null 2>&1
+}
+
+function install_sm_common(){
+    pushd $SM_COMMON_DIR
+
+    local semver=( ${SM_COMMON_VERSION//./ } )
+    local major=${semver[0]}
+    local minor=${semver[1]}
+
+    make INCLUDES="-I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include" \
+	 CCFLAGS="-fPIC -g -Wall -Werror" \
+	 VER=$minor \
+	 VER_MJR=$major
+
+    sudo -E make install_non_bb VER=$minor VER_MJR=$major
+    sudo ldconfig
+
+    sudo -E install -m 750 src/sm_eru $BIN_DIR/sm-eru
+    sudo -E install -m 750 -D src/sm_eru_dump $BIN_DIR/sm-eru-dump
+    sudo -E install -m 750 -p -D src/sm_watchdog $BIN_DIR/sm-watchdog
+
+    sudo -E install -m 644 -p -D scripts/sm-eru.service $UNIT_DIR/sm-eru.service
+    sudo -E install -m 644 -p -D scripts/sm-watchdog.service $UNIT_DIR/sm-watchdog.service
+
+    sudo install -m 750 -d /etc/pmon.d
+    sudo install -m 640 -p -D scripts/sm-eru.conf /etc/pmon.d/sm-eru.conf
+    sudo install -m 640 -p -D scripts/sm-watchdog.conf /etc/pmon.d/sm-watchdog.conf
+
+    sudo install -m 750 -p -D scripts/sm-eru /etc/init.d/sm-eru
+    # change sm-api BIN_DIR
+    sudo sed "s|SM_ERU=.*|SM_ERU=${BIN_DIR}/sm-eru|g" -i /etc/init.d/sm-eru
+
+    sudo install -m 750 -p -D scripts/sm-watchdog /etc/init.d/sm-watchdog
+    popd
+}
+
+function install_sm_db(){
+    pushd $SM_DB_DIR
+
+    local semver=( ${SM_DB_VERSION//./ } )
+    local major=${semver[0]}
+    local minor=${semver[1]}
+
+    sqlite3 database/sm.db < database/create_sm_db.sql
+    sqlite3 database/sm.hb.db < database/create_sm_hb_db.sql
+    make LDLIBS=" -lsqlite3 -lglib-2.0 -lrt -lsm_common -luuid" \
+	 VER=$minor \
+	 VER_MJR=$major
+
+    sudo -E make install_non_bb VER=$minor VER_MJR=$major
+    popd
+}
+
+function start_sm_api(){
+    echo "trigger start sm api"
+    run_process sm-api "$SM_BIN_DIR/sm-api --config-file=$SM_CONF_FILE"
+
+    echo "Waiting for sm-api ($SERVICE_HOST:$service_port) to start..."
+    if ! timeout $SERVICE_TIMEOUT sh -c "while ! wget --no-proxy -q -O- $service_protocol://$SERVICE_HOST:$service_port/; do sleep 1; done"; then
+        die $LINENO "sm-api did not start"
+    fi
+}
+
+function start_sm(){
+    echo "trigger start sm api"
+    run_process sm "$SM_API_BIN_DIR/sm --config-file=$SM_API_CONF_FILE"
+    # TODO: validate service
+}
