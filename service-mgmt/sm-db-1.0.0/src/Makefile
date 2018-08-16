@@ -28,7 +28,7 @@ SRCS+=sm_db_build.c
 SRCS+=sm_db_configuration.c
 
 OBJS = $(SRCS:.c=.o)
-CCFLAGS= -fPIC -g -O2 -Wall -Werror 
+CCFLAGS= -fPIC -g -O2 -Wall -Werror -std=c++11
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS
 LDLIBS= -lsqlite3 -lglib-2.0 -luuid -lrt -lsm_common
 LDFLAGS = -shared -rdynamic

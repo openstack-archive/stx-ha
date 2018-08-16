@@ -433,9 +433,9 @@ void sm_eru_db_display( SmEruDatabaseEntryT* entry, bool want_raw )
         break;
 
         case SM_ERU_DATABASE_ENTRY_TYPE_TC_STATS:
-            printf( "tc-stats: %s %s %s bytes: %"PRIu64" packets: %"PRIu64
-                    " qlen: %"PRIu64" backlog: %"PRIu64" drops: %"PRIu64
-                    " requeues: %"PRIu64" overlimits: %"PRIu64"\n",
+            printf( "tc-stats: %s %s %s bytes: %" PRIu64 " packets: %" PRIu64
+                    " qlen: %" PRIu64 " backlog: %" PRIu64 " drops: %" PRIu64
+                    " requeues: %" PRIu64 " overlimits: %" PRIu64 "\n",
                     qdisc->interface_name, qdisc->queue_type,
                     qdisc->handle, qdisc->bytes, qdisc->packets,
                     qdisc->q_length, qdisc->backlog, qdisc->drops,

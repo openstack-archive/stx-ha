@@ -85,7 +85,7 @@ static bool sm_service_domain_neighbor_fsm_pause_timeout( SmTimerIdT timer_id,
     neighbor = sm_service_domain_neighbor_table_read_by_id( id );
     if( NULL == neighbor )
     {
-        DPRINTFE( "Failed to read neighbor (%"PRIi64"), error=%s.", id,
+        DPRINTFE( "Failed to read neighbor (%" PRIi64 "), error=%s.", id,
                   sm_error_str(SM_NOT_FOUND) );
         return( true );
     }
@@ -204,7 +204,7 @@ static bool sm_service_domain_neighbor_fsm_dead_timeout( SmTimerIdT timer_id,
     neighbor = sm_service_domain_neighbor_table_read_by_id( id );
     if( NULL == neighbor )
     {
-        DPRINTFE( "Failed to read neighbor (%"PRIi64"), error=%s.", id,
+        DPRINTFE( "Failed to read neighbor (%" PRIi64 "), error=%s.", id,
                   sm_error_str(SM_NOT_FOUND) );
         return( true );
     }

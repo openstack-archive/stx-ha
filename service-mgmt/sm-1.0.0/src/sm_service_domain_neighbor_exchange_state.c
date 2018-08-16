@@ -37,7 +37,7 @@ static bool sm_service_domain_neighbor_exchange_timeout( SmTimerIdT timer_id,
     neighbor = sm_service_domain_neighbor_table_read_by_id( id );
     if( NULL == neighbor )
     {
-        DPRINTFE( "Failed to read neighbor (%"PRIi64"), error=%s.", id,
+        DPRINTFE( "Failed to read neighbor (%" PRIi64 "), error=%s.", id,
                   sm_error_str(SM_NOT_FOUND) );
         return( true );
     }
@@ -258,7 +258,7 @@ static void sm_service_domain_neighbor_exchange_receive(
     if( last_received_member_id != neighbor->exchange_last_sent_id )
     {
         DPRINTFE( "Member id mismatch from neighbor (%s) for service domain "
-                  "(%s), received=%"PRIi64", expected=%"PRIi64".",
+                  "(%s), received=%" PRIi64 ", expected=%" PRIi64 ".",
                   node_name, service_domain_name, last_received_member_id,
                   neighbor->exchange_last_sent_id );
         return;
