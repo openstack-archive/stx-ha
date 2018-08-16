@@ -975,7 +975,7 @@ static void sm_service_domain_scheduler_dump_entry( void* user_data[],
 
     SCHED_LOG( assignment->name, "  Node (%s) - Service Group (%s) - "
                "desired_state=%s, state=%s, status=%s, condition=%s, "
-               "health=%"PRIX64", last_state_change=%li, sched_state=%s, "
+               "health=%" PRIX64 ", last_state_change=%li, sched_state=%s, "
                "sched_weight=%i.", assignment->node_name,
                assignment->service_group_name,
                sm_service_group_state_str(assignment->desired_state),

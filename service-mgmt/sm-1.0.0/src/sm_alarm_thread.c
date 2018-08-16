@@ -319,7 +319,7 @@ static void sm_alarm_thread_log( SmAlarmEntryT* entry )
     char date_str[32];
     struct tm t_real;
 
-    fprintf( _customer_alarm_log, "alarm-log-id:                  %"PRIu64"\n",
+    fprintf( _customer_alarm_log, "alarm-log-id:                  %" PRIu64 "\n",
              ++_customer_alarm_log_id );
     fprintf( _customer_alarm_log, "alarm-type:                    %s\n",
              sm_alarm_thread_alarm_str( entry->alarm ) );

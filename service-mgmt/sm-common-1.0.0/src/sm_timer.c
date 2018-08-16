@@ -489,9 +489,9 @@ void sm_timer_dump_data( FILE* log )
             {
                 fprintf( log, "  timer (name=%s, id=%i)\n", timer_entry->timer_name,
                          timer_entry->timer_id );
-                fprintf( log, "    instance..........%"PRIu64"\n", timer_entry->timer_instance );
+                fprintf( log, "    instance..........%" PRIu64 "\n", timer_entry->timer_instance );
                 fprintf( log, "    ms_interval.......%i\n", timer_entry->ms_interval );
-                fprintf( log, "    user_data.........%"PRIi64"\n", timer_entry->user_data );
+                fprintf( log, "    user_data.........%" PRIi64 "\n", timer_entry->user_data );
                 sm_time_format_monotonic_time(&timer_entry->arm_timestamp, buffer, sizeof(buffer));
                 fprintf( log, "    timer created at .%s\n", buffer );
                 sm_time_format_realtime(&timer_entry->last_fired, buffer, sizeof(buffer));
