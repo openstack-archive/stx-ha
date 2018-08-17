@@ -1,0 +1,9 @@
+Code-Review+1: Don Penney <don.penney@windriver.com>
+Workflow+1: Scott Little <scott.little@windriver.com>
+Code-Review+2: Scott Little <scott.little@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Fri, 17 Aug 2018 17:33:05 +0000
+Reviewed-on: https://review.openstack.org/592521
+Project: openstack/stx-ha
+Branch: refs/heads/master
