@@ -86,7 +86,7 @@ static void sm_debug_thread_dispatch( int selobj, int64_t user_data )
 
             sm_time_get( &time_prev );
 
-            SM_WRITE_SYSLOG( "time[%ld.%03ld] log<%"PRIu64"> %s",
+            SM_WRITE_SYSLOG( "time[%ld.%03ld] log<%" PRIu64 "> %s",
                              (long) msg.u.log.ts_mono.tv_sec, 
                              (long) msg.u.log.ts_mono.tv_nsec/1000000,
                              msg.u.log.seqnum, msg.u.log.data );

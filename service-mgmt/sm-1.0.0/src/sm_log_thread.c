@@ -256,7 +256,7 @@ static void sm_log_thread_log_brief( const char time[], const char type[],
     const char state_change[],
     char reason_text[] )
 {
-    fprintf( _customer_log, "| %s | %10"PRIu64" | %-20s | %-32s | "
+    fprintf( _customer_log, "| %s | %10" PRIu64 " | %-20s | %-32s | "
              "%-32s | %-32s | %-s \n", time, ++_customer_log_id, type,
              entity_name, prev_state_change, state_change, reason_text );
 }
@@ -287,7 +287,7 @@ static void sm_log_thread_log_reboot( const char reboot_type[],
     sm_log_thread_log_brief( time_str, reboot_type, reboot->entity_name,
                              "", "", reboot->reason_text );
 #else
-    fprintf( _customer_log, "log-id:      %"PRIu64"\n", ++_customer_log_id );
+    fprintf( _customer_log, "log-id:      %" PRIu64 "\n", ++_customer_log_id );
     fprintf( _customer_log, "log-type:    reboot\n" );
     fprintf( _customer_log, "timestamp:   %s\n", time_str );
     fprintf( _customer_log, "entity-name: %s\n", reboot->entity_name );
@@ -337,7 +337,7 @@ static void sm_log_thread_log_state_change( const char state_change_type[],
                              prev_state_change_str, state_change_str,
                              state_change->reason_text );
 #else
-    fprintf( _customer_log, "log-id:          %"PRIu64"\n", ++_customer_log_id );
+    fprintf( _customer_log, "log-id:          %" PRIu64 "\n", ++_customer_log_id );
     fprintf( _customer_log, "log-type:        state-change\n" );
     fprintf( _customer_log, "timestamp:       %s\n", time_str );
     fprintf( _customer_log, "entity-name:     %s\n", state_change->entity_name );

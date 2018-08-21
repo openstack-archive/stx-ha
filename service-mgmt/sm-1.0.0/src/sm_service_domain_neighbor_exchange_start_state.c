@@ -44,7 +44,7 @@ static bool sm_service_domain_neighbor_exchange_start_timeout(
     neighbor = sm_service_domain_neighbor_table_read_by_id( id );
     if( NULL == neighbor )
     {
-        DPRINTFE( "Failed to read neighbor (%"PRIi64"), error=%s.", id,
+        DPRINTFE( "Failed to read neighbor (%" PRIi64 "), error=%s.", id,
                   sm_error_str(SM_NOT_FOUND) );
         return( true );
     }

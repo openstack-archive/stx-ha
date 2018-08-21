@@ -337,9 +337,9 @@ static bool sm_msg_in_sequence( char node_name[],
                 delta = msg_seq_num- entry->msg_last_seq_num;
                 if( SM_MSG_MAX_SEQ_DELTA < delta )
                 {
-                    DPRINTFI( "Message sequence delta (%"PRIu64") too large "
+                    DPRINTFI( "Message sequence delta (%" PRIu64 ") too large "
                               "for message instance (%s) from node (%s), "
-                              "rcvd_seq=%"PRIu64", last_recvd_seq=%"PRIu64".",
+                              "rcvd_seq=%" PRIu64 ", last_recvd_seq=%" PRIu64 ".",
                               delta, entry->msg_instance, node_name,
                               msg_seq_num, entry->msg_last_seq_num );
                 }
@@ -352,9 +352,9 @@ static bool sm_msg_in_sequence( char node_name[],
                 
                 if( SM_MSG_MAX_SEQ_DELTA < delta )
                 {
-                    DPRINTFI( "Message sequence delta (%"PRIu64") too large "
+                    DPRINTFI( "Message sequence delta (%" PRIu64 ") too large "
                               "for message instance (%s) from node (%s), "
-                              "rcvd_seq=%"PRIu64", last_recvd_seq=%"PRIu64".",
+                              "rcvd_seq=%" PRIu64 ", last_recvd_seq=%" PRIu64 ".",
                               delta, entry->msg_instance, node_name,
                               msg_seq_num, entry->msg_last_seq_num );
 
@@ -1697,12 +1697,12 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
                               ntohll(msg->header.msg_seq_num) )) )
     {
         DPRINTFD( "Duplicate message received from node (%s), "
-                  "msg_seq=%"PRIi64".", msg->header.node_name,
+                  "msg_seq=%" PRIi64 ".", msg->header.node_name,
                   ntohll(msg->header.msg_seq_num) );
         return;
     } else {
         DPRINTFD( "Message received from node (%s), "
-                  "msg_seq=%"PRIi64".", msg->header.node_name,
+                  "msg_seq=%" PRIi64 ".", msg->header.node_name,
                   ntohll(msg->header.msg_seq_num) );
     }
 
@@ -3303,30 +3303,30 @@ void sm_msg_dump_data( FILE* log )
 {
     fprintf( log, "--------------------------------------------------------------------\n" );
     fprintf( log, "MESSAGING DATA\n" );
-    fprintf( log, "  rcvd_total_msgs..............................%"PRIu64"\n", _rcvd_total_msgs );
-    fprintf( log, "  rcvd_msgs_while_disabled.....................%"PRIu64"\n", _rcvd_msgs_while_disabled );
-    fprintf( log, "  rcvd_bad_msg_auth............................%"PRIu64"\n", _rcvd_bad_msg_auth );
-    fprintf( log, "  rcvd_bad_msg_version.........................%"PRIu64"\n", _rcvd_bad_msg_version );
-    fprintf( log, "  send_node_hello_count........................%"PRIu64"\n", _send_node_hello_cnt );
-    fprintf( log, "  rcvd_node_hello_count........................%"PRIu64"\n", _rcvd_node_hello_cnt );
-    fprintf( log, "  send_node_update_count.......................%"PRIu64"\n", _send_node_update_cnt );
-    fprintf( log, "  rcvd_node_update_count.......................%"PRIu64"\n", _rcvd_node_update_cnt );
-    fprintf( log, "  send_node_swact_count........................%"PRIu64"\n", _send_node_swact_cnt );
-    fprintf( log, "  rcvd_node_swact_count........................%"PRIu64"\n", _rcvd_node_swact_cnt );
-    fprintf( log, "  send_node_swact_ack_count....................%"PRIu64"\n", _send_node_swact_ack_cnt );
-    fprintf( log, "  rcvd_node_swact_ack_count....................%"PRIu64"\n", _rcvd_node_swact_ack_cnt );
-    fprintf( log, "  send_service_domain_hello_count..............%"PRIu64"\n", _send_service_domain_hello_cnt );
-    fprintf( log, "  rcvd_service_domain_hello_count..............%"PRIu64"\n", _rcvd_service_domain_hello_cnt );
-    fprintf( log, "  send_service_domain_pause_count..............%"PRIu64"\n", _send_service_domain_pause_cnt );
-    fprintf( log, "  rcvd_service_domain_pause_count..............%"PRIu64"\n", _rcvd_service_domain_pause_cnt );
-    fprintf( log, "  send_service_domain_exchange_start_count.....%"PRIu64"\n", _send_service_domain_exchange_start_cnt );
-    fprintf( log, "  rcvd_service_domain_exchange_start_count.....%"PRIu64"\n", _rcvd_service_domain_exchange_start_cnt );
-    fprintf( log, "  send_service_domain_exchange_count...........%"PRIu64"\n", _send_service_domain_exchange_cnt );
-    fprintf( log, "  rcvd_service_domain_exchange_count...........%"PRIu64"\n", _rcvd_service_domain_exchange_cnt );
-    fprintf( log, "  send_service_domain_member_request_count.....%"PRIu64"\n", _send_service_domain_member_request_cnt );
-    fprintf( log, "  rcvd_service_domain_member_request_count.....%"PRIu64"\n", _rcvd_service_domain_member_request_cnt );
-    fprintf( log, "  send_service_domain_member_update_count......%"PRIu64"\n", _send_service_domain_member_update_cnt );
-    fprintf( log, "  rcvd_service_domain_member_update_count......%"PRIu64"\n", _rcvd_service_domain_member_update_cnt );
+    fprintf( log, "  rcvd_total_msgs..............................%" PRIu64 "\n", _rcvd_total_msgs );
+    fprintf( log, "  rcvd_msgs_while_disabled.....................%" PRIu64 "\n", _rcvd_msgs_while_disabled );
+    fprintf( log, "  rcvd_bad_msg_auth............................%" PRIu64 "\n", _rcvd_bad_msg_auth );
+    fprintf( log, "  rcvd_bad_msg_version.........................%" PRIu64 "\n", _rcvd_bad_msg_version );
+    fprintf( log, "  send_node_hello_count........................%" PRIu64 "\n", _send_node_hello_cnt );
+    fprintf( log, "  rcvd_node_hello_count........................%" PRIu64 "\n", _rcvd_node_hello_cnt );
+    fprintf( log, "  send_node_update_count.......................%" PRIu64 "\n", _send_node_update_cnt );
+    fprintf( log, "  rcvd_node_update_count.......................%" PRIu64 "\n", _rcvd_node_update_cnt );
+    fprintf( log, "  send_node_swact_count........................%" PRIu64 "\n", _send_node_swact_cnt );
+    fprintf( log, "  rcvd_node_swact_count........................%" PRIu64 "\n", _rcvd_node_swact_cnt );
+    fprintf( log, "  send_node_swact_ack_count....................%" PRIu64 "\n", _send_node_swact_ack_cnt );
+    fprintf( log, "  rcvd_node_swact_ack_count....................%" PRIu64 "\n", _rcvd_node_swact_ack_cnt );
+    fprintf( log, "  send_service_domain_hello_count..............%" PRIu64 "\n", _send_service_domain_hello_cnt );
+    fprintf( log, "  rcvd_service_domain_hello_count..............%" PRIu64 "\n", _rcvd_service_domain_hello_cnt );
+    fprintf( log, "  send_service_domain_pause_count..............%" PRIu64 "\n", _send_service_domain_pause_cnt );
+    fprintf( log, "  rcvd_service_domain_pause_count..............%" PRIu64 "\n", _rcvd_service_domain_pause_cnt );
+    fprintf( log, "  send_service_domain_exchange_start_count.....%" PRIu64 "\n", _send_service_domain_exchange_start_cnt );
+    fprintf( log, "  rcvd_service_domain_exchange_start_count.....%" PRIu64 "\n", _rcvd_service_domain_exchange_start_cnt );
+    fprintf( log, "  send_service_domain_exchange_count...........%" PRIu64 "\n", _send_service_domain_exchange_cnt );
+    fprintf( log, "  rcvd_service_domain_exchange_count...........%" PRIu64 "\n", _rcvd_service_domain_exchange_cnt );
+    fprintf( log, "  send_service_domain_member_request_count.....%" PRIu64 "\n", _send_service_domain_member_request_cnt );
+    fprintf( log, "  rcvd_service_domain_member_request_count.....%" PRIu64 "\n", _rcvd_service_domain_member_request_cnt );
+    fprintf( log, "  send_service_domain_member_update_count......%" PRIu64 "\n", _send_service_domain_member_update_cnt );
+    fprintf( log, "  rcvd_service_domain_member_update_count......%" PRIu64 "\n", _rcvd_service_domain_member_update_cnt );
     fprintf( log, "--------------------------------------------------------------------\n" );
 }
 // ****************************************************************************

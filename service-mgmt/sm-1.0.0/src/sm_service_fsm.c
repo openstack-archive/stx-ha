@@ -1442,7 +1442,7 @@ static void sm_service_fsm_process_failure_callback( pid_t pid, int exit_code,
     service = sm_service_table_read_by_pid( (int) pid );
     if( NULL == service )
     {
-        DPRINTFE( "Failed to read service based on pid (%"PRIu64"), error=%s.",
+        DPRINTFE( "Failed to read service based on pid (%" PRIu64 "), error=%s.",
                   user_data, sm_error_str(SM_NOT_FOUND) );
         return;
     }

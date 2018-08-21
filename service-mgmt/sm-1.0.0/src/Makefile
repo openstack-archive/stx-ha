@@ -110,7 +110,7 @@ SRCS+=sm_service_domain_interface_not_in_use_state.c
 SRCS+=sm_configuration_table.c
 
 OBJS= $(SRCS:.c=.o)
-CCFLAGS= -g -O2 -Wall -Werror -Wformat 
+CCFLAGS= -g -O2 -Wall -Werror -Wformat  -std=c++11
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS
 LDLIBS= -lsqlite3 -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl
 LDFLAGS = -rdynamic

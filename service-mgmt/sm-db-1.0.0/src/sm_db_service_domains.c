@@ -207,7 +207,7 @@ SmErrorT sm_db_service_domains_read_by_id( SmDbHandleT* sm_db_handle,
 
     memset( record, 0, sizeof(SmDbServiceDomainT) );
 
-    snprintf( sql, sizeof(sql), "SELECT * FROM %s WHERE %s = '%"PRIi64"';",
+    snprintf( sql, sizeof(sql), "SELECT * FROM %s WHERE %s = '%" PRIi64 "';",
               SM_SERVICE_DOMAINS_TABLE_NAME,
               SM_SERVICE_DOMAINS_TABLE_COLUMN_ID, id );
 

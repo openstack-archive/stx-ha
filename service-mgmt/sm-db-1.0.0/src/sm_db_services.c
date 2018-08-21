@@ -179,7 +179,7 @@ SmErrorT sm_db_services_read_by_id( SmDbHandleT* sm_db_handle, int64_t id,
 
     memset( record, 0, sizeof(SmDbServiceT) );
 
-    snprintf( sql, sizeof(sql), "SELECT * FROM %s WHERE %s = '%"PRIi64"';",
+    snprintf( sql, sizeof(sql), "SELECT * FROM %s WHERE %s = '%" PRIi64 "';",
               SM_SERVICES_TABLE_NAME, SM_SERVICES_TABLE_COLUMN_ID, id );
 
     rc = sqlite3_exec( (sqlite3*) sm_db_handle, sql,
