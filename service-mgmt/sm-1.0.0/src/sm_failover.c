@@ -32,6 +32,7 @@
 #include "sm_heartbeat_msg.h"
 #include "sm_node_swact_monitor.h"
 #include "sm_util_types.h"
+#include "sm_failover_utils.h"
 
 typedef enum
 {
@@ -658,84 +659,12 @@ SmErrorT sm_failover_if_state_get(SmHeartbeatMsgIfStateT *if_state)
 }
 // ****************************************************************************
 
-
-// ****************************************************************************
-// Failover - get interface state
-// ==================
-void service_domain_member_foreach_cb(void* user_data[], SmServiceDomainMemberT* member)
-{
-    if( 0 == strcmp(member->service_group_aggregate, "controller-aggregate"))
-    {
-        SmServiceDomainAssignmentT* assignment = sm_service_domain_assignment_table_read(
-                member->name,
-                _host_name,
-                member->service_group_name
-            );
-
-        bool* is_active = (bool*) user_data[0];
-        bool* is_standby = (bool*) user_data[1];
-        bool* is_init = (bool*) user_data[2];
-        bool* is_failed = (bool*) user_data[3];
-        if( NULL == assignment )
-        {
-            *is_init = true;
-            DPRINTFD("Waiting for service assignments being scheduled.");
-            return;
-        }
-        if( SM_SERVICE_GROUP_STATE_ACTIVE == assignment->desired_state )
-        {
-            *is_active = true;
-        }else if (SM_SERVICE_GROUP_STATE_STANDBY == assignment->desired_state )
-        {
-            *is_standby = true;
-        }else if ( SM_SERVICE_GROUP_STATE_DISABLED == assignment->desired_state)
-        {
-            *is_failed = true;
-        }else if ( SM_SERVICE_GROUP_STATE_INITIAL == assignment->desired_state )
-        {
-            *is_init = true;
-        }
-    }
-}
-// ****************************************************************************
-
-// ****************************************************************************
-// Failover - callback for service domain table loop
-// ==================
-static void service_domain_table_each_callback(void* user_data[], SmServiceDomainT* domain)
-{
-    sm_service_domain_member_table_foreach(
-        domain->name,
-        user_data,
-        service_domain_member_foreach_cb);
-}
-// ****************************************************************************
-
 // ****************************************************************************
 // Failover - get controller state
 // ==================
 SmNodeScheduleStateT get_controller_state()
 {
-    SmNodeScheduleStateT state = SM_NODE_STATE_UNKNOWN;
-    bool is_active = false;
-    bool is_standby = false;
-    bool is_init = false;
-    bool is_failed = false;
-    void* user_data[] = {(void*) &is_active, (void*) &is_standby, (void*) &is_init, (void*) &is_failed};
-    sm_service_domain_table_foreach( user_data, service_domain_table_each_callback);
-    if( is_init )
-    {
-        state = SM_NODE_STATE_INIT;
-    }
-    else if ( is_standby )
-    {
-        state = SM_NODE_STATE_STANDBY;
-    }
-    else if ( is_active )
-    {
-        state = SM_NODE_STATE_ACTIVE;
-    }
-    return state;
+    return sm_get_controller_state(_host_name);
 }
 // ****************************************************************************
 
