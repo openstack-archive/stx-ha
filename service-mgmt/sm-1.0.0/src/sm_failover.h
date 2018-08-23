@@ -133,8 +133,6 @@ extern SmErrorT sm_failover_initialize( void );
 extern SmErrorT sm_failover_finalize( void );
 // ****************************************************************************
 
-SmNodeScheduleStateT get_controller_state();
-
 #ifdef __cplusplus
 }
 #endif
