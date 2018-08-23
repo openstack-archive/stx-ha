@@ -22,6 +22,7 @@
 #include "sm_node_api.h"
 #include "sm_node_swact_monitor.h"
 #include "sm_node_utils.h"
+#include "sm_failover_utils.h"
 
 static SmDbHandleT* _sm_db_handle = NULL;
 
@@ -321,14 +322,21 @@ static void sm_service_domain_filter_by_assignment( void* user_data[],
             DPRINTFE( "Failed to get hostname, error=%s.",
                       sm_error_str( error ) );
             hostname[0] = '\0';
+            return error;
         }
-        DPRINTFI("Uncontrolled swact start");
+        SmNodeScheduleStateT current_schedule_state = sm_get_controller_state( hostname );
+        SmNodeScheduleStateT to_schedule_state;
         if(0 == strcmp(hostname, assignment->node_name))
         {
-            SmNodeSwactMonitor::SwactStart(SM_NODE_STATE_STANDBY);
+            to_schedule_state = SM_NODE_STATE_STANDBY;
         }else
         {
-            SmNodeSwactMonitor::SwactStart(SM_NODE_STATE_ACTIVE);
+            to_schedule_state = SM_NODE_STATE_ACTIVE;
+        }
+        if(current_schedule_state != to_schedule_state)
+        {
+            DPRINTFI("Uncontrolled swact start");
+            SmNodeSwactMonitor::SwactStart(to_schedule_state);
         }
 
         list = SM_SERVICE_DOMAIN_SCHEDULING_LIST_FAILED;

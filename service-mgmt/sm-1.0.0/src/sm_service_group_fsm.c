@@ -35,7 +35,7 @@
 #include "sm_log.h"
 #include "sm_node_utils.h"
 #include "sm_node_swact_monitor.h"
-#include "sm_failover.h"
+#include "sm_failover_utils.h"
 #include "sm_swact_state.h"
 
 static SmListT* _callbacks = NULL;
@@ -265,7 +265,6 @@ static SmErrorT sm_service_group_fsm_enter_state( SmServiceGroupT* service_group
         sm_service_group_table_foreach( user_data, sm_service_group_state_check );
         if( all_good )
         {
-            SmNodeScheduleStateT controller_state = get_controller_state();
             char hostname[SM_NODE_NAME_MAX_CHAR];
             error = sm_node_utils_get_hostname( hostname );
             if( SM_OKAY != error )
@@ -273,7 +272,10 @@ static SmErrorT sm_service_group_fsm_enter_state( SmServiceGroupT* service_group
                 DPRINTFE( "Failed to get hostname, error=%s.",
                           sm_error_str( error ) );
                 hostname[0] = '\0';
+                return error;
             }
+
+            SmNodeScheduleStateT controller_state = sm_get_controller_state(hostname);
             if( SM_NODE_STATE_ACTIVE == controller_state )
             {
                 SmNodeSwactMonitor::SwactUpdate(hostname, SM_NODE_STATE_ACTIVE );
