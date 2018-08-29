@@ -322,7 +322,7 @@ static void sm_service_domain_filter_by_assignment( void* user_data[],
             DPRINTFE( "Failed to get hostname, error=%s.",
                       sm_error_str( error ) );
             hostname[0] = '\0';
-            return;
+            goto UPDATE;
         }
         SmNodeScheduleStateT current_schedule_state = sm_get_controller_state( hostname );
         SmNodeScheduleStateT to_schedule_state;
