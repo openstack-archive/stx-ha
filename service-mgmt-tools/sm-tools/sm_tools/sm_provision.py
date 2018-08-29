@@ -156,5 +156,5 @@ def main():
         sys.exit()
 
     except Exception as e:
-        print e
+        print(e)
         sys.exit(-1)
