@@ -14,7 +14,7 @@ database_name = "/var/run/sm/sm.db"
 def main():
 
     if not os.path.exists(database_name):
-        print "%s not available." % database_name
+        print ("%s not available." % database_name)
         sys.exit(0)
 
     try:
@@ -43,7 +43,7 @@ def main():
             row = cursor.fetchone()
 
             if row is None:
-                print "%s is disabled." % args.service_name
+                print ("%s is disabled." % args.service_name)
 
             else:
                 service_name = row[0]
@@ -51,9 +51,9 @@ def main():
                 status = row[3]
 
                 if status == 'none':
-                    print "%s is %s" % (service_name, state)
+                    print ("%s is %s" % (service_name, state))
                 else:
-                    print "%s is %s-%s" % (service_name, state, status)
+                    print ("%s is %s-%s" % (service_name, state, status))
 
             database.close()
 
@@ -80,7 +80,7 @@ def main():
                 desired_state = row[1]
                 state = row[2]
 
-                print fmt.format(service_group_name, state, desired_state)
+                print (fmt.format(service_group_name, state, desired_state))
 
             database.close()
 
@@ -90,13 +90,13 @@ def main():
                     not_found_list.append(g)
 
             if len(not_found_list) > 1:
-                print "%s are not provisioned"%','.join( (g for g in not_found_list))
+                print ("%s are not provisioned"%','.join( (g for g in not_found_list)))
             elif len(not_found_list) == 1:
-                print "%s is not provisioned" % ','.join((g for g in not_found_list))
+                print ("%s is not provisioned" % ','.join((g for g in not_found_list)))
 
     except KeyboardInterrupt:
         sys.exit()
 
     except Exception as e:
-        print e
+        print (e)
         sys.exit(-1)

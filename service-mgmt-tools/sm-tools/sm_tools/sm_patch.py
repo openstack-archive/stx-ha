@@ -28,13 +28,13 @@ def main():
         if args.which == 'database':
             if args.which_database == 'master':
                 if not os.path.exists(database_master_name):
-                    print "%s not available." % database_master_name
+                    print ("%s not available." % database_master_name)
                     sys.exit()
 
                 database = sqlite3.connect(database_master_name)
             else:
                 if not os.path.exists(database_running_name):
-                    print "%s not available." % database_running_name
+                    print ("%s not available." % database_running_name)
                     sys.exit()
 
                 database = sqlite3.connect(database_running_name)
@@ -55,5 +55,5 @@ def main():
         sys.exit()
 
     except Exception as e:
-        print e
+        print (e)
         sys.exit(-1)

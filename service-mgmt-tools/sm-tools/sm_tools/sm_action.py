@@ -44,7 +44,7 @@ def main():
                            % args.service)
             row = cursor.fetchone()
             if row is None:
-                print "Given service (%s) does not exist." % args.service
+                print ("Given service (%s) does not exist." % args.service)
                 sys.exit()
 
             database.close()
@@ -58,7 +58,7 @@ def main():
                     if os.path.isfile(unmanage_filepath + unmanage_filename):
                         os.remove(unmanage_filepath + unmanage_filename)
 
-                print "Service (%s) is now being managed." % args.service
+                print ("Service (%s) is now being managed." % args.service)
 
             elif 'unmanage' == action:
                 if not os.path.exists(SM_VAR_RUN_SERVICES_DIR):
@@ -67,16 +67,16 @@ def main():
                 if not os.path.isfile(unmanage_filepath + unmanage_filename):
                     open(unmanage_filepath + unmanage_filename, 'w').close()
 
-                print "Service (%s) is no longer being managed." % args.service
+                print ("Service (%s) is no longer being managed." % args.service)
 
             elif 'restart-safe' == action:
                 restart_service_safe(args.service)
-                print "Service (%s) is restarting." % args.service
+                print ("Service (%s) is restarting." % args.service)
 
             else:
                 restart_service(args.service)
 
-                print "Service (%s) is restarting." % args.service
+                print ("Service (%s) is restarting." % args.service)
 
         sys.exit(0)
 
@@ -84,5 +84,5 @@ def main():
         sys.exit()
 
     except Exception as e:
-        print e
+        print (e)
         sys.exit(-1)

@@ -40,7 +40,7 @@ def _send_msg_to_sm(sm_api_msg):
         time.sleep(1)
 
     except socket.error, e:
-        print "sm-api socket error: %s on  %s" % (e, sm_api_msg)
+        print ("sm-api socket error: %s on  %s" % (e, sm_api_msg))
 
 
 def restart_service(service_name):
