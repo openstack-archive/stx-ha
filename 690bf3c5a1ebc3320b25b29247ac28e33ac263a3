@@ -1,0 +1,10 @@
+Code-Review+2: Al Bailey <al.bailey@windriver.com>
+Code-Review+2: Erich Cordoba <erich.cordoba.malibran@intel.com>
+Code-Review+2: Dean Troyer <dtroyer@gmail.com>
+Workflow+1: Dean Troyer <dtroyer@gmail.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Wed, 29 Aug 2018 23:21:10 +0000
+Reviewed-on: https://review.openstack.org/596980
+Project: openstack/stx-ha
+Branch: refs/heads/master
