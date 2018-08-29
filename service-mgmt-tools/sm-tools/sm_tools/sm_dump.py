@@ -60,7 +60,7 @@ def main():
         args = parser.parse_args()
 
         if not os.path.exists(database_name):
-            print "%s not available." % database_name
+            print ("%s not available." % database_name)
             sys.exit(0)
 
         database = sqlite3.connect(database_name)
@@ -69,7 +69,7 @@ def main():
 
         if args.verbose:
             # Service-Groups Dump
-            print "\n-Service_Groups%s" % ('-' * 92)
+            print ("\n-Service_Groups%s" % ('-' * 92))
 
             cursor.execute("SELECT name, desired_state, state, status, "
                            "condition from service_groups WHERE "
@@ -79,11 +79,11 @@ def main():
 
             if data is not None:
                 for row in data:
-                    print "%-32s %-20s %-20s %-10s %-20s" % (row[0], row[1],
+                    print ("%-32s %-20s %-20s %-10s %-20s" % (row[0], row[1],
                                                              row[2], row[3],
-                                                             row[4])
+                                                             row[4]))
 
-            print "%s" % ('-' * 107)
+            print ("%s" % ('-' * 107))
 
             # Services Dump
             len = 98
@@ -96,7 +96,7 @@ def main():
             if args.pid_file:
                 len += 28
 
-            print "\n-Services%s" % ('-' * len)
+            print ("\n-Services%s" % ('-' * len))
 
             cursor.execute("SELECT s.name, s.desired_state, s.state, "
                            "s.status, s.condition, s.pid_file, "
@@ -124,11 +124,11 @@ def main():
                     msg += "%-10s %20s" % (row[3], row[4])
                     print msg
 
-            print "%s" % ('-' * len)
+            print ("%s" % ('-' * len))
 
         else:
             # Service-Groups Dump
-            print "\n-Service_Groups%s" % ('-' * 72)
+            print ("\n-Service_Groups%s" % ('-' * 72))
 
             cursor.execute("SELECT name, desired_state, state, status "
                            "from service_groups WHERE PROVISIONED = 'yes';")
@@ -137,10 +137,10 @@ def main():
 
             if data is not None:
                 for row in data:
-                    print "%-32s %-20s %-20s %-10s" % (row[0], row[1], row[2],
-                                                       row[3])
+                    print ("%-32s %-20s %-20s %-10s" % (row[0], row[1], row[2],
+                                                       row[3]))
 
-            print "%s" % ('-' * 87)
+            print ("%s" % ('-' * 87))
 
             len = 78
             if args.impact:
@@ -153,7 +153,7 @@ def main():
                 len += 28
 
             # Services Dump
-            print "\n-Services%s" % ('-' * len)
+            print ("\n-Services%s" % ('-' * len))
 
             cursor.execute("SELECT s.name, s.desired_state, s.state, s.status, "
                            "s.pid_file, g.SERVICE_FAILURE_IMPACT "
@@ -178,9 +178,9 @@ def main():
                     if args.pid_file:
                         msg += "%-25s" % (pid_file)
                     msg += "%-10s " % (row[3])
-                    print msg
+                    print (msg)
 
-            print "%s" % ('-' * len)
+            print ("%s" % ('-' * len))
 
         database.close()
 
@@ -188,7 +188,7 @@ def main():
         sys.exit()
 
     except Exception as e:
-        print e
+        print (e)
         sys.exit(-1)
 
     try:
