@@ -107,6 +107,7 @@ SRCS+=sm_swact_state.c
 SRCS+=sm_worker_thread.cpp
 SRCS+=sm_task_affining_thread.c
 SRCS+=sm_node_swact_monitor.cpp
+SRCS+=sm_failover_ss.c
 SRCS+=sm_service_domain_interface_not_in_use_state.c
 SRCS+=sm_configuration_table.c
 SRCS+=sm_failover_utils.c
