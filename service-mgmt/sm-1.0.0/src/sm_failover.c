@@ -32,6 +32,7 @@
 #include "sm_heartbeat_msg.h"
 #include "sm_node_swact_monitor.h"
 #include "sm_util_types.h"
+#include "sm_failover_ss.h"
 #include "sm_failover_utils.h"
 
 typedef enum
@@ -52,7 +53,13 @@ typedef enum
     SM_FAILOVER_ACTION_DEGRADE = 8,
     SM_FAILOVER_ACTION_ACTIVATE = 16,
     SM_FAILOVER_ACTION_FAIL_NODE = 32,
-    SM_FAILOVER_ACTION_UNDEFINED = 64
+    SM_FAILOVER_ACTION_UNDEFINED = 64,
+    //as part of the gradual delivery of enhancement with more
+    //complex algorithm to determine the failover survivor routine
+    //the SM_FAILOVER_ACTION_ROUTINE will redirect the lookup to
+    //new logic. Until all actions are migrate to new logic, the
+    //lookup tables will be eliminated.
+    SM_FAILOVER_ACTION_ROUTINE = 1 << 31,
 }SmFailoverActionT;
 
 #define SM_FAILOVER_STATE_TRANSITION_TIME_IN_MS 2000
@@ -188,13 +195,13 @@ SmFailoverActionPairT action_map_std_infra[16] =
     {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //6
     {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //7
     {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //8
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //9
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //10
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //11
-    {SM_FAILOVER_ACTION_SWACT,              SM_FAILOVER_ACTION_DEGRADE},    //12
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //13
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //14
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED}   //15
+    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE},  //9
+    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE},  //10
+    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE},  //11
+    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_DEGRADE},  //12
+    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE},  //13
+    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE},  //14
+    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE}   //15
 };
 
 SmFailoverActionPairT action_map_std_no_infra[16] =
@@ -916,6 +923,84 @@ bool this_controller_unlocked()
 }
 // ****************************************************************************
 
+
+// ****************************************************************************
+// Failover - pack schedule state into 2 bit (active/standby/failed)
+// SM starts managing failover after the node is scheduled, i.e, cannot be
+// in SM_NODE_STATE_UNKNOWN or SM_NODE_STATE_INIT state
+// =======================
+unsigned int sm_failover_pack_schedule_state(SmNodeScheduleStateT state)
+{
+    unsigned int res;
+    switch(state)
+    {
+        case SM_NODE_STATE_ACTIVE:
+            res = 1;
+            break;
+        case SM_NODE_STATE_STANDBY:
+            res = 2;
+            break;
+        case SM_NODE_STATE_FAILED:
+            res = 0;
+            break;
+        default:
+            res = 0;
+    }
+    return res;
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Failover - convert target scheduling state to action
+// =======================
+int sm_failover_get_action(const SmSystemFailoverStatus& failover_status)
+{
+    DPRINTFI("Host to %s, Peer to %s.",
+        sm_node_schedule_state_str(failover_status.host_schedule_state),
+        sm_node_schedule_state_str(failover_status.peer_schedule_state)
+    );
+    unsigned int host_flag, peer_flag;
+    host_flag = sm_failover_pack_schedule_state(failover_status.host_schedule_state);
+    peer_flag = sm_failover_pack_schedule_state(failover_status.peer_schedule_state);
+
+    unsigned int flag = (host_flag | (peer_flag << 2));
+    DPRINTFI("Failover scheduling flag %d", flag);
+    SmFailoverActionPairT* actions;
+    int action;
+
+    SmFailoverActionPairT action_map[16] = {
+        {SM_FAILOVER_ACTION_FAIL_NODE,          SM_FAILOVER_ACTION_FAIL_NODE},  //00 00
+        {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_FAIL_NODE},  //01 00
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //10 00
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //11 00
+        {SM_FAILOVER_ACTION_FAIL_NODE,          SM_FAILOVER_ACTION_ACTIVATE},   //00 01
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //01 01
+        {SM_FAILOVER_ACTION_SWACT,              SM_FAILOVER_ACTION_NO_ACTION},  //10 01
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //11 01
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //00 10
+        {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //01 10
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //10 10
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //11 10
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //00 11
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //01 11
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //10 11
+        {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //11 11
+    };
+
+    bool is_active = is_active_controller();
+    actions = &(action_map[flag & 0xf]);
+    if(is_active)
+    {
+        action = actions->active_controller_action;
+    }
+    else
+    {
+        action = actions->standby_controller_action;
+    }
+    return action;
+}
+// ****************************************************************************
+
 // ****************************************************************************
 // Failover - audit
 // =======================
@@ -1072,6 +1157,36 @@ void sm_failover_audit()
     _log_nodes_state(action);
 
     DPRINTFI("Action to take %d", action);
+
+    if (action & SM_FAILOVER_ACTION_ROUTINE)
+    {
+        SmSystemStatusT sys_status;
+        SmSystemFailoverStatus failover_status;
+        sys_status.system_mode = _system_mode;
+        if(if_state_flag & SM_FAILOVER_HEARTBEAT_ALIVE)
+        {
+            sys_status.heartbeat_state = SM_HEARTBEAT_OK;
+        }else
+        {
+            sys_status.heartbeat_state = SM_HEARTBEAT_LOSS;
+        }
+
+        sys_status.host_status.node_name = _host_name;
+        sys_status.host_status.interface_state = if_state_flag & 0x7;
+        sys_status.host_status.current_schedule_state = _host_state;
+        sys_status.peer_status.node_name = _peer_name;
+        sys_status.peer_status.interface_state = _peer_if_state & 0x7;
+        sys_status.peer_status.current_schedule_state = sm_get_controller_state(_peer_name);
+        SmErrorT error = sm_failover_ss_get_survivor(sys_status, failover_status);
+        if(SM_OKAY != error)
+        {
+            DPRINTFE("Failed to determine failover state. ");
+            return;
+        }
+
+        action = sm_failover_get_action(failover_status);
+    }
+
     if (action & SM_FAILOVER_ACTION_ACTIVATE)
     {
         DPRINTFI("ACTIVE");
