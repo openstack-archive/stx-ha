@@ -40,7 +40,7 @@ def main():
         config.load(args.config)
 
         if not config.CONF:
-            print "Error: configuration not available."
+            print("Error: configuration not available.")
             sys.exit(-1)
 
         log.configure(config.CONF)
@@ -50,18 +50,18 @@ def main():
         wsgi.serve_forever()
 
     except ConfigParser.NoOptionError as e:
-        print e
+        print(e)
         sys.exit(-2)
 
     except ConfigParser.NoSectionError as e:
-        print e
+        print(e)
         sys.exit(-3)
 
     except KeyboardInterrupt:
         sys.exit()
 
     except Exception as e:
-        print e
+        print(e)
         sys.exit(-4)
 
 main()
