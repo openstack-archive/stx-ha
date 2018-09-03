@@ -4,9 +4,11 @@
       - build-openstack-docs-pti
     check:
       jobs:
+        - build-openstack-releasenotes
         - openstack-tox-pep8:
             voting: false
         - openstack-tox-linters
     gate:
       jobs:
+        - build-openstack-releasenotes
         - openstack-tox-linters
