@@ -10,6 +10,7 @@
 
 #include "sm_types.h"
 #include "sm_uuid.h"
+#include "sm_limits.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,6 +20,12 @@ extern "C" {
 // Node API - Get Host Name
 // ========================
 extern SmErrorT sm_node_api_get_hostname( char node_name[] );
+// ****************************************************************************
+
+// ****************************************************************************
+// Node API - Get Peer Name
+// ========================
+extern SmErrorT sm_node_api_get_peername(char peer_name[SM_NODE_NAME_MAX_CHAR]);
 // ****************************************************************************
 
 // ****************************************************************************
