@@ -706,6 +706,16 @@ typedef enum
     SM_NODE_STATE_MAX
 }SmNodeScheduleStateT;
 
+
+typedef enum
+{
+    SM_FAILOVER_INTERFACE_UNKNOWN,
+    SM_FAILOVER_INTERFACE_OK,
+    SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT,
+    SM_FAILOVER_INTERFACE_DOWN,
+    SM_FAILOVER_INTERFACE_RECOVERING
+}SmFailoverInterfaceStateT;
+
 // ****************************************************************************
 // Types - System Mode String
 // =======================================
