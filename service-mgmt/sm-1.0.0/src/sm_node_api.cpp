@@ -59,6 +59,35 @@ SmErrorT sm_node_api_get_hostname( char node_name[] )
 // ****************************************************************************
 
 // ****************************************************************************
+// Node API - Get Peer Name
+// ========================
+SmErrorT sm_node_api_get_peername(char peer_name[SM_NODE_NAME_MAX_CHAR])
+{
+    char node_name[SM_NODE_NAME_MAX_CHAR];
+    SmErrorT error = sm_node_api_get_hostname(node_name);
+    if(SM_OKAY != error)
+    {
+        return error;
+    }
+
+    char query[SM_NODE_NAME_MAX_CHAR + 16];
+    unsigned int cnt = snprintf(query, sizeof(query), "name <> '%s'", node_name);
+    if(cnt < sizeof(query) - 1)
+    {
+        SmDbNodeT node;
+        error = sm_db_nodes_query(_sm_db_handle, query, &node);
+        if(SM_OKAY != error)
+        {
+            return error;
+        }
+        strncpy(peer_name, node.name, SM_NODE_NAME_MAX_CHAR);
+        return SM_OKAY;
+    }
+    return SM_FAILED;
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Node API - Configuration Complete
 // =================================
 SmErrorT sm_node_api_config_complete( char node_name[], bool* complete )
