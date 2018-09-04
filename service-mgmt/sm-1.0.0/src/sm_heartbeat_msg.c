@@ -208,11 +208,7 @@ SmErrorT sm_heartbeat_msg_send_alive( SmNetworkTypeT network_type, char node_nam
 
     heartbeat_msg.u.if_state_msg.msg_size = htons((uint16_t)sizeof(SmHeartbeatMsgAliveRev2T));
     SmHeartbeatMsgIfStateT if_state;
-    SmErrorT error =  sm_failover_if_state_get(&if_state);
-    if(SM_OKAY != error)
-    {
-        return SM_FAILED;
-    }
+    if_state =  sm_failover_if_state_get();
     heartbeat_msg.u.if_state_msg.if_state = htonl(if_state);
 
     if( SM_AUTH_TYPE_HMAC_SHA512 == auth_type )
