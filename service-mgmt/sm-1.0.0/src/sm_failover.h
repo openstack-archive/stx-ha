@@ -9,6 +9,7 @@
 #include "sm_types.h"
 #include "sm_service_domain_interface_table.h"
 #include "sm_db_nodes.h"
+#include "sm_failover_ss.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -88,7 +89,7 @@ extern void sm_failover_if_state_update(const char node_name[],
 
 // ****************************************************************************
 // Failover - get local interface state
-extern SmErrorT sm_failover_if_state_get(SmHeartbeatMsgIfStateT*);
+extern SmHeartbeatMsgIfStateT sm_failover_if_state_get();
 // ****************************************************************************
 
 // ****************************************************************************
@@ -114,6 +115,27 @@ SmErrorT sm_failover_degrade_clear(SmFailoverDegradeSourceT source);
 // ==================
 SmErrorT sm_failover_get_node(char* node_name, SmDbNodeT& node);
 // ****************************************************************************
+
+// ****************************************************************************
+// Failover - get node interface info
+// ==================
+SmFailoverInterfaceStateT sm_failover_get_interface_info(SmInterfaceTypeT interface_type);
+// ****************************************************************************
+
+
+// ****************************************************************************
+// Failover - get peer node interface state
+// ==================
+SmHeartbeatMsgIfStateT sm_failover_get_peer_if_state();
+// ****************************************************************************
+
+
+// ****************************************************************************
+// Failover - set system to scheduled status
+// ==================
+SmErrorT sm_failover_set_system(const SmSystemFailoverStatus& failover_status);
+// ****************************************************************************
+
 
 // ****************************************************************************
 // Failover - dump state
