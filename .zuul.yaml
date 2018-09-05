@@ -1,7 +1,11 @@
 ---
 - project:
+    templates:
+      - build-openstack-sphinx-docs-python3
+      - api-ref-jobs
     check:
       jobs:
+        - build-openstack-releasenotes
         - openstack-tox-pep8:
             voting: false
         - openstack-tox-linters
