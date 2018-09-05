@@ -53,6 +53,7 @@
 #include "sm_failover.h"
 #include "sm_failover_thread.h"
 #include "sm_task_affining_thread.h"
+#include "sm_worker_thread.h"
 
 #define SM_PROCESS_DB_CHECKPOINT_INTERVAL_IN_MS         30000
 #define SM_PROCESS_TICK_INTERVAL_IN_MS                    200
@@ -192,6 +193,14 @@ static SmErrorT sm_process_initialize( void )
         return( SM_FAILED );
     }
 
+    error = SmWorkerThread::initialize();
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to initialize worker thread, error=%s.",
+                  sm_error_str( error ) );
+        return( SM_FAILED );
+    }
+
     error = sm_msg_initialize();
     if( SM_OKAY != error )
     {
@@ -317,7 +326,7 @@ static SmErrorT sm_process_initialize( void )
         DPRINTFE( "Failed to initialize service heartbeat api module, "
                   "error=%s.", sm_error_str( error ) );
         return( SM_FAILED );
-    }  
+    }
 
     error = sm_service_heartbeat_thread_start();
     if( SM_OKAY != error )
@@ -326,7 +335,7 @@ static SmErrorT sm_process_initialize( void )
                   sm_error_str(error) );
         return( error );
     }
-    
+
     error = sm_main_event_handler_initialize();
     if( SM_OKAY != error )
     {
@@ -360,7 +369,7 @@ static SmErrorT sm_process_initialize( void )
             DPRINTFE( "Failed to start the task affining thread, error=%s.",
                       sm_error_str( error ) );
             return( SM_FAILED );
-        } 
+        }
     }
 
     return( SM_OKAY );
@@ -418,7 +427,7 @@ static SmErrorT sm_process_finalize( void )
     {
         DPRINTFE( "Failed to finalize service heartbeat api module, "
                   "error=%s.", sm_error_str( error ) );
-    }  
+    }
 
     error = sm_service_api_finalize();
     if( SM_OKAY != error )
@@ -508,6 +517,13 @@ static SmErrorT sm_process_finalize( void )
     if( SM_OKAY != error )
     {
         DPRINTFE( "Failed to finalize messaging module, error=%s.",
+                  sm_error_str( error ) );
+    }
+
+    error = SmWorkerThread::finalize();
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to finalize worker thread, error=%s.",
                   sm_error_str( error ) );
     }
 
@@ -720,7 +736,7 @@ SmErrorT sm_process_main( int argc, char *argv[], char *envp[] )
     error = sm_process_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed initialize process, error=%s.", 
+        DPRINTFE( "Failed initialize process, error=%s.",
                   sm_error_str(error) );
         return( error );
     }
@@ -843,7 +859,7 @@ SmErrorT sm_process_main( int argc, char *argv[], char *envp[] )
     error = sm_process_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed finalize process, error=%s.", 
+        DPRINTFE( "Failed finalize process, error=%s.",
                   sm_error_str(error) );
     }
 
