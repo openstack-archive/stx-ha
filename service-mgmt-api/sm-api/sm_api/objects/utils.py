@@ -22,6 +22,7 @@ import ast
 import datetime
 import iso8601
 import netaddr
+import six
 
 from sm_api.openstack.common import timeutils
 
@@ -42,7 +43,7 @@ def datetime_or_none(dt):
 
 
 def datetime_or_str_or_none(val):
-    if isinstance(val, basestring):
+    if isinstance(val, six.string_types):
         return timeutils.parse_isotime(val)
     return datetime_or_none(val)
 
