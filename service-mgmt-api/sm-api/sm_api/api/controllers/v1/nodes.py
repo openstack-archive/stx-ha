@@ -54,7 +54,7 @@ class Nodes(base.APIBase):
     "A list containing a self link and associated nodes links"
 
     def __init__(self, **kwargs):
-        self.fields = objects.sm_node.fields.keys()
+        self.fields = list(objects.sm_node.fields)
         for k in self.fields:
             setattr(self, k, kwargs.get(k))
 

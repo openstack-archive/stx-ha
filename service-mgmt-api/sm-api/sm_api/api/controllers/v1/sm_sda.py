@@ -59,7 +59,7 @@ class SmSda(base.APIBase):
     "A list containing a self link and associated sm_sda links"
 
     def __init__(self, **kwargs):
-        self.fields = objects.sm_sda.fields.keys()
+        self.fields = list(objects.sm_sda.fields)
         for k in self.fields:
             setattr(self, k, kwargs.get(k))
 

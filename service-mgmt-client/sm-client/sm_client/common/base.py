@@ -99,7 +99,7 @@ class Resource(object):
         self._loaded = loaded
 
     def _add_details(self, info):
-        for (k, v) in info.iteritems():
+        for (k, v) in info.items():
             setattr(self, k, v)
 
     def __getattr__(self, k):
