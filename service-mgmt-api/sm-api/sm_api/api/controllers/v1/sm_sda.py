@@ -18,7 +18,8 @@ from sm_api.api.controllers.v1 import utils
 from sm_api.common import exception
 from sm_api.common import log
 from sm_api import objects
-
+# for python2 and python3 compatible
+from builtins import str
 
 LOG = log.get_logger(__name__)
 
@@ -123,7 +124,7 @@ class SmSdaController(rest.RestController):
 
         return sm_sdas
 
-    @wsme_pecan.wsexpose(SmSda, unicode)
+    @wsme_pecan.wsexpose(SmSda, str)
     def get_one(self, uuid):
         try:
             rpc_sda = objects.sm_sda.get_by_uuid(pecan.request.context, uuid)
@@ -132,8 +133,8 @@ class SmSdaController(rest.RestController):
 
         return SmSda.convert_with_links(rpc_sda)
 
-    @wsme_pecan.wsexpose(SmSdaCollection, unicode, int,
-                         unicode, unicode)
+    @wsme_pecan.wsexpose(SmSdaCollection, str, int,
+                         str, str)
     def get_all(self, marker=None, limit=None,
                 sort_key='name', sort_dir='asc'):
         """Retrieve list of sm_sdas."""
@@ -147,13 +148,13 @@ class SmSdaController(rest.RestController):
                                                   sort_key=sort_key,
                                                   sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(SmSdaCommandResult, unicode,
+    @wsme_pecan.wsexpose(SmSdaCommandResult, str,
                          body=SmSdaCommand)
     def put(self, hostname, command):
 
         raise NotImplementedError()
 
-    @wsme_pecan.wsexpose(SmSdaCommandResult, unicode,
+    @wsme_pecan.wsexpose(SmSdaCommandResult, str,
                          body=SmSdaCommand)
     def patch(self, hostname, command):
 

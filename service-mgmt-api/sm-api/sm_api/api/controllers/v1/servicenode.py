@@ -28,6 +28,8 @@ import wsmeext.pecan as wsme_pecan
 import socket
 import urllib2
 import json
+# for python2 and python3 compatible
+from builtins import str
 
 from sm_api.api.controllers.v1 import base
 from sm_api.api.controllers.v1 import smc_api
@@ -607,7 +609,7 @@ class ServiceNodeController(rest.RestController):
         else:
             raise wsme.exc.InvalidInput('action', command.action, "unknown")
 
-    @wsme_pecan.wsexpose(ServiceNode, unicode)
+    @wsme_pecan.wsexpose(ServiceNode, str)
     def get_one(self, hostname):
 
         try:
@@ -642,7 +644,7 @@ class ServiceNodeController(rest.RestController):
                            active_services=active_services,
                            swactable_services=swactable_services)
 
-    @wsme_pecan.wsexpose(ServiceNodeCommandResult, unicode,
+    @wsme_pecan.wsexpose(ServiceNodeCommandResult, str,
                          body=ServiceNodeCommand)
     def patch(self, hostname, command):
 

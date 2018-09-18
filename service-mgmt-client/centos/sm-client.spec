@@ -13,7 +13,7 @@ Source0:          %{name}-%{version}.tar.gz
 BuildRequires: python
 BuildRequires: python-setuptools
 Requires: python-libs
-
+Requires: python-future
 %prep
 %setup -q
 

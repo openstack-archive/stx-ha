@@ -36,6 +36,9 @@ from sm_api.common import safe_utils
 from sm_api.openstack.common import excutils
 from sm_api.openstack.common import log as logging
 
+# for python2 and python3 compatible
+from builtins import str
+
 
 LOG = logging.getLogger(__name__)
 
@@ -161,7 +164,7 @@ class SmApiException(Exception):
         if self.__class__.__name__.endswith('_Remote'):
             return self.args[0]
         else:
-            return unicode(self)
+            return str(self)
 
 
 class NotAuthorized(SmApiException):
