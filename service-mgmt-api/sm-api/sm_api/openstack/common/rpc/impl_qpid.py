@@ -520,7 +520,7 @@ class Connection(object):
         it = self.iterconsume(limit=limit)
         while True:
             try:
-                it.next()
+                next(it)
             except StopIteration:
                 return
 
