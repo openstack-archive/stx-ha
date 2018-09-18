@@ -18,7 +18,8 @@ from sm_api.api.controllers.v1 import utils
 from sm_api.common import exception
 from sm_api.common import log
 from sm_api import objects
-
+# for python2 and python3 compatible
+from builtins import str
 
 LOG = log.get_logger(__name__)
 
@@ -110,7 +111,7 @@ class NodesController(rest.RestController):
                                                      sort_dir=sort_dir)
         return nodes
 
-    @wsme_pecan.wsexpose(Nodes, unicode)
+    @wsme_pecan.wsexpose(Nodes, str)
     def get_one(self, uuid):
         try:
             rpc_sg = objects.sm_node.get_by_uuid(pecan.request.context, uuid)
@@ -119,8 +120,8 @@ class NodesController(rest.RestController):
 
         return  Nodes.convert_with_links(rpc_sg)
 
-    @wsme_pecan.wsexpose(NodesCollection, unicode, int,
-                         unicode, unicode)
+    @wsme_pecan.wsexpose(NodesCollection, str, int,
+                         str, str)
     def get_all(self, marker=None, limit=None,
                 sort_key='name', sort_dir='asc'):
         """Retrieve list of nodes."""
@@ -134,13 +135,13 @@ class NodesController(rest.RestController):
                                                  sort_key=sort_key,
                                                  sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(NodesCommandResult, unicode,
+    @wsme_pecan.wsexpose(NodesCommandResult, str,
                          body=NodesCommand)
     def put(self, hostname, command):
 
         raise NotImplementedError()
 
-    @wsme_pecan.wsexpose(NodesCommandResult, unicode,
+    @wsme_pecan.wsexpose(NodesCommandResult, str,
                          body=NodesCommand)
     def patch(self, hostname, command):
 

@@ -43,6 +43,9 @@ from eventlet.green import subprocess
 from eventlet import greenthread
 import netaddr
 
+# for python2 and python3 compatible
+from builtins import str
+
 from oslo_config import cfg
 
 from sm_api.common import exception
@@ -404,7 +407,7 @@ def convert_to_list_dict(lst, label):
 
 def sanitize_hostname(hostname):
     """Return a hostname which conforms to RFC-952 and RFC-1123 specs."""
-    if isinstance(hostname, unicode):
+    if isinstance(hostname, str):
         hostname = hostname.encode('latin-1', 'ignore')
 
     hostname = re.sub('[ _]', '-', hostname)

@@ -5,12 +5,12 @@
 #
 
 import json
+from builtins import str
 import wsme
 from wsme import types as wsme_types
 import wsmeext.pecan as wsme_pecan
 import pecan
 from pecan import rest
-
 from sm_api.api.controllers.v1 import base
 from sm_api.api.controllers.v1 import collection
 from sm_api.api.controllers.v1 import link
@@ -124,7 +124,7 @@ class ServiceGroupController(rest.RestController):
 
         return sm_sdas
 
-    @wsme_pecan.wsexpose(ServiceGroup, unicode)
+    @wsme_pecan.wsexpose(ServiceGroup, str)
     def get_one(self, uuid):
         try:
             rpc_sg = objects.sm_sda.get_by_uuid(pecan.request.context, uuid)
@@ -133,8 +133,8 @@ class ServiceGroupController(rest.RestController):
 
         return ServiceGroup.convert_with_links(rpc_sg)
 
-    @wsme_pecan.wsexpose(ServiceGroupCollection, unicode, int,
-                         unicode, unicode)
+    @wsme_pecan.wsexpose(ServiceGroupCollection, str, int,
+                         str, str)
     def get_all(self, marker=None, limit=None,
                 sort_key='name', sort_dir='asc'):
         """Retrieve list of servicegroups."""
@@ -148,13 +148,13 @@ class ServiceGroupController(rest.RestController):
                                                  sort_key=sort_key,
                                                  sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(ServiceGroupCommandResult, unicode,
+    @wsme_pecan.wsexpose(ServiceGroupCommandResult, str,
                          body=ServiceGroupCommand)
     def put(self, hostname, command):
 
         raise NotImplementedError()
 
-    @wsme_pecan.wsexpose(ServiceGroupCommandResult, unicode,
+    @wsme_pecan.wsexpose(ServiceGroupCommandResult, str,
                          body=ServiceGroupCommand)
     def patch(self, hostname, command):
 
