@@ -556,7 +556,7 @@ class MulticallWaiter(object):
             raise StopIteration
         while True:
             try:
-                self._iterator.next()
+                next(self._iterator)
             except Exception:
                 with excutils.save_and_reraise_exception():
                     self.done()

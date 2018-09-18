@@ -74,8 +74,11 @@ class ModelBase(object):
         return self
 
     def next(self):
-        n = self._i.next()
+        n = next(self._i)
         return n, getattr(self, n)
+
+    # In Python 3, __next__() has replaced next().
+    __next__ = next
 
     def update(self, values):
         """Make the model object behave like a dict."""
