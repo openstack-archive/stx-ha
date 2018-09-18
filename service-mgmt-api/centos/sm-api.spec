@@ -18,6 +18,7 @@ BuildRequires: systemd
 BuildRequires: systemd-devel
 Requires: python-libs
 # Needed for python2 and python3 compatible
+Requires: python-six
 Requires: python-future
 # Needed for /etc/init.d, can be removed when we go fully systemd
 Requires: chkconfig
