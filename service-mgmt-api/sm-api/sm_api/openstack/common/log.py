@@ -380,7 +380,7 @@ def _find_facility_from_conf():
         facility = facility_names.get(CONF.syslog_log_facility)
 
     if facility is None:
-        valid_facilities = facility_names.keys()
+        valid_facilities = list(facility_names)
         consts = ['LOG_AUTH', 'LOG_AUTHPRIV', 'LOG_CRON', 'LOG_DAEMON',
                   'LOG_FTP', 'LOG_KERN', 'LOG_LPR', 'LOG_MAIL', 'LOG_NEWS',
                   'LOG_AUTH', 'LOG_SYSLOG', 'LOG_USER', 'LOG_UUCP',

@@ -135,7 +135,7 @@ def rest_api_request(token, method, api_cmd, api_cmd_headers=None,
         request_info.add_header("Accept", "application/json")
 
         if api_cmd_headers is not None:
-            for header_type, header_value in api_cmd_headers.items():
+            for header_type, header_value in list(api_cmd_headers.items()):
                 request_info.add_header(header_type, header_value)
 
         if api_cmd_payload is not None:
@@ -484,7 +484,7 @@ class ServiceNodeController(rest.RestController):
                         chk_list[sda.service_group_name].remove(service_name)
 
         all_good = True
-        for svcs in chk_list.values():
+        for svcs in list(chk_list.values()):
             if len(svcs) > 0:
                 all_good = False
                 break
