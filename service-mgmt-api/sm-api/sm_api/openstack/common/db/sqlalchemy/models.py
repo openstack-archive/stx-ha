@@ -64,7 +64,7 @@ class ModelBase(object):
         return getattr(self, key, default)
 
     def __iter__(self):
-        columns = dict(object_mapper(self).columns).keys()
+        columns = list(dict(object_mapper(self).columns))
         # NOTE(russellb): Allow models to specify other keys that can be looked
         # up, beyond the actual db columns.  An example would be the 'name'
         # property for an Instance.
@@ -79,7 +79,7 @@ class ModelBase(object):
 
     def update(self, values):
         """Make the model object behave like a dict."""
-        for k, v in values.iteritems():
+        for k, v in values.items():
             setattr(self, k, v)
 
     def iteritems(self):
@@ -87,10 +87,10 @@ class ModelBase(object):
 
         Includes attributes from joins."""
         local = dict(self)
-        joined = dict([(k, v) for k, v in self.__dict__.iteritems()
+        joined = dict([(k, v) for k, v in self.__dict__.items()
                       if not k[0] == '_'])
         local.update(joined)
-        return local.iteritems()
+        return iter(local.items())
 
 
 class TimestampMixin(object):

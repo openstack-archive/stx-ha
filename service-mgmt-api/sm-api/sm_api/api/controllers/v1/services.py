@@ -55,7 +55,7 @@ class Services(base.APIBase):
     "A list containing a self link and associated services links"
 
     def __init__(self, **kwargs):
-        self.fields = objects.service.fields.keys()
+        self.fields = list(objects.service.fields)
         for k in self.fields:
             setattr(self, k, kwargs.get(k))
 
