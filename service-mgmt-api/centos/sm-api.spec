@@ -17,7 +17,7 @@ BuildRequires: util-linux
 BuildRequires: systemd
 BuildRequires: systemd-devel
 Requires: python-libs
-
+Requires: python-six
 # Needed for /etc/init.d, can be removed when we go fully systemd
 Requires: chkconfig
 # Needed for /etc/pmon.d
