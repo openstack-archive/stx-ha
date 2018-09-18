@@ -16,7 +16,7 @@ BuildRequires: gcc
 BuildRequires: util-linux
 BuildRequires: libuuid-devel
 
-Requires: cgts-mtce-common-pmon
+Requires: mtce-pmon
 Requires: /bin/sh
 Requires: sqlite
 Requires: util-linux

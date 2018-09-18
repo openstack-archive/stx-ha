@@ -31,7 +31,7 @@ Requires(preun): systemd
 # Needed for /etc/init.d, can be removed when we go fully systemd
 Requires: chkconfig
 # Needed for /etc/pmon.d
-Requires:  cgts-mtce-common-pmon
+Requires:  mtce-pmon
 # Needed for /etc/logrotate.d
 Requires: logrotate
 # for collect stuff
