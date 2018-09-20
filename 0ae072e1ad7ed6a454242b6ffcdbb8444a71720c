@@ -1,0 +1,10 @@
+Code-Review+2: Bin Qian <bin.qian@windriver.com>
+Code-Review+2: Eric MacDonald <eric.macdonald@windriver.com>
+Code-Review+1: Jack Ding <Jack.Ding@windriver.com>
+Workflow+1: Eric MacDonald <eric.macdonald@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Thu, 20 Sep 2018 15:51:24 +0000
+Reviewed-on: https://review.openstack.org/603444
+Project: openstack/stx-ha
+Branch: refs/heads/master
