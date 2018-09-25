@@ -7,3 +7,5 @@ Monitoring / Service Management
 
 .. toctree::
    :maxdepth: 2
+
+   api-ref-smapi-v1-ha
