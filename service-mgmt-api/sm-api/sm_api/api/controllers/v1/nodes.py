@@ -9,6 +9,7 @@ import wsme
 from wsme import types as wsme_types
 import wsmeext.pecan as wsme_pecan
 import pecan
+import six
 from pecan import rest
 
 from sm_api.api.controllers.v1 import base
@@ -110,7 +111,7 @@ class NodesController(rest.RestController):
                                                      sort_dir=sort_dir)
         return nodes
 
-    @wsme_pecan.wsexpose(Nodes, unicode)
+    @wsme_pecan.wsexpose(Nodes, six.text_type)
     def get_one(self, uuid):
         try:
             rpc_sg = objects.sm_node.get_by_uuid(pecan.request.context, uuid)
@@ -119,8 +120,8 @@ class NodesController(rest.RestController):
 
         return  Nodes.convert_with_links(rpc_sg)
 
-    @wsme_pecan.wsexpose(NodesCollection, unicode, int,
-                         unicode, unicode)
+    @wsme_pecan.wsexpose(NodesCollection, six.text_type, int,
+                         six.text_type, six.text_type)
     def get_all(self, marker=None, limit=None,
                 sort_key='name', sort_dir='asc'):
         """Retrieve list of nodes."""
@@ -134,13 +135,13 @@ class NodesController(rest.RestController):
                                                  sort_key=sort_key,
                                                  sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(NodesCommandResult, unicode,
+    @wsme_pecan.wsexpose(NodesCommandResult, six.text_type,
                          body=NodesCommand)
     def put(self, hostname, command):
 
         raise NotImplementedError()
 
-    @wsme_pecan.wsexpose(NodesCommandResult, unicode,
+    @wsme_pecan.wsexpose(NodesCommandResult, six.text_type,
                          body=NodesCommand)
     def patch(self, hostname, command):
 

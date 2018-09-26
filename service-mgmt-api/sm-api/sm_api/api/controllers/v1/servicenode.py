@@ -23,6 +23,7 @@
 import pecan
 from pecan import rest
 import wsme
+import six
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 import socket
@@ -607,7 +608,7 @@ class ServiceNodeController(rest.RestController):
         else:
             raise wsme.exc.InvalidInput('action', command.action, "unknown")
 
-    @wsme_pecan.wsexpose(ServiceNode, unicode)
+    @wsme_pecan.wsexpose(ServiceNode, six.text_type)
     def get_one(self, hostname):
 
         try:
@@ -642,7 +643,7 @@ class ServiceNodeController(rest.RestController):
                            active_services=active_services,
                            swactable_services=swactable_services)
 
-    @wsme_pecan.wsexpose(ServiceNodeCommandResult, unicode,
+    @wsme_pecan.wsexpose(ServiceNodeCommandResult, six.text_type,
                          body=ServiceNodeCommand)
     def patch(self, hostname, command):
 

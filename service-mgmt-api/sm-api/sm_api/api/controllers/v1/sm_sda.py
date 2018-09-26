@@ -9,6 +9,7 @@ import wsme
 from wsme import types as wsme_types
 import wsmeext.pecan as wsme_pecan
 import pecan
+import six
 from pecan import rest
 
 from sm_api.api.controllers.v1 import base
@@ -123,7 +124,7 @@ class SmSdaController(rest.RestController):
 
         return sm_sdas
 
-    @wsme_pecan.wsexpose(SmSda, unicode)
+    @wsme_pecan.wsexpose(SmSda, six.text_type)
     def get_one(self, uuid):
         try:
             rpc_sda = objects.sm_sda.get_by_uuid(pecan.request.context, uuid)
@@ -132,8 +133,8 @@ class SmSdaController(rest.RestController):
 
         return SmSda.convert_with_links(rpc_sda)
 
-    @wsme_pecan.wsexpose(SmSdaCollection, unicode, int,
-                         unicode, unicode)
+    @wsme_pecan.wsexpose(SmSdaCollection, six.text_type, int,
+                         six.text_type, six.text_type)
     def get_all(self, marker=None, limit=None,
                 sort_key='name', sort_dir='asc'):
         """Retrieve list of sm_sdas."""
@@ -147,13 +148,13 @@ class SmSdaController(rest.RestController):
                                                   sort_key=sort_key,
                                                   sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(SmSdaCommandResult, unicode,
+    @wsme_pecan.wsexpose(SmSdaCommandResult, six.text_type,
                          body=SmSdaCommand)
     def put(self, hostname, command):
 
         raise NotImplementedError()
 
-    @wsme_pecan.wsexpose(SmSdaCommandResult, unicode,
+    @wsme_pecan.wsexpose(SmSdaCommandResult, six.text_type,
                          body=SmSdaCommand)
     def patch(self, hostname, command):
 
