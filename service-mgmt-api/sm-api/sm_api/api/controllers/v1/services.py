@@ -9,6 +9,7 @@ import wsme
 from wsme import types as wsme_types
 import wsmeext.pecan as wsme_pecan
 import pecan
+import six
 from pecan import rest
 
 from sm_api.api.controllers.v1 import base
@@ -109,7 +110,7 @@ class ServicesController(rest.RestController):
                                                      sort_dir=sort_dir)
         return services
 
-    @wsme_pecan.wsexpose(Services, unicode)
+    @wsme_pecan.wsexpose(Services, six.text_type)
     def get_one(self, uuid):
         try:
             rpc_sg = objects.service.get_by_uuid(pecan.request.context, uuid)
@@ -118,7 +119,7 @@ class ServicesController(rest.RestController):
 
         return Services.convert_with_links(rpc_sg)
 
-    @wsme_pecan.wsexpose(Services, unicode)
+    @wsme_pecan.wsexpose(Services, six.text_type)
     def get_service(self, name):
         try:
             rpc_sg = objects.service.get_by_name(pecan.request.context, name)
@@ -126,8 +127,8 @@ class ServicesController(rest.RestController):
             return None
         return Services.convert_with_links(rpc_sg)
 
-    @wsme_pecan.wsexpose(ServicesCollection, unicode, int,
-                         unicode, unicode)
+    @wsme_pecan.wsexpose(ServicesCollection, six.text_type, int,
+                         six.text_type, six.text_type)
     def get_all(self, marker=None, limit=None,
                 sort_key='name', sort_dir='asc'):
         """Retrieve list of services."""
@@ -141,13 +142,13 @@ class ServicesController(rest.RestController):
                                                      sort_key=sort_key,
                                                      sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(ServicesCommandResult, unicode,
+    @wsme_pecan.wsexpose(ServicesCommandResult, six.text_type,
                          body=ServicesCommand)
     def put(self, hostname, command):
 
         raise NotImplementedError()
 
-    @wsme_pecan.wsexpose(ServicesCommandResult, unicode,
+    @wsme_pecan.wsexpose(ServicesCommandResult, six.text_type,
                          body=ServicesCommand)
     def patch(self, hostname, command):
 

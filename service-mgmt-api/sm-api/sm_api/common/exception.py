@@ -29,7 +29,7 @@ SHOULD include dedicated exception logging.
 """
 
 import functools
-
+import six
 from oslo_config import cfg
 
 from sm_api.common import safe_utils
@@ -161,7 +161,7 @@ class SmApiException(Exception):
         if self.__class__.__name__.endswith('_Remote'):
             return self.args[0]
         else:
-            return unicode(self)
+            return six.text_type(self)
 
 
 class NotAuthorized(SmApiException):
