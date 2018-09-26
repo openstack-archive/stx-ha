@@ -70,6 +70,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(35,'yes','cloud-services','nova-novnc
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(36,'yes','cloud-services','cinder-api','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(37,'yes','cloud-services','cinder-scheduler','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(38,'yes','cloud-services','cinder-volume','critical');
+INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(39,'yes','cloud-services','cinder-backup','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(44,'yes','cloud-services','ceilometer-agent-notification','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(45,'yes','cloud-services','heat-engine','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(46,'yes','cloud-services','heat-api','critical');
@@ -164,6 +165,7 @@ INSERT INTO "SERVICES" VALUES(34,'yes','nova-novnc','initial','initial','none','
 INSERT INTO "SERVICES" VALUES(35,'yes','cinder-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/cinder-api.pid');
 INSERT INTO "SERVICES" VALUES(36,'yes','cinder-scheduler','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/cinder-scheduler.pid');
 INSERT INTO "SERVICES" VALUES(37,'yes','cinder-volume','initial','initial','none','none',32,16,180000,4,16,'/var/run/resource-agents/cinder-volume.pid');
+INSERT INTO "SERVICES" VALUES(38,'yes','cinder-backup','initial','initial','none','none',32,16,180000,4,16,'/var/run/resource-agents/cinder-backup.pid');
 INSERT INTO "SERVICES" VALUES(43,'yes','ceilometer-agent-notification','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/ceilometer-agent-notification.pid');
 INSERT INTO "SERVICES" VALUES(44,'yes','heat-engine','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/heat-engine.pid');
 INSERT INTO "SERVICES" VALUES(45,'yes','heat-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/heat-api.pid');
@@ -283,6 +285,9 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nova-console-auth','not-applic
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nova-console-auth','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nova-console-auth','not-applicable','enable','cgcs-nfs-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nova-novnc','not-applicable','enable','nova-console-auth','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-backup','not-applicable','enable','postgres','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-backup','not-applicable','enable','rabbit','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-backup','not-applicable','enable','cgcs-nfs-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-scheduler','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-scheduler','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-scheduler','not-applicable','enable','cgcs-nfs-ip','enabled-active');
@@ -291,6 +296,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-volume','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-volume','not-applicable','enable','cgcs-nfs-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-api','not-applicable','enable','cinder-scheduler','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-api','not-applicable','enable','cinder-volume','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-api','not-applicable','enable','cinder-backup','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceilometer-agent-notification','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-engine','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-engine','not-applicable','enable','rabbit','enabled-active');
@@ -306,6 +312,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','iscsi','not-applicable','enabl
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','iscsi','not-applicable','enable','cgcs-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','enable','iscsi','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-volume','not-applicable','enable','cinder-ip','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-backup','not-applicable','enable','cinder-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ip','not-applicable','disable','haproxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','pg-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','rabbit-fs','disabled');
@@ -330,6 +337,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable',
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','nova-console-auth','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','cinder-scheduler','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','cinder-volume','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','cinder-backup','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-nfs-ip','not-applicable','disable','heat-engine','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-fs','not-applicable','disable','platform-export-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','snmp','disabled');
@@ -342,6 +350,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','di
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','nova-console-auth','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','cinder-scheduler','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','cinder-volume','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','cinder-backup','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','heat-engine','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','sysinv-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','keystone','disabled');
@@ -352,6 +361,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disa
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','nova-console-auth','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','cinder-scheduler','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','cinder-volume','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','cinder-backup','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','ceilometer-agent-notification','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','heat-engine','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','sysinv-conductor','disabled');
@@ -375,6 +385,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nova-conductor','not-applicabl
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nova-api','not-applicable','disable','nova-api-proxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-scheduler','not-applicable','disable','cinder-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-volume','not-applicable','disable','cinder-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-backup','not-applicable','disable','cinder-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-engine','not-applicable','disable','heat-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-api','not-applicable','disable','heat-api-cfn','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-api-cfn','not-applicable','disable','heat-api-cloudwatch','disabled');
@@ -382,6 +393,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','lighttpd','not-applicable','di
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-rest-api','not-applicable','disable','ceph-manager','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','disable','cgcs-nfs-ip','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','disable','cinder-volume','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','disable','cinder-backup','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','iscsi','not-applicable','disable','cinder-ip','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cgcs','not-applicable','disable','iscsi','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd-fs','not-applicable','disable','etcd','disabled');
@@ -674,6 +686,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-volume','enable','ocf-script','open
 INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-volume','disable','ocf-script','openstack','cinder-volume','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-volume','audit-enabled','ocf-script','openstack','cinder-volume','monitor','',2,2,2,30,60);
 INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-volume','audit-disabled','ocf-script','openstack','cinder-volume','monitor','',0,0,0,30,20);
+INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-backup','enable','ocf-script','openstack','cinder-backup','start','',2,2,2,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-backup','disable','ocf-script','openstack','cinder-backup','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-backup','audit-enabled','ocf-script','openstack','cinder-backup','monitor','',2,2,2,60,60);
+INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-backup','audit-disabled','ocf-script','openstack','cinder-backup','monitor','',0,0,0,30,20);
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-agent-notification','enable','ocf-script','openstack','ceilometer-agent-notification','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-agent-notification','disable','ocf-script','openstack','ceilometer-agent-notification','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceilometer-agent-notification','audit-enabled','ocf-script','openstack','ceilometer-agent-notification','monitor','',2,2,2,30,30);
