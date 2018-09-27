@@ -130,7 +130,7 @@ class _PosixLock(_InterProcessLock):
 
 
 if os.name == 'nt':
-    import msvcrt
+    import msvcrt  # pylint: disable=import-error
     InterProcessLock = _WindowsLock
 else:
     import fcntl
