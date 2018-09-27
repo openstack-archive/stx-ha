@@ -577,7 +577,7 @@ class ServiceNodeController(rest.RestController):
             ack_oper = sm_ack_dict['SM_API_MSG_NODE_OPER'].lower()
             ack_avail = sm_ack_dict['SM_API_MSG_NODE_AVAIL'].lower()
 
-            LOG.debug("sm-api _do_modify_command sm_ack_dict: %s ACK admin: "
+            LOG.info("sm-api _do_modify_command sm_ack_dict: %s ACK admin: "
                       "%s oper: %s avail: %s." % (sm_ack_dict, ack_admin,
                                                   ack_oper, ack_avail))
 
@@ -649,5 +649,8 @@ class ServiceNodeController(rest.RestController):
         if command.origin != "mtce" and command.origin != "sysinv":
             LOG.warn("sm-api unexpected origin: %s.  Continuing."
                      % command.origin)
+        else:
+            LOG.info("Received command %s from %s" %
+                     (command.action, command.origin))
 
         return self._do_modify_command(hostname, command)
