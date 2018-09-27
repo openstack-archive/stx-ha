@@ -20,7 +20,7 @@
 #
 
 
-import distutils.version as dist_version
+import distutils.version as dist_version  # pylint: disable=import-error
 import os
 
 import migrate
