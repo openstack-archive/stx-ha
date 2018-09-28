@@ -1,0 +1,25 @@
+---
+prelude: >
+    The StarlingX HA project is a new repository that provideds High
+    Availability Cluster Management for StarlingX and OpenStack Services on
+    Controllers.
+features:
+  - |
+    High availability manager to manage the life cycle of services where the
+    redundancy model can be N+M or N across multiple nodes:
+
+    - Currently used in StarlingX to provide 1+1 HA Controller Cluster.
+  - |
+    Configured to use multiple messaging paths to avoid split-brain
+    communication failures:
+
+    - Up to 3 independent communication paths.
+    - LAG can also be configured for multi-link protection of each path.
+    - Messages are authenticated using HMAC SHA-512 if configured / enabled on
+      an interface-by-interface basis.
+  - |
+    Active or passive monitoring of services.
+  - |
+    Allows for specifying the impact of a service failure.
+  - |
+    Completely data driven through the configuration of a SQL database.
