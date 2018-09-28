@@ -1,0 +1,11 @@
+Code-Review+1: Abraham Arce <abraham.arce.moreno@intel.com>
+Code-Review+1: Greg Waines <greg.waines@windriver.com>
+Code-Review+2: Saul Wold <sgw@linux.intel.com>
+Code-Review+2: Bin Qian <bin.qian@windriver.com>
+Workflow+1: Bin Qian <bin.qian@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Fri, 28 Sep 2018 02:10:45 +0000
+Reviewed-on: https://review.openstack.org/605272
+Project: openstack/stx-ha
+Branch: refs/heads/master
