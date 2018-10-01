@@ -1,0 +1,9 @@
+Code-Review+2: Saul Wold <sgw@linux.intel.com>
+Code-Review+2: Bin Qian <bin.qian@windriver.com>
+Workflow+1: Bin Qian <bin.qian@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Mon, 01 Oct 2018 14:00:54 +0000
+Reviewed-on: https://review.openstack.org/606170
+Project: openstack/stx-ha
+Branch: refs/heads/r/2018.10
