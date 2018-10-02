@@ -6,7 +6,7 @@
 import os
 import sys
 import argparse
-import ConfigParser
+from six.moves import configparser
 import eventlet
 from wsgiref import simple_server
 
@@ -49,11 +49,11 @@ def main():
                                          handler_class=get_handler_cls())
         wsgi.serve_forever()
 
-    except ConfigParser.NoOptionError as e:
+    except configparser.NoOptionError as e:
         print(e)
         sys.exit(-2)
 
-    except ConfigParser.NoSectionError as e:
+    except configparser.NoSectionError as e:
         print(e)
         sys.exit(-3)
 

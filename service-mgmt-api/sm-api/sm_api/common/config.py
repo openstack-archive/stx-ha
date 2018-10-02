@@ -8,12 +8,12 @@
 Configuration
 """
 
-import ConfigParser
+from six.moves import configparser
 
 CONF = None
 
 
-class Config(ConfigParser.ConfigParser):
+class Config(configparser.ConfigParser):
     def as_dict(self):
         d = dict(self._sections)
         for key in d:
