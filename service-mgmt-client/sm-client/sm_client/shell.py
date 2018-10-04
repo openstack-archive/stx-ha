@@ -131,7 +131,7 @@ class SmcShell(object):
 
         parser.add_argument('--smc-api-version',
                             default=utils.env(
-                            'SMC_API_VERSION', default='1'),
+                                'SMC_API_VERSION', default='1'),
                             help='Defaults to env[SMC_API_VERSION] '
                             'or 1')
 
@@ -203,8 +203,8 @@ class SmcShell(object):
             httplib2.debuglevel = 1
         else:
             logging.basicConfig(
-                    format="%(levelname)s %(message)s",
-                    level=logging.CRITICAL)
+                format="%(levelname)s %(message)s",
+                level=logging.CRITICAL)
 
     def main(self, argv):
         # Parse args once to find version
@@ -286,6 +286,7 @@ def main():
     except Exception as e:
         print >> sys.stderr, e
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

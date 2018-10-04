@@ -45,7 +45,7 @@ def do_servicegroup_show(cc, args):
                                "requires 'admin' level")
     else:
         if servicegroup is None:
-            print "Service group %s could not be found" % args.servicegroup
+            print("Service group %s could not be found" % args.servicegroup)
             return
         if servicegroup.status:
             setattr(servicegroup, 'state', servicegroup.state + '-' +

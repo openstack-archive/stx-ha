@@ -18,8 +18,6 @@
 # Copyright (c) 2013-2014 Wind River Systems, Inc.
 #
 
-
-
 from six.moves import configparser
 import logging
 import logging.handlers

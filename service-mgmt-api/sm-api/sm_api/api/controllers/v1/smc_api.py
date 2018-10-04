@@ -94,16 +94,16 @@ def sm_api_notify(sm_dict):
             except:
                 LOG.exception(_("sm-api bad rx message: %s" % sm_ack))
 
-    except socket.error, e:
+    except socket.error as e:
         LOG.exception(_("sm-api socket error: %s on  %s") % (e, sm_buf))
         sm_ack_dict = {
-           'SM_API_MSG_TYPE': "unknown_set_node",
-           'SM_API_MSG_NODE_ACTION': sm_dict['SM_API_MSG_NODE_ACTION'],
-           'SM_API_MSG_ORIGIN': "sm",
-           'SM_API_MSG_NODE_NAME': sm_dict['SM_API_MSG_NODE_NAME'],
-           'SM_API_MSG_NODE_ADMIN': "unknown",
-           'SM_API_MSG_NODE_OPER': "unknown",
-           'SM_API_MSG_NODE_AVAIL': "unknown"}
+            'SM_API_MSG_TYPE': "unknown_set_node",
+            'SM_API_MSG_NODE_ACTION': sm_dict['SM_API_MSG_NODE_ACTION'],
+            'SM_API_MSG_ORIGIN': "sm",
+            'SM_API_MSG_NODE_NAME': sm_dict['SM_API_MSG_NODE_NAME'],
+            'SM_API_MSG_NODE_ADMIN': "unknown",
+            'SM_API_MSG_NODE_OPER': "unknown",
+            'SM_API_MSG_NODE_AVAIL': "unknown"}
 
         return sm_ack_dict
 
@@ -116,46 +116,43 @@ def sm_api_notify(sm_dict):
     try:
         sm_ack_list = sm_ack.split(",")
         sm_ack_dict = {
-          'SM_API_MSG_VERSION': sm_ack_list[SM_API_MSG_VERSION_FIELD],
-          'SM_API_MSG_REVISION': sm_ack_list[SM_API_MSG_REVISION_FIELD],
-          'SM_API_MSG_SEQNO': sm_ack_list[SM_API_MSG_SEQNO_FIELD],
-          'SM_API_MSG_TYPE': sm_ack_list[SM_API_MSG_TYPE_FIELD],
-          'SM_API_MSG_NODE_ACTION': sm_ack_list[SM_API_MSG_NODE_ACTION_FIELD],
+            'SM_API_MSG_VERSION': sm_ack_list[SM_API_MSG_VERSION_FIELD],
+            'SM_API_MSG_REVISION': sm_ack_list[SM_API_MSG_REVISION_FIELD],
+            'SM_API_MSG_SEQNO': sm_ack_list[SM_API_MSG_SEQNO_FIELD],
+            'SM_API_MSG_TYPE': sm_ack_list[SM_API_MSG_TYPE_FIELD],
+            'SM_API_MSG_NODE_ACTION': sm_ack_list[SM_API_MSG_NODE_ACTION_FIELD],
 
-          'SM_API_MSG_ORIGIN': sm_ack_list[SM_API_MSG_ORIGIN_FIELD],
-          'SM_API_MSG_NODE_NAME': sm_ack_list[SM_API_MSG_NODE_NAME_FIELD],
-          'SM_API_MSG_NODE_ADMIN': sm_ack_list[SM_API_MSG_NODE_ADMIN_FIELD],
-          'SM_API_MSG_NODE_OPER': sm_ack_list[SM_API_MSG_NODE_OPER_FIELD],
-          'SM_API_MSG_NODE_AVAIL': sm_ack_list[SM_API_MSG_NODE_AVAIL_FIELD]
-           }
+            'SM_API_MSG_ORIGIN': sm_ack_list[SM_API_MSG_ORIGIN_FIELD],
+            'SM_API_MSG_NODE_NAME': sm_ack_list[SM_API_MSG_NODE_NAME_FIELD],
+            'SM_API_MSG_NODE_ADMIN': sm_ack_list[SM_API_MSG_NODE_ADMIN_FIELD],
+            'SM_API_MSG_NODE_OPER': sm_ack_list[SM_API_MSG_NODE_OPER_FIELD],
+            'SM_API_MSG_NODE_AVAIL': sm_ack_list[SM_API_MSG_NODE_AVAIL_FIELD]}
     except:
         LOG.exception(_("sm-api ack message error: %s" % sm_ack))
         sm_ack_dict = {
-           'SM_API_MSG_TYPE': "unknown_set_node",
+            'SM_API_MSG_TYPE': "unknown_set_node",
 
-           'SM_API_MSG_ORIGIN': "sm",
-           'SM_API_MSG_NODE_NAME': sm_dict['SM_API_MSG_NODE_NAME'],
-           'SM_API_MSG_NODE_ADMIN': "unknown",
-           'SM_API_MSG_NODE_OPEsR': "unknown",
-           'SM_API_MSG_NODE_AVAIL': "unknown"
-         }
+            'SM_API_MSG_ORIGIN': "sm",
+            'SM_API_MSG_NODE_NAME': sm_dict['SM_API_MSG_NODE_NAME'],
+            'SM_API_MSG_NODE_ADMIN': "unknown",
+            'SM_API_MSG_NODE_OPEsR': "unknown",
+            'SM_API_MSG_NODE_AVAIL': "unknown"}
 
     return sm_ack_dict
 
 
 def sm_api_set_node_state(origin, hostname, action, admin, avail, oper, seqno):
     sm_ack_dict = {}
-    sm_dict = {'SM_API_MSG_TYPE':  SM_API_MSG_TYPE_SET_NODE,
+    sm_dict = {'SM_API_MSG_TYPE': SM_API_MSG_TYPE_SET_NODE,
 
                'SM_API_MSG_ORIGIN': origin,
                'SM_API_MSG_NODE_NAME': hostname,
 
                'SM_API_MSG_NODE_ACTION': action,
-               'SM_API_MSG_NODE_ADMIN':  admin,
-               'SM_API_MSG_NODE_OPER':  oper,
-               'SM_API_MSG_NODE_AVAIL':  avail,
-               'SM_API_MSG_SEQNO': seqno,
-             }
+               'SM_API_MSG_NODE_ADMIN': admin,
+               'SM_API_MSG_NODE_OPER': oper,
+               'SM_API_MSG_NODE_AVAIL': avail,
+               'SM_API_MSG_SEQNO': seqno}
 
     sm_ack_dict = sm_api_notify(sm_dict)
 

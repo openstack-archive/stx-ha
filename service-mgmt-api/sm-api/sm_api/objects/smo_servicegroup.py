@@ -18,16 +18,15 @@ class service_groups(base.Sm_apiObject):
     dbapi = db_api.get_instance()
 
     fields = {
-            'id': utils.int_or_none,
-            # 'uuid': utils.str_or_none,
-            # 'deleted': utils.str_or_none,
+        'id': utils.int_or_none,
+        # 'uuid': utils.str_or_none,
+        # 'deleted': utils.str_or_none,
 
-            # 'created_at': utils.datetime_str_or_none,
-            # 'updated_at': utils.datetime_str_or_none,
-            'name': utils.str_or_none,
-            'state': utils.str_or_none,
-            'status': utils.str_or_none,
-            }
+        # 'created_at': utils.datetime_str_or_none,
+        # 'updated_at': utils.datetime_str_or_none,
+        'name': utils.str_or_none,
+        'state': utils.str_or_none,
+        'status': utils.str_or_none}
 
     @staticmethod
     def _from_db_object(server, db_server):

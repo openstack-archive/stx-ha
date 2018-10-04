@@ -61,14 +61,14 @@ def validate_patch(patch):
         if not isinstance(p, dict) or \
                 any(key for key in ["path", "op"] if key not in p):
             raise wsme.exc.ClientSideError(_("Invalid patch format: %s")
-                                             % str(p))
+                                           % str(p))
 
         path = p["path"]
         op = p["op"]
 
         if op not in ["add", "replace", "remove"]:
             raise wsme.exc.ClientSideError(_("Operation not supported: %s")
-                                             % op)
+                                           % op)
 
         if not path_pattern.match(path):
             raise wsme.exc.ClientSideError(_("Invalid path: %s") % path)
@@ -78,7 +78,7 @@ def validate_patch(patch):
                 raise wsme.exc.ClientSideError(_("Adding an additional "
                                                  "attribute (%s) to the "
                                                  "resource is not allowed")
-                                                 % path)
+                                               % path)
 
 
 class ValidTypes(wsme.types.UserType):

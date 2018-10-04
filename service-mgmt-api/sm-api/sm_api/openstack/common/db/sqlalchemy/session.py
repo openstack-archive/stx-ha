@@ -277,13 +277,13 @@ sqlite_db_opts = [
 ]
 
 database_opts = [
-     cfg.StrOpt('connection',
-                default='sqlite:////var/run/sm/sm.db',
-                help='The SQLAlchemy connection string used to connect to the '
-                     'database',
-                deprecated_name='sql_connection',
-                deprecated_group=DEFAULT,
-                secret=True),
+    cfg.StrOpt('connection',
+               default='sqlite:////var/run/sm/sm.db',
+               help='The SQLAlchemy connection string used to connect to the '
+               'database',
+               deprecated_name='sql_connection',
+               deprecated_group=DEFAULT,
+               secret=True),
     cfg.IntOpt('idle_timeout',
                default=3600,
                deprecated_name='sql_idle_timeout',

@@ -20,8 +20,6 @@
 
 
 import eventlet
-eventlet.monkey_patch()
-
 import contextlib
 import sys
 
@@ -30,6 +28,9 @@ from oslo_config import cfg
 from sm_api.openstack.common import log as logging
 from sm_api.openstack.common import rpc
 from sm_api.openstack.common.rpc import impl_zmq
+
+eventlet.monkey_patch()
+
 
 CONF = cfg.CONF
 CONF.register_opts(rpc.rpc_opts)

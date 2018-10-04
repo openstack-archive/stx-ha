@@ -365,9 +365,9 @@ def setup(product_name):
 
 
 def set_defaults(logging_context_format_string):
-    cfg.set_defaults(log_opts,
-                     logging_context_format_string=
-                     logging_context_format_string)
+    cfg.set_defaults(
+        log_opts,
+        logging_context_format_string=logging_context_format_string)
 
 
 def _find_facility_from_conf():
@@ -450,6 +450,7 @@ def _setup_logging_from_conf():
         level = logging.getLevelName(level_name)
         logger = logging.getLogger(mod)
         logger.setLevel(level)
+
 
 _loggers = {}
 

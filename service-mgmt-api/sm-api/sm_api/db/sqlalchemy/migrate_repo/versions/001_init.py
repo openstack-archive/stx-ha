@@ -70,5 +70,5 @@ def upgrade(migrate_engine):
 def downgrade(migrate_engine):
     raise NotImplementedError('Downgrade from Initial is unsupported.')
 
-    #t = Table('i_disk', meta, autoload=True)
-    #t.drop()
+    # t = Table('i_disk', meta, autoload=True)
+    # t.drop()

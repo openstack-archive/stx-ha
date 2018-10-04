@@ -31,6 +31,11 @@ from sm_api.common import exception
 from sm_api.db import migration
 from sm_api.openstack.common.db.sqlalchemy import session as db_session
 
+# NOTE(jkoelker) Delay importing migrate until we are patched
+from migrate import exceptions as versioning_exceptions
+from migrate.versioning import api as versioning_api
+from migrate.versioning.repository import Repository
+
 
 @migrate_util.decorator
 def patched_with_engine(f, *a, **kw):
@@ -53,11 +58,6 @@ if (not hasattr(migrate, '__version__') or
     dist_version.StrictVersion(migrate.__version__) < MIN_PKG_VERSION):
     migrate_util.with_engine = patched_with_engine
 
-
-# NOTE(jkoelker) Delay importing migrate until we are patched
-from migrate import exceptions as versioning_exceptions
-from migrate.versioning import api as versioning_api
-from migrate.versioning.repository import Repository
 
 _REPOSITORY = None
 

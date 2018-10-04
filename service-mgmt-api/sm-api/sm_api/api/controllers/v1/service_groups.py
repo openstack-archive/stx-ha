@@ -71,7 +71,7 @@ class ServiceGroup(base.APIBase):
 
         fields = minimum_fields if not expand else None
         service_groups = ServiceGroup.from_rpc_object(
-                           rpc_service_groups, fields)
+            rpc_service_groups, fields)
 
         return service_groups
 
@@ -90,8 +90,8 @@ class ServiceGroupCollection(collection.Collection):
                            expand=False, **kwargs):
         collection = ServiceGroupCollection()
         collection.service_groups = [
-                    ServiceGroup.convert_with_links(ch, expand)
-                    for ch in service_groups]
+            ServiceGroup.convert_with_links(ch, expand)
+            for ch in service_groups]
         url = url or None
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
@@ -140,13 +140,13 @@ class ServiceGroupController(rest.RestController):
         """Retrieve list of servicegroups."""
 
         service_groups = self._get_service_groups(marker,
-                                                limit,
-                                                sort_key,
-                                                sort_dir)
+                                                  limit,
+                                                  sort_key,
+                                                  sort_dir)
 
         return ServiceGroupCollection.convert_with_links(service_groups, limit,
-                                                 sort_key=sort_key,
-                                                 sort_dir=sort_dir)
+                                                         sort_key=sort_key,
+                                                         sort_dir=sort_dir)
 
     @wsme_pecan.wsexpose(ServiceGroupCommandResult, unicode,
                          body=ServiceGroupCommand)
