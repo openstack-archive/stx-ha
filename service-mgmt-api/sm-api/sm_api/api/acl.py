@@ -39,7 +39,7 @@ def register_opts(conf):
 
     :param conf: SmApi settings.
     """
-    #conf.register_opts(keystone_auth_token._OPTS, group=OPT_GROUP_NAME)
+    # conf.register_opts(keystone_auth_token._OPTS, group=OPT_GROUP_NAME)
     keystone_auth_token.CONF = conf
 
 

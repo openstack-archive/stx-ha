@@ -18,11 +18,10 @@ class service_group_member(base.Sm_apiObject):
     dbapi = db_api.get_instance()
 
     fields = {
-            'id': utils.int_or_none,
-            'name': utils.str_or_none,
-            'service_name': utils.str_or_none,
-            'service_failure_impact': utils.str_or_none
-            }
+        'id': utils.int_or_none,
+        'name': utils.str_or_none,
+        'service_name': utils.str_or_none,
+        'service_failure_impact': utils.str_or_none}
 
     @staticmethod
     def _from_db_object(server, db_server):

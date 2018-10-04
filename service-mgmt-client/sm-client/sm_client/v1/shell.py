@@ -15,8 +15,7 @@ from sm_client.v1 import smc_servicegroup_shell
 COMMAND_MODULES = [
     smc_service_shell,
     smc_service_node_shell,
-    smc_servicegroup_shell,
- ]
+    smc_servicegroup_shell]
 
 
 def enhance_parser(parser, subparsers, cmd_mapper):

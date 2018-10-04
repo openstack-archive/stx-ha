@@ -10,6 +10,7 @@
 from sm_client import exc
 from sm_client.common import base
 
+
 class SmcNode(base.Resource):
     def __repr__(self):
         return "<SmcNode %s>" % self._info

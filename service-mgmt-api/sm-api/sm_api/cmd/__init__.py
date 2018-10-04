@@ -19,12 +19,12 @@
 
 # TODO(deva): move eventlet imports to sm_api.__init__ once we move to PBR
 import os
+import eventlet
+
+from sm_api.openstack.common import gettextutils
 
 os.environ['EVENTLET_NO_GREENDNS'] = 'yes'
 
-import eventlet
-
 eventlet.monkey_patch(os=False)
 
-from sm_api.openstack.common import gettextutils
 gettextutils.install('sm_api')

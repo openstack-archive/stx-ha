@@ -254,5 +254,6 @@ def main():
         sys.exit(0)
     generate(sys.argv[1:])
 
+
 if __name__ == '__main__':
     main()

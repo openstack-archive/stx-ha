@@ -73,7 +73,7 @@ class ProcessExecutionError(IOError):
 
 def _cleanse_dict(original):
     """Strip all admin_password, new_pass, rescue_pass keys from a dict."""
-    return dict((k, v) for k, v in original.items() if not "_pass" in k)
+    return dict((k, v) for k, v in original.items() if "_pass" not in k)
 
 
 def wrap_exception(notifier=None, publisher_id=None, event_type=None,
@@ -319,12 +319,12 @@ class NodeInUse(SmApiException):
 
 class NodeInWrongPowerState(SmApiException):
     message = _("Can not change instance association while node "
-            "%(node)s is in power state %(pstate)s.")
+                "%(node)s is in power state %(pstate)s.")
 
 
 class NodeNotConfigured(SmApiException):
     message = _("Can not change power state because node %(node)s "
-            "is not fully configured.")
+                "is not fully configured.")
 
 
 class ChassisNotEmpty(SmApiException):

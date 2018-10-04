@@ -39,7 +39,7 @@ def _send_msg_to_sm(sm_api_msg):
         s.sendto(sm_api_msg, SM_API_SERVER_ADDR)
         time.sleep(1)
 
-    except socket.error, e:
+    except socket.error as e:
         print("sm-api socket error: %s on  %s" % (e, sm_api_msg))
 
 

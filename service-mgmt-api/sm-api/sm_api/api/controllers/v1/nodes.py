@@ -65,7 +65,7 @@ class Nodes(base.APIBase):
                           'ready_state']
         fields = minimum_fields if not expand else None
         nodes = Nodes.from_rpc_object(
-                           rpc_nodes, fields)
+            rpc_nodes, fields)
 
         return nodes
 
@@ -84,8 +84,8 @@ class NodesCollection(collection.Collection):
                            expand=False, **kwargs):
         collection = NodesCollection()
         collection.nodes = [
-                    Nodes.convert_with_links(ch, expand)
-                              for ch in nodes]
+            Nodes.convert_with_links(ch, expand)
+            for ch in nodes]
         url = url or None
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
@@ -102,7 +102,7 @@ class NodesController(rest.RestController):
         marker_obj = None
         if marker:
             marker_obj = objects.sm_node.get_by_uuid(
-                                 pecan.request.context, marker)
+                pecan.request.context, marker)
 
         nodes = pecan.request.dbapi.sm_node_get_list(limit,
                                                      marker_obj,
@@ -117,7 +117,7 @@ class NodesController(rest.RestController):
         except exception.ServerNotFound:
             return None
 
-        return  Nodes.convert_with_links(rpc_sg)
+        return Nodes.convert_with_links(rpc_sg)
 
     @wsme_pecan.wsexpose(NodesCollection, unicode, int,
                          unicode, unicode)
@@ -131,8 +131,8 @@ class NodesController(rest.RestController):
                                 sort_dir)
 
         return NodesCollection.convert_with_links(nodes, limit,
-                                                 sort_key=sort_key,
-                                                 sort_dir=sort_dir)
+                                                  sort_key=sort_key,
+                                                  sort_dir=sort_dir)
 
     @wsme_pecan.wsexpose(NodesCommandResult, unicode,
                          body=NodesCommand)

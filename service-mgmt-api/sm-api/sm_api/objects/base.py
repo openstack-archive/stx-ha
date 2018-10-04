@@ -336,7 +336,9 @@ class Sm_apiObject(object):
                     name in self.obj_extra_fields):
                 yield name, getattr(self, name)
 
-    items = lambda self: list(self.items())
+    def items(self):
+        """For backwards-compatibility with dict-based objects."""
+        return list(self.items())
 
     def __getitem__(self, name):
         """For backwards-compatibility with dict-based objects.
@@ -376,8 +378,8 @@ class Sm_apiObject(object):
 
     def as_dict(self):
         return dict((k, getattr(self, k))
-                for k in self.fields
-                if hasattr(self, k))
+                    for k in self.fields
+                    if hasattr(self, k))
 
     @classmethod
     def get_defaults(cls):
@@ -396,8 +398,7 @@ class ObjectListBase(object):
     serialization of the list of objects automatically.
     """
     fields = {
-        'objects': list,
-        }
+        'objects': list}
 
     def __iter__(self):
         """List iterator interface."""

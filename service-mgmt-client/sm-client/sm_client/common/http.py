@@ -25,10 +25,12 @@ import socket
 import StringIO
 import urlparse
 
+from sm_client import exc
+
 try:
     import ssl
 except ImportError:
-    #TODO(bcwaldon): Handle this failure more gracefully
+    # TODO(bcwaldon): Handle this failure more gracefully
     pass
 
 try:
@@ -40,9 +42,6 @@ except ImportError:
 if not hasattr(urlparse, 'parse_qsl'):
     import cgi
     urlparse.parse_qsl = cgi.parse_qsl
-
-
-from sm_client import exc
 
 
 LOG = logging.getLogger(__name__)

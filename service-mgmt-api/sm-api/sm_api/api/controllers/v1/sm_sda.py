@@ -70,7 +70,7 @@ class SmSda(base.APIBase):
                           'state', 'status', 'condition']
         fields = minimum_fields if not expand else None
         sm_sda = SmSda.from_rpc_object(
-                           rpc_sm_sda, fields)
+            rpc_sm_sda, fields)
 
         return sm_sda
 
@@ -89,8 +89,8 @@ class SmSdaCollection(collection.Collection):
                            expand=False, **kwargs):
         collection = SmSdaCollection()
         collection.sm_sda = [
-                    SmSda.convert_with_links(ch, expand)
-                              for ch in sm_sda]
+            SmSda.convert_with_links(ch, expand)
+            for ch in sm_sda]
         url = url or None
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
