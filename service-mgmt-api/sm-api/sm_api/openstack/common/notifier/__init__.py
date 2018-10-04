@@ -15,4 +15,3 @@
 #
 # Copyright (c) 2013-2014 Wind River Systems, Inc.
 #
-

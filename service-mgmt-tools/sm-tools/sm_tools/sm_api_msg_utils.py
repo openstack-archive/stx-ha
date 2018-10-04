@@ -65,4 +65,3 @@ def restart_service_safe(service_name):
                      service_name, SM_API_MSG_SKIP_DEP_CHECK))
 
     _send_msg_to_sm(sm_api_msg)
-

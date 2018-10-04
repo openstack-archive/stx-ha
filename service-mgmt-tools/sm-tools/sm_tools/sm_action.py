@@ -50,7 +50,7 @@ def main():
             database.close()
 
             SM_VAR_RUN_SERVICES_DIR = '/var/run/sm/services'
-            unmanage_filepath = SM_VAR_RUN_SERVICES_DIR + '/'            
+            unmanage_filepath = SM_VAR_RUN_SERVICES_DIR + '/'
             unmanage_filename = "%s.unmanaged" % args.service
 
             if 'manage' == action:

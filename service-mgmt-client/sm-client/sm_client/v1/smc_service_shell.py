@@ -61,5 +61,3 @@ def do_service_show(cc, args):
         if getattr(service, 'node_name', None) is None:
             setattr(service, 'hostname', socket.gethostname())
         _print_service_show(service)
-
-
