@@ -346,10 +346,10 @@ class ServiceNodeController(rest.RestController):
                 # all the services are in the standby state on the
                 #     other host
                 # or service only provisioned in the other host
-                # or service state are the same on both hosts 
+                # or service state are the same on both hosts
                 if SM_SERVICE_GROUP_STATE_ACTIVE != sm_sda.state \
                     and SM_SERVICE_GROUP_STATE_STANDBY != sm_sda.state \
-                    and origin_state.has_key(sm_sda.service_group_name) \
+                    and sm_sda.service_group_name in origin_state \
                     and origin_state[sm_sda.service_group_name] != sm_sda.state:
                     check_result = (
                         "%s on %s is not ready to take service, "
