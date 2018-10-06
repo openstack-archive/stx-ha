@@ -14,3 +14,6 @@
         - build-openstack-api-ref
         - build-openstack-releasenotes
         - openstack-tox-linters
+    post:
+      jobs:
+        - publish-stx-tox
