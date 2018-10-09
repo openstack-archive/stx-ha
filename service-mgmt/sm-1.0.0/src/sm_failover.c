@@ -174,7 +174,6 @@ static bool _hello_msg_alive = true;
 static SmSystemModeT _system_mode;
 static time_t _last_report_ts = 0;
 static int _heartbeat_count = 0;
-static bool _peer_ready = false;
 
 // The class is to accommodate batching i/f state changes
 // during the failover_audit interval.
@@ -1437,39 +1436,6 @@ SmFailoverInterfaceStateT sm_failover_get_interface_info(SmInterfaceTypeT interf
 }
 // ****************************************************************************
 
-static void sm_failover_node_set_callback( char node_name[],
-    SmNodeSetActionT action, SmNodeAdminStateT admin_state,
-    SmNodeOperationalStateT oper_state, SmNodeAvailStatusT avail_status,
-    int seqno )
-{
-    if(0 == strcmp(node_name, _host_name))
-    {
-        // care only the peer
-        return;
-    }
-
-    bool peer_ready = false;
-    if(SM_NODE_SET_ACTION_UNLOCK == action)
-    {
-        peer_ready = SM_NODE_ADMIN_STATE_UNLOCKED == admin_state &&
-            SM_NODE_OPERATIONAL_STATE_ENABLED == oper_state &&
-            (SM_NODE_AVAIL_STATUS_AVAILABLE == avail_status ||
-             SM_NODE_AVAIL_STATUS_DEGRADED == avail_status);
-    }else if (SM_NODE_SET_ACTION_LOCK == action)
-    {
-        peer_ready = false;
-    }else
-    {
-        return;
-    }
-    if(peer_ready && !_peer_ready)
-    {
-        DPRINTFI("Peer %s is now online.", node_name);
-    }
-    _peer_ready = peer_ready;
-}
-
-static SmApiCallbacksT _api_callbacks = {0};
 // ****************************************************************************
 // Failover - Initialize
 // ======================
@@ -1514,17 +1480,6 @@ SmErrorT sm_failover_initialize( void )
                   sm_error_str( error ) );
         return error;
     }
-
-    _api_callbacks.node_set = sm_failover_node_set_callback;
-
-    error = sm_api_register_callbacks( &_api_callbacks );
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to register api callbacks, error=%s.",
-                  sm_error_str( error ) );
-        return( error );
-    }
-
 
     if( 0 == strcmp( SM_NODE_CONTROLLER_0_NAME, _host_name ) )
     {
@@ -1613,13 +1568,6 @@ SmErrorT sm_failover_finalize( void )
     _total_interfaces = 0;
 
     SmErrorT error;
-    error = sm_api_deregister_callbacks( &_api_callbacks );
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to deregister api callbacks, error=%s.",
-                  sm_error_str( error ) );
-    }
-
     sm_timer_deregister( failover_audit_timer_id );
     if( NULL != _sm_db_handle )
     {
