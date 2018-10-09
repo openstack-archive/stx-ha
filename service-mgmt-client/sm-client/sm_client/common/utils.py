@@ -22,8 +22,8 @@ import os
 import sys
 import textwrap
 import uuid
-
 import prettytable
+import six
 
 from sm_client import exc
 from sm_client.openstack.common import importutils
@@ -134,7 +134,7 @@ def print_mapping(data, fields, dict_property="Property", wrap=0):
             v = textwrap.fill(str(v), wrap)
         # if value has a newline, add in multiple rows
         # e.g. fault with stacktrace
-        if v and isinstance(v, basestring) and r'\n' in v:
+        if v and isinstance(v, six.string_types) and r'\n' in v:
             lines = v.strip().split(r'\n')
             col1 = k
             for line in lines:
@@ -161,7 +161,7 @@ def print_dict(d, fields, dict_property="Property", wrap=0):
             v = textwrap.fill(str(v), wrap)
         # if value has a newline, add in multiple rows
         # e.g. fault with stacktrace
-        if v and isinstance(v, basestring) and r'\n' in v:
+        if v and isinstance(v, six.string_types) and r'\n' in v:
             lines = v.strip().split(r'\n')
             col1 = k
             for line in lines:
