@@ -1,0 +1,9 @@
+Code-Review+2: Saul Wold <sgw@linux.intel.com>
+Code-Review+2: Al Bailey <al.bailey@windriver.com>
+Workflow+1: Al Bailey <al.bailey@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Tue, 09 Oct 2018 14:33:32 +0000
+Reviewed-on: https://review.openstack.org/608419
+Project: openstack/stx-ha
+Branch: refs/heads/master
