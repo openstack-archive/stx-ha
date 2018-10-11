@@ -7,6 +7,22 @@ StarlingX High Availability / Process Monitoring / Service Management
    :maxdepth: 2
    :caption: Contents:
 
+Release Notes
+-------------
+
+.. toctree::
+   :maxdepth: 1
+
+   Release Notes <https://docs.starlingx.io/releasenotes/stx-ha>
+
+API Reference
+-------------
+
+.. toctree::
+   :maxdepth: 1
+
+   API Reference <https://docs.starlingx.io/api-ref/stx-ha>
+
 Links
 =====
 
