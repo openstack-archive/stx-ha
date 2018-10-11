@@ -9,3 +9,5 @@ Monitoring / Service Management
    :maxdepth: 2
 
    api-ref-smapi-v1-ha
+
+:ref:`search`
