@@ -147,6 +147,7 @@ void SmWorkerThread::add_priority_action(SmAction& action)
 // ****************************************************************************
 void SmWorkerThread::thread_run()
 {
+    int wait_interval_us = 50000; //50 ms
     while(this->_goon)
     {
         if(0 == sem_trywait(&this->_sem))
@@ -168,6 +169,9 @@ void SmWorkerThread::thread_run()
         }else if(EAGAIN != errno)
         {
             DPRINTFE("Semaphore wait failed. Error %d", errno);
+        }else
+        {
+            usleep(wait_interval_us);
         }
     }
 }
