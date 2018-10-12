@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
+#include <time.h>
 #include "sm_util_types.h"
 #include "sm_debug.h"
 
@@ -84,7 +85,7 @@ SmErrorT SmWorkerThread::go()
     }
 
     this->_thread_created = true;
-    if( 0 != sem_init(&this->_sem, 0, MAX_QUEUED_ACTIONS) )
+    if( 0 != sem_init(&this->_sem, 0, 0) )
     {
         DPRINTFE("Cannot init semaphore");
         return SM_FAILED;
@@ -147,9 +148,22 @@ void SmWorkerThread::add_priority_action(SmAction& action)
 // ****************************************************************************
 void SmWorkerThread::thread_run()
 {
+    int wait_interval_ns = 50*1000000; //50 ms
+    int ns_to_sec = 1000000000;
+    struct timespec wait_time;
+
     while(this->_goon)
     {
-        if(0 == sem_trywait(&this->_sem))
+        clock_gettime(CLOCK_REALTIME, &wait_time);
+
+        wait_time.tv_nsec += wait_interval_ns;
+        if(wait_time.tv_nsec > ns_to_sec -1)
+        {
+            wait_time.tv_nsec -= ns_to_sec;
+            wait_time.tv_sec ++;
+        }
+
+        if(0 ==  sem_timedwait(&this->_sem, &wait_time))
         {
             SmAction* action = NULL;
             if(!this->_priority_queue.empty())
@@ -165,7 +179,7 @@ void SmWorkerThread::thread_run()
             {
                 action->action();
             }
-        }else if(EAGAIN != errno)
+        }else if(ETIMEDOUT != errno)
         {
             DPRINTFE("Semaphore wait failed. Error %d", errno);
         }

@@ -11,7 +11,6 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#define MAX_QUEUED_ACTIONS 24
 // ****************************************************************************
 // SmAction interface, action to process in a worker thread
 // ****************************************************************************
