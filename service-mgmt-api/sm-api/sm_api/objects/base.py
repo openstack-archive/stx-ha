@@ -19,6 +19,7 @@
 """Sm common internal object model"""
 
 import collections
+import six
 
 from sm_api.common import exception
 from sm_api.objects import utils as obj_utils
@@ -154,6 +155,7 @@ def check_object_version(server, client):
             dict(client=client_minor, server=server_minor))
 
 
+@six.add_metaclass(Sm_apiObjectMetaclass)
 class Sm_apiObject(object):
     """Base class and object factory.
 
@@ -163,7 +165,6 @@ class Sm_apiObject(object):
     necessary "get" classmethod routines as well as "save" object methods
     as appropriate.
     """
-    __metaclass__ = Sm_apiObjectMetaclass
 
     # Version of this object (see rules above check_object_version())
     version = '1.0'
