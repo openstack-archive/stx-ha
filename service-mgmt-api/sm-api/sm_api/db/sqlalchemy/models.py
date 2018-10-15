@@ -24,7 +24,12 @@ SQLAlchemy models for sm_api data.
 """
 
 import json
-import urlparse
+try:
+    # python 2
+    from urlparse import urlparse
+except ImportError:
+    # python 3
+    from urllib.parse import urlparse
 
 from oslo_config import cfg
 
@@ -46,7 +51,7 @@ cfg.CONF.register_opts(sql_opts, 'database')
 
 
 def table_args():
-    engine_name = urlparse.urlparse(cfg.CONF.database_connection).scheme
+    engine_name = urlparse(cfg.CONF.database_connection).scheme
     if engine_name == 'mysql':
         return {'mysql_engine': cfg.CONF.mysql_engine,
                 'mysql_charset': "utf8"}

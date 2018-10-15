@@ -23,7 +23,12 @@ import logging
 import os
 import socket
 import StringIO
-import urlparse
+try:
+    # python 2
+    from urlparse import urlparse
+except ImportError:
+    # python 3
+    from urllib.parse import urlparse
 
 try:
     import ssl
@@ -35,12 +40,6 @@ try:
     import json
 except ImportError:
     import simplejson as json
-
-# Python 2.5 compat fix
-if not hasattr(urlparse, 'parse_qsl'):
-    import cgi
-    urlparse.parse_qsl = cgi.parse_qsl
-
 
 from sm_client import exc
 
@@ -59,7 +58,7 @@ class HTTPClient(object):
 
     @staticmethod
     def get_connection_params(endpoint, **kwargs):
-        parts = urlparse.urlparse(endpoint)
+        parts = urlparse(endpoint)
 
         _args = (parts.hostname, parts.port, parts.path)
         _kwargs = {'timeout': (float(kwargs.get('timeout'))
