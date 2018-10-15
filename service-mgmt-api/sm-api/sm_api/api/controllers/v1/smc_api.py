@@ -94,7 +94,7 @@ def sm_api_notify(sm_dict):
             except:
                 LOG.exception(_("sm-api bad rx message: %s" % sm_ack))
 
-    except socket.error, e:
+    except socket.error as e:
         LOG.exception(_("sm-api socket error: %s on  %s") % (e, sm_buf))
         sm_ack_dict = {
            'SM_API_MSG_TYPE': "unknown_set_node",
