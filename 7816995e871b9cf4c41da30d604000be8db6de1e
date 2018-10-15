@@ -1,0 +1,8 @@
+Code-Review+2: Al Bailey <al.bailey@windriver.com>
+Workflow+1: Al Bailey <al.bailey@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Mon, 15 Oct 2018 13:08:49 +0000
+Reviewed-on: https://review.openstack.org/604011
+Project: openstack/stx-ha
+Branch: refs/heads/master
