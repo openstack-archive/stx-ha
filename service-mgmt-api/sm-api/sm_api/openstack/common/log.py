@@ -51,6 +51,12 @@ from sm_api.openstack.common import importutils
 from sm_api.openstack.common import jsonutils
 from sm_api.openstack.common import local
 
+try:
+    # Python 2
+    from future_builtins import filter
+except ImportError:
+    # Python 3
+    pass
 
 _DEFAULT_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -289,7 +295,7 @@ class JSONFormatter(logging.Formatter):
     def formatException(self, ei, strip_newlines=True):
         lines = traceback.format_exception(*ei)
         if strip_newlines:
-            lines = [itertools.ifilter(
+            lines = [filter(
                 lambda x: x,
                 line.rstrip().splitlines()) for line in lines]
             lines = list(itertools.chain(*lines))
