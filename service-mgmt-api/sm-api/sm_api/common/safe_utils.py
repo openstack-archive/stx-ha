@@ -43,12 +43,12 @@ def getcallargs(function, *args, **kwargs):
         # The function may not actually be a method or have im_self.
         # Typically seen when it's stubbed with mox.
         if inspect.ismethod(function) and hasattr(function, 'im_self'):
-            keyed_args[argnames[0]] = function.im_self
+            keyed_args[argnames[0]] = function.__self__
         else:
             keyed_args[argnames[0]] = None
 
     remaining_argnames = [x for x in argnames if x not in keyed_args]
-    keyed_args.update(dict(zip(remaining_argnames, args)))
+    keyed_args.update(dict(list(zip(remaining_argnames, args))))
 
     if defaults:
         num_defaults = len(defaults)
