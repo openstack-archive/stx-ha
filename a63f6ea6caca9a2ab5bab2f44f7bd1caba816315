@@ -1,0 +1,9 @@
+Code-Review+2: Al Bailey <al.bailey@windriver.com>
+Workflow+1: Dariush Eslimi <Dariush.Eslimi@windriver.com>
+Code-Review+2: Dariush Eslimi <Dariush.Eslimi@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Tue, 16 Oct 2018 18:40:42 +0000
+Reviewed-on: https://review.openstack.org/610998
+Project: openstack/stx-ha
+Branch: refs/heads/r/2018.10
