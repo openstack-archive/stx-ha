@@ -17,6 +17,16 @@
 
 static const int FAIL_PENDING_TIMEOUT = 2000; //2000ms
 
+SmFailoverFailPendingState::SmFailoverFailPendingState(SmFailoverFSM& fsm) : SmFSMState(fsm)
+{
+    this->_pending_timer_id = SM_TIMER_ID_INVALID;
+}
+
+SmFailoverFailPendingState::~SmFailoverFailPendingState()
+{
+    this->_deregister_timer();
+}
+
 SmErrorT SmFailoverFailPendingState::event_handler(SmFailoverEventT event, const ISmFSMEventData* event_data)
 {
     //SmFSMEventDataTypeT event_data_type = event_data->get_event_data_type();
