@@ -36,6 +36,7 @@ from sm_api.openstack.common import importutils
 from sm_api.openstack.common import jsonutils
 from sm_api.openstack.common import processutils as utils
 from sm_api.openstack.common.rpc import common as rpc_common
+from functools import reduce
 
 zmq = importutils.try_import('eventlet.green.zmq')
 
