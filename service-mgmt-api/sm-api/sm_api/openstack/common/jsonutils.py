@@ -45,6 +45,7 @@ import json
 import xmlrpclib
 
 import six
+import sys
 
 from sm_api.openstack.common import timeutils
 
@@ -54,8 +55,10 @@ _nasty_type_tests = [inspect.ismodule, inspect.isclass, inspect.ismethod,
                      inspect.isgenerator, inspect.istraceback, inspect.isframe,
                      inspect.iscode, inspect.isbuiltin, inspect.isroutine,
                      inspect.isabstract]
-
-_simple_types = (type(None), int, six.string_types, bool, float, long)
+if sys.version_info > (3,):
+    _simple_types = (type(None), int, six.string_types, bool, float)
+else:
+    _simple_types = (type(None), int, six.string_types, bool, float, long)
 
 
 def to_primitive(value, convert_instances=False, convert_datetime=True,
