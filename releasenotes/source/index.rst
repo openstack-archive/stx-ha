@@ -5,3 +5,5 @@ stx-ha Release Notes
    :maxdepth: 2
 
    unreleased
+
+:ref:`search`
