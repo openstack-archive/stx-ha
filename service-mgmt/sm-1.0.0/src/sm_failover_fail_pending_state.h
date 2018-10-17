@@ -12,7 +12,8 @@
 class SmFailoverFailPendingState : public SmFSMState
 {
     public:
-        SmFailoverFailPendingState(SmFailoverFSM& fsm) : SmFSMState(fsm){}
+        SmFailoverFailPendingState(SmFailoverFSM& fsm);
+        virtual ~SmFailoverFailPendingState();
         SmErrorT enter_state();
         SmErrorT exit_state();
 
