@@ -479,7 +479,7 @@ SmErrorT sm_node_utils_set_unhealthy( void )
                   SM_NODE_UNHEALTHY_FILE, strerror(errno) );
         return( SM_FAILED );
     }
-
+    close(fd);
     return( SM_OKAY );
 }
 // ****************************************************************************
