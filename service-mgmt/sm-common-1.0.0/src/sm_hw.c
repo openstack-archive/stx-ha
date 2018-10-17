@@ -535,6 +535,7 @@ static void sm_hw_netlink_qdisc_msg_dispatch( SmHwThreadInfoT* thread_info,
     {
         struct rtattr* tb_stats[TCA_STATS_MAX+1];
 
+        memset( tb_stats, 0, sizeof(tb_stats) );
         len = RTA_PAYLOAD(tb[TCA_STATS2]);
 
         for( rta = (struct rtattr*) RTA_DATA(tb[TCA_STATS2]);
