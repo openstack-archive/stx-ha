@@ -738,23 +738,29 @@ SmErrorT sm_trap_thread_start( int trap_fd )
             }
         }
         
-        if( 0 > open( "/dev/null", O_RDONLY ) )
+        int fd_null=open( "/dev/null", O_RDONLY );
+        if( 0 > fd_null )
         {
             printf( "Failed to open stdin to /dev/null, error=%s.\n",
                     strerror( errno ) );
         }
+        close(fd_null);
 
-        if( 0 > open( "/dev/null", O_WRONLY ) )
+        fd_null=open( "/dev/null", O_RDONLY );
+        if( 0 > fd_null )
         {
             printf( "Failed to open stdout to /dev/null, error=%s.\n",
                     strerror( errno ) );
         }
+        close(fd_null);
 
-        if( 0 > open( "/dev/null", O_WRONLY ) )
+        fd_null=open( "/dev/null", O_RDONLY );
+        if( 0 > fd_null )
         {
             printf( "Failed to open stderr to /dev/null, error=%s.\n",
                     strerror( errno ) );
         }
+        close(fd_null);
 
         error = sm_debug_initialize();
         if( SM_OKAY != error )
