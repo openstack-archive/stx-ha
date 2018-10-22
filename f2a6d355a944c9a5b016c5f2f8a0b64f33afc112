@@ -1,0 +1,9 @@
+Code-Review+2: Al Bailey <al.bailey@windriver.com>
+Code-Review+2: Yi Wang <yi.c.wang@intel.com>
+Workflow+1: Yi Wang <yi.c.wang@intel.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Mon, 22 Oct 2018 02:57:27 +0000
+Reviewed-on: https://review.openstack.org/604010
+Project: openstack/stx-ha
+Branch: refs/heads/master
