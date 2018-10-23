@@ -663,7 +663,7 @@ def notify_mtc_and_recv(mtc_address, mtc_port, idict):
             LOG.exception("Mtc Response Error: %s" % mtc_response)
             pass
 
-    except socket.error, e:
+    except socket.error as e:
         LOG.exception(_("Socket Error: %s on %s:%s for %s") % (e,
                         mtc_address, mtc_port, serialized_idict))
         # if e not in [errno.EWOULDBLOCK, errno.EINTR]:
