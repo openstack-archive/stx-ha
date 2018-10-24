@@ -33,6 +33,7 @@ import textwrap
 import six
 from oslo_config import cfg
 
+
 from sm_client.openstack.common import gettextutils
 from sm_client.openstack.common import importutils
 
