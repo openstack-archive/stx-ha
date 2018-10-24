@@ -53,7 +53,6 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(17,'yes','controller-services','platf
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(18,'yes','controller-services','sysinv-inv','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(19,'yes','controller-services','sysinv-conductor','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(20,'yes','controller-services','mtc-agent','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(21,'yes','controller-services','hbs-agent','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(22,'yes','controller-services','hw-mon','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(23,'yes','controller-services','dnsmasq','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(24,'yes','controller-services','fm-mgr','critical');
@@ -149,7 +148,6 @@ INSERT INTO "SERVICES" VALUES(17,'yes','platform-nfs-ip','initial','initial','no
 INSERT INTO "SERVICES" VALUES(18,'yes','sysinv-inv','initial','initial','none','none',2,1,90000,4,16,'/var/run/sysinv-api.pid');
 INSERT INTO "SERVICES" VALUES(19,'yes','sysinv-conductor','initial','initial','none','none',2,1,90000,4,16,'/var/run/sysinv-conductor.pid');
 INSERT INTO "SERVICES" VALUES(20,'yes','mtc-agent','initial','initial','none','none',2,1,90000,4,16,'/var/run/mtcAgent.pid');
-INSERT INTO "SERVICES" VALUES(21,'yes','hbs-agent','initial','initial','none','none',2,1,90000,4,16,'/var/run/hbsAgent.pid');
 INSERT INTO "SERVICES" VALUES(22,'yes','hw-mon','initial','initial','none','none',2,1,90000,4,16,'/var/run/hwmond.pid');
 INSERT INTO "SERVICES" VALUES(23,'yes','dnsmasq','initial','initial','none','none',2,1,90000,4,16,'/var/run/dnsmasq.pid');
 INSERT INTO "SERVICES" VALUES(24,'yes','fm-mgr','initial','initial','none','none',2,1,90000,4,16,'/var/run/fmManager.pid');
@@ -251,7 +249,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applica
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','platform-nfs-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','enable','sysinv-conductor','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','enable','sysinv-inv','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','hbs-agent','not-applicable','enable','mtc-agent','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','hw-mon','not-applicable','enable','mtc-agent','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','guest-agent','not-applicable','enable','mtc-agent','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim','not-applicable','enable','mtc-agent','enabled-active');
@@ -371,11 +368,9 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-nfs-ip','not-applicab
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','disable','sysinv-inv','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','disable','mtc-agent','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','disable','dnsmasq','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','disable','hbs-agent','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','disable','hw-mon','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','disable','guest-agent','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','disable','vim','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','hbs-agent','not-applicable','disable','','');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','hw-mon','not-applicable','disable','','');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim','not-applicable','disable','vim-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim','not-applicable','disable','vim-webserver','disabled');
@@ -618,10 +613,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('mtc-agent','enable','ocf-script','platform
 INSERT INTO "SERVICE_ACTIONS" VALUES('mtc-agent','disable','ocf-script','platform','mtcAgent','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('mtc-agent','audit-enabled','ocf-script','platform','mtcAgent','monitor','',2,2,2,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('mtc-agent','audit-disabled','ocf-script','platform','mtcAgent','monitor','',0,0,0,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('hbs-agent','enable','ocf-script','platform','hbsAgent','start','',2,2,2,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('hbs-agent','disable','ocf-script','platform','hbsAgent','stop','',1,1,1,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('hbs-agent','audit-enabled','ocf-script','platform','hbsAgent','monitor','',2,2,2,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('hbs-agent','audit-disabled','ocf-script','platform','hbsAgent','monitor','',0,0,0,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('hw-mon','enable','ocf-script','platform','hwmon','start','',2,2,2,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('hw-mon','disable','ocf-script','platform','hwmon','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('hw-mon','audit-enabled','ocf-script','platform','hwmon','monitor','',2,2,2,15,40);
