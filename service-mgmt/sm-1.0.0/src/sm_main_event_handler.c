@@ -26,6 +26,7 @@
 #include "sm_service_api.h"
 #include "sm_failover.h"
 #include "sm_node_swact_monitor.h"
+#include "sm_failover_fsm.h"
 
 #define SM_NODE_AUDIT_TIMER_IN_MS           1000
 #define SM_INTERFACE_AUDIT_TIMER_IN_MS      1000
@@ -175,6 +176,23 @@ static void sm_main_event_handler_api_node_set_callback( char node_name[],
         DPRINTFE( "Failed to update node (%s), seqno=%i, error=%s.",
                   node_name, seqno, sm_error_str(error) );
         return;
+    }
+
+    char peer_name[SM_NODE_NAME_MAX_CHAR] = {0};
+    error = sm_node_api_get_peername(peer_name);
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to get peername, error=%s.",
+                  sm_error_str( error ) );
+    }
+    if(SM_NODE_SET_ACTION_EVENT == action &&
+        SM_NODE_ADMIN_STATE_UNLOCKED == admin_state &&
+        SM_NODE_OPERATIONAL_STATE_ENABLED == oper_state &&
+        (SM_NODE_AVAIL_STATUS_AVAILABLE == avail_status ||
+        SM_NODE_AVAIL_STATUS_DEGRADED == avail_status ) &&
+        0 == strcmp(node_name, peer_name))
+    {
+        SmFailoverFSM::get_fsm().send_event(SM_FAILOVER_EVENT_NODE_ENABLED, NULL);
     }
 
     if( SM_NODE_SET_ACTION_SWACT == action )

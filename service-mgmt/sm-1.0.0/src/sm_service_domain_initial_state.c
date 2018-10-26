@@ -17,6 +17,7 @@
 #include "sm_msg.h"
 #include "sm_service_domain_utils.h"
 #include "sm_service_domain_fsm.h"
+#include "sm_failover_fsm.h"
 
 // ****************************************************************************
 // Service Domain Initial State - Hello Timer
@@ -122,6 +123,7 @@ SmErrorT sm_service_domain_initial_state_exit( SmServiceDomainT* domain )
 
     sm_heartbeat_enable();
 
+    SmFailoverFSM::get_fsm().send_event(SM_FAILOVER_EVENT_HEARTBEAT_ENABLED, NULL);
     return( SM_OKAY );
 }
 // ****************************************************************************
