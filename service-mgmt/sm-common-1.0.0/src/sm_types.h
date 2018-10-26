@@ -279,6 +279,23 @@ typedef enum
     SM_SERVICE_DOMAIN_EVENT_DATA_MAX
 } SmServiceDomainEventDataT;
 
+typedef enum{
+    SM_FAILOVER_STATE_INITIAL,
+    SM_FAILOVER_STATE_NORMAL,
+    SM_FAILOVER_STATE_FAIL_PENDING,
+    SM_FAILOVER_STATE_FAILED,
+    SM_FAILOVER_STATE_SURVIVED,
+    SM_FAILOVER_STATE_MAX
+}SmFailoverStateT;
+
+typedef enum{
+    SM_FAILOVER_EVENT_HEARTBEAT_ENABLED,
+    SM_FAILOVER_EVENT_IF_STATE_CHANGED,
+    SM_FAILOVER_EVENT_FAIL_PENDING_TIMEOUT,
+    SM_FAILOVER_EVENT_NODE_ENABLED,
+    SM_FAILOVER_EVENT_MAX
+}SmFailoverEventT;
+
 typedef enum
 {
     SM_SERVICE_DOMAIN_INTERFACE_EVENT_NIL,
@@ -929,6 +946,18 @@ extern SmServiceDomainInterfaceEventT sm_service_domain_interface_event_value(
 // =============================================
 extern const char* sm_service_domain_interface_event_str(
     SmServiceDomainInterfaceEventT event );
+// ****************************************************************************
+
+// ****************************************************************************
+// Types - Failover Event String
+// =============================================
+extern const char* sm_failover_event_str( SmFailoverEventT event );
+// ****************************************************************************
+
+// ****************************************************************************
+// Types - Failover State String
+// =============================================
+extern const char* sm_failover_state_str( SmFailoverStateT state );
 // ****************************************************************************
 
 // ****************************************************************************

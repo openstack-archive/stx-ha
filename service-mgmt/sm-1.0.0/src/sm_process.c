@@ -51,7 +51,6 @@
 #include "sm_service_action_table.h"
 #include "sm_heartbeat_thread.h"
 #include "sm_failover.h"
-#include "sm_failover_thread.h"
 #include "sm_task_affining_thread.h"
 #include "sm_worker_thread.h"
 
@@ -328,6 +327,14 @@ static SmErrorT sm_process_initialize( void )
         return( SM_FAILED );
     }
 
+    error = sm_failover_initialize();
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to initialize failover handler module, error=%s.",
+                  sm_error_str( error ) );
+        return( SM_FAILED );
+    }
+
     error = sm_service_heartbeat_thread_start();
     if( SM_OKAY != error )
     {
@@ -340,22 +347,6 @@ static SmErrorT sm_process_initialize( void )
     if( SM_OKAY != error )
     {
         DPRINTFE( "Failed to initialize main event handler module, error=%s.",
-                  sm_error_str( error ) );
-        return( SM_FAILED );
-    }
-
-    error = sm_failover_thread_start();
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to start the failover thread, error=%s.",
-                  sm_error_str( error ) );
-        return( SM_FAILED );
-    }
-
-    error = sm_failover_initialize();
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to initialize failover handler module, error=%s.",
                   sm_error_str( error ) );
         return( SM_FAILED );
     }
@@ -394,20 +385,6 @@ static SmErrorT sm_process_finalize( void )
         }
     }
 
-    error = sm_failover_thread_stop();
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to stop failover thread, error=%s.",
-                  sm_error_str( error ) );
-    }
-
-    error = sm_failover_finalize();
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to finalize failover handler module, error=%s.",
-                  sm_error_str( error ) );
-    }
-
     error = sm_main_event_handler_finalize();
     if( SM_OKAY != error )
     {
@@ -420,6 +397,13 @@ static SmErrorT sm_process_finalize( void )
     {
         DPRINTFE( "Failed start service heartbeat thread, error=%s.",
                   sm_error_str(error) );
+    }
+
+    error = sm_failover_finalize();
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to finalize failover handler module, error=%s.",
+                  sm_error_str( error ) );
     }
 
     error = sm_service_heartbeat_api_finalize( true );

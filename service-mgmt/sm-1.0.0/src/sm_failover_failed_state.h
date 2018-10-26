@@ -13,8 +13,6 @@ class SmFailoverFailedState : public SmFSMState
 {
     public:
         SmFailoverFailedState(SmFailoverFSM& fsm) : SmFSMState(fsm){}
-        SmErrorT enter_state();
-        SmErrorT exit_state();
 
     protected:
         SmErrorT event_handler(SmFailoverEventT event, const ISmFSMEventData* event_data);

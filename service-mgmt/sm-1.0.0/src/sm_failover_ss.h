@@ -8,9 +8,6 @@
 #define __SM_FAILOVER_SS_H__
 #include <stdio.h>
 #include "sm_types.h"
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
 
 typedef struct
 {
@@ -47,23 +44,37 @@ typedef struct
 class SmSystemFailoverStatus
 {
     public:
-        SmSystemFailoverStatus();
         virtual ~SmSystemFailoverStatus();
         inline SmNodeScheduleStateT get_host_schedule_state() const {
             return _host_schedule_state;
         }
+        inline SmNodeScheduleStateT get_host_pre_failure_schedule_state() const {
+            return _host_pre_failure_schedule_state;
+        }
         void set_host_schedule_state(SmNodeScheduleStateT state);
+        void set_host_pre_failure_schedule_state(SmNodeScheduleStateT state);
         inline SmNodeScheduleStateT get_peer_schedule_state() const {
             return _peer_schedule_state;
         }
+        inline SmNodeScheduleStateT get_peer_pre_failure_schedule_state() const {
+            return _peer_pre_failure_schedule_state;
+        }
         void set_peer_schedule_state(SmNodeScheduleStateT state);
+        void set_peer_pre_failure_schedule_state(SmNodeScheduleStateT state);
+        void serialize();
+        void deserialize();
+        static SmSystemFailoverStatus& get_status();
     private:
+        SmSystemFailoverStatus();
+        SmNodeScheduleStateT _host_pre_failure_schedule_state;
+        SmNodeScheduleStateT _peer_pre_failure_schedule_state;
         SmNodeScheduleStateT _host_schedule_state;
         SmNodeScheduleStateT _peer_schedule_state;
         static const char filename[];
         static const char file_format[];
 
         bool _is_valid_schedule_state(SmNodeScheduleStateT state);
+        static SmSystemFailoverStatus _failover_status;
 };
 
 // ****************************************************************************
@@ -73,7 +84,4 @@ SmErrorT sm_failover_ss_get_survivor(SmSystemFailoverStatus& selection);
 
 SmErrorT sm_failover_ss_get_survivor(const SmSystemStatusT& system_status, SmSystemFailoverStatus& selection);
 
-//#ifdef __cplusplus
-//}
-//#endif
 #endif // __SM_FAILOVER_SS_H__

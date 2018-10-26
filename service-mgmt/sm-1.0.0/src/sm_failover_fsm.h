@@ -7,24 +7,6 @@
 #define __SM_FAILOVER_FSM_H__
 #include "sm_types.h"
 
-typedef enum{
-    SM_FAILOVER_STATE_NORMAL,
-    SM_FAILOVER_STATE_FAIL_PENDING,
-    SM_FAILOVER_STATE_FAILED,
-    SM_FAILOVER_STATE_SURVIVED,
-    SM_FAILOVER_STATE_MAX
-}SmFailoverStateT;
-
-#define SM_FAILOVER_STATE_INITIAL SM_FAILOVER_STATE_NORMAL
-
-typedef enum{
-    SM_HEARTBEAT_LOST,
-    SM_INTERFACE_DOWN,
-    SM_INTERFACE_UP,
-    SM_HEARTBEAT_RECOVER,
-    SM_FAIL_PENDING_TIMEOUT,
-}SmFailoverEventT;
-
 typedef int SmFSMEventDataTypeT;
 
 class ISmFSMEventData
@@ -59,7 +41,7 @@ class SmFailoverFSM
         SmErrorT register_fsm_state(SmFailoverStateT state, SmFSMState* state_handler);
 
         SmErrorT set_state(SmFailoverStateT state);
-        inline int get_state() const {return this->_current_state;}
+        inline SmFailoverStateT get_state() const {return this->_current_state;}
 
         static SmErrorT initialize();
         static SmErrorT finalize();
@@ -70,12 +52,27 @@ class SmFailoverFSM
     private:
         static const int MaxState = SM_FAILOVER_STATE_MAX;
         SmFSMState* _state_handlers[MaxState];
-        int _current_state;
+        SmFailoverStateT _current_state;
 
         static SmFailoverFSM _the_fsm;
         SmErrorT init_state();
         void deregister_states();
 };
 
+class SmIFStateChangedEventData: public ISmFSMEventData
+{
+    public:
+        static const SmFSMEventDataTypeT SmIFStateChangedEventDataType = 2;
+        SmFSMEventDataTypeT get_event_data_type() const;
+        SmIFStateChangedEventData();
+        void set_interface_state(
+            SmInterfaceTypeT interface_type, SmFailoverInterfaceStateT interface_state);
+        SmFailoverInterfaceStateT get_interface_state(SmInterfaceTypeT interface_type) const;
+
+    private:
+        SmFailoverInterfaceStateT _mgmt_state;
+        SmFailoverInterfaceStateT _infra_state;
+        SmFailoverInterfaceStateT _oam_state;
+};
 
 #endif //__SM_FAILOVER_FSM_H__

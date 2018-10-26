@@ -1,11 +1,15 @@
 #include "sm_failover_utils.h"
 #include <stdlib.h>
 #include <string.h>
-
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #include "sm_debug.h"
 #include "sm_service_domain_member_table.h"
 #include "sm_service_domain_assignment_table.h"
 #include "sm_service_domain_table.h"
+
+#define SM_NODE_STAY_FAILED_FILE      "/var/run/.sm_stay_fail"
 
 // ****************************************************************************
 // Failover utilities - loop all service domain members
@@ -90,3 +94,48 @@ SmNodeScheduleStateT sm_get_controller_state(
 }
 // ****************************************************************************
 
+
+
+// ****************************************************************************
+// Failover Utilities - Set StayFailed
+// ==============================
+SmErrorT sm_failover_utils_set_stayfailed_flag()
+{
+    int fd = open( SM_NODE_STAY_FAILED_FILE,
+                   O_RDWR | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH);
+    if( 0 > fd )
+    {
+        DPRINTFE( "Failed to create file (%s), error=%s.",
+                  SM_NODE_STAY_FAILED_FILE, strerror(errno) );
+        return( SM_FAILED );
+    }
+
+    close(fd);
+    return( SM_OKAY );
+
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Failover Utilities - Set StayFailed
+// ==============================
+SmErrorT sm_failover_utils_reset_stayfailed_flag()
+{
+    unlink( SM_NODE_STAY_FAILED_FILE );
+    return( SM_OKAY );
+}
+// ****************************************************************************
+
+
+// ****************************************************************************
+// Failover Utilities - check StayFailed
+// ==============================
+bool sm_failover_utils_is_stayfailed()
+{
+    if( 0 == access( SM_NODE_STAY_FAILED_FILE,  F_OK ) )
+    {
+        return true;
+    }
+    return false;
+}
+// ****************************************************************************

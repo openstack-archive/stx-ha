@@ -166,6 +166,25 @@ _sm_service_domain_interface_event_mappings[SM_SERVICE_DOMAIN_INTERFACE_EVENT_MA
     { SM_SERVICE_DOMAIN_INTERFACE_EVENT_NOT_IN_USE,    "not-in-use"        }
 };
 
+static SmValueStrMappingT
+_sm_failover_event_mappings[SM_FAILOVER_EVENT_MAX] =
+{
+    {SM_FAILOVER_EVENT_HEARTBEAT_ENABLED,       "heartbeat-enabled"},
+    {SM_FAILOVER_EVENT_IF_STATE_CHANGED,        "interface-state-changed"},
+    {SM_FAILOVER_EVENT_FAIL_PENDING_TIMEOUT,    "fail-pending-timeout"},
+    {SM_FAILOVER_EVENT_NODE_ENABLED,            "node-enabled"}
+};
+
+static SmValueStrMappingT
+_sm_failover_state_mappings[SM_FAILOVER_STATE_MAX] =
+{
+    {SM_FAILOVER_STATE_INITIAL,                 "initial"},
+    {SM_FAILOVER_STATE_NORMAL,                  "normal"},
+    {SM_FAILOVER_STATE_FAIL_PENDING,            "fail-pending"},
+    {SM_FAILOVER_STATE_FAILED,                  "failed"},
+    {SM_FAILOVER_STATE_SURVIVED,                "survived"}
+};
+
 static SmValueStrMappingT 
 _sm_service_domain_neighbor_state_mappings[SM_SERVICE_DOMAIN_NEIGHBOR_STATE_MAX] =
 {
@@ -950,6 +969,28 @@ const char* sm_service_domain_interface_event_str(
     return( sm_mapping_get_str( _sm_service_domain_interface_event_mappings,
                                 SM_SERVICE_DOMAIN_INTERFACE_EVENT_MAX,
                                 event ) );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Types - Failover Event String
+// =============================================
+const char* sm_failover_event_str( SmFailoverEventT event )
+{
+    return( sm_mapping_get_str( _sm_failover_event_mappings,
+                                SM_FAILOVER_EVENT_MAX,
+                                event ) );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Types - Failover State String
+// =============================================
+const char* sm_failover_state_str( SmFailoverStateT state )
+{
+    return( sm_mapping_get_str( _sm_failover_state_mappings,
+                                SM_FAILOVER_STATE_MAX,
+                                state ) );
 }
 // ****************************************************************************
 
