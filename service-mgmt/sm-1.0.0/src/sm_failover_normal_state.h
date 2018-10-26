@@ -12,7 +12,6 @@ class SmFailoverNormalState : public SmFSMState
 {
     public:
         SmFailoverNormalState(SmFailoverFSM& fsm) : SmFSMState(fsm){}
-        SmErrorT enter_state();
         SmErrorT exit_state();
     protected:
         SmErrorT event_handler(SmFailoverEventT event, const ISmFSMEventData* event_data);

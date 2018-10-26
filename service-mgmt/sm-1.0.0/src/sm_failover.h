@@ -29,6 +29,16 @@ typedef enum
     SM_FAILOVER_DEGRADE_SOURCE_IF_DOWN = 2
 }SmFailoverDegradeSourceT;
 
+typedef enum
+{
+    SM_FAILOVER_INFRA_DOWN = 1,
+    SM_FAILOVER_MGMT_DOWN = 2,
+    SM_FAILOVER_OAM_DOWN = 4,
+    SM_FAILOVER_HEARTBEAT_ALIVE = 8,
+    SM_FAILOVER_HELLO_MSG_ALIVE = 16,
+    SM_FAILOVER_PEER_DISABLED = 0x4000,
+}SmFailoverCommFaultBitFlagT;
+
 // ****************************************************************************
 // Failover - check
 // ==================
@@ -136,6 +146,29 @@ SmHeartbeatMsgIfStateT sm_failover_get_peer_if_state();
 SmErrorT sm_failover_set_system(const SmSystemFailoverStatus& failover_status);
 // ****************************************************************************
 
+// ****************************************************************************
+// Failover - active self
+// =======================
+SmErrorT sm_failover_activate_self();
+// ****************************************************************************
+
+// ****************************************************************************
+// Failover - disable peer node
+// =======================
+SmErrorT sm_failover_disable_peer();
+// ****************************************************************************
+
+// ****************************************************************************
+// Failover - is active controller
+// ==================
+bool sm_is_active_controller();
+// ****************************************************************************
+
+// ****************************************************************************
+// Failover - get interface state
+// ==================
+int sm_failover_get_if_state();
+// ****************************************************************************
 
 // ****************************************************************************
 // Failover - dump state

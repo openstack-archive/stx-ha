@@ -6,20 +6,66 @@
 #include "sm_failover_fsm.h"
 #include <stdlib.h>
 #include "sm_debug.h"
+#include "sm_failover_initial_state.h"
 #include "sm_failover_normal_state.h"
 #include "sm_failover_fail_pending_state.h"
 #include "sm_failover_failed_state.h"
 #include "sm_failover_survived_state.h"
 
+SmFSMEventDataTypeT SmIFStateChangedEventData::get_event_data_type() const
+{
+    return SmIFStateChangedEventDataType;
+}
+
+
+SmIFStateChangedEventData::SmIFStateChangedEventData()
+{
+}
+
+void SmIFStateChangedEventData::set_interface_state(
+    SmInterfaceTypeT interface_type, SmFailoverInterfaceStateT interface_state)
+{
+    switch (interface_type)
+    {
+        case SM_INTERFACE_OAM:
+            _oam_state = interface_state;
+            break;
+        case SM_INTERFACE_MGMT:
+            _mgmt_state = interface_state;
+            break;
+        case SM_INTERFACE_INFRA:
+            _infra_state = interface_state;
+            break;
+        default:
+            DPRINTFE("Runtime error: invalid interface type %d", interface_type);
+    }
+}
+SmFailoverInterfaceStateT SmIFStateChangedEventData::get_interface_state(SmInterfaceTypeT interface_type) const
+{
+    switch (interface_type)
+    {
+        case SM_INTERFACE_OAM:
+            return _oam_state;
+        case SM_INTERFACE_MGMT:
+            return _mgmt_state;
+        case SM_INTERFACE_INFRA:
+            return _infra_state;
+        default:
+            DPRINTFE("Runtime error: invalid interface type %d", interface_type);
+            return SM_FAILOVER_INTERFACE_UNKNOWN;
+    }
+
+}
+
 SmErrorT SmFSMState::enter_state()
 {
-    // default implementation, nothing to do
+    DPRINTFI("Entering %s state", sm_failover_state_str(fsm.get_state()));
     return SM_OKAY;
 };
 
 SmErrorT SmFSMState::exit_state()
 {
-    // default implementation, nothing to do
+    DPRINTFI("Exiting %s state", sm_failover_state_str(fsm.get_state()));
     return SM_OKAY;
 };
 
@@ -58,7 +104,7 @@ SmErrorT SmFailoverFSM::send_event(SmFailoverEventT event, const ISmFSMEventData
         DPRINTFE("Runtime error. No handler for state %d", this->get_state());
         return SM_FAILED;
     }
-    DPRINTFI("send_event %d\n", event);
+    DPRINTFI("send_event %s\n", sm_failover_event_str(event));
     state_handler->event_handler(event, event_data);
     return SM_OKAY;
 }
@@ -96,6 +142,9 @@ SmErrorT SmFailoverFSM::set_state(SmFailoverStateT state)
         DPRINTFE("State %d was not registered", state);
         return SM_FAILED;
     }
+
+    this->_current_state = state;
+
     error = new_state_handler->enter_state();
     if(SM_OKAY != error)
     {
@@ -103,7 +152,6 @@ SmErrorT SmFailoverFSM::set_state(SmFailoverStateT state)
         return SM_FAILED;
     }
 
-    this->_current_state = state;
     return SM_OKAY;
 }
 
@@ -149,6 +197,7 @@ SmErrorT SmFailoverFSM::init_state()
 SmErrorT SmFailoverFSM::initialize()
 {
     SmFailoverFSM& fsm = SmFailoverFSM::get_fsm();
+    fsm.register_fsm_state(SM_FAILOVER_STATE_INITIAL, new SmFailoverInitialState(fsm));
     fsm.register_fsm_state(SM_FAILOVER_STATE_NORMAL, new SmFailoverNormalState(fsm));
     fsm.register_fsm_state(SM_FAILOVER_STATE_FAIL_PENDING, new SmFailoverFailPendingState(fsm));
     fsm.register_fsm_state(SM_FAILOVER_STATE_FAILED, new SmFailoverFailedState(fsm));

@@ -9,8 +9,33 @@
 #include <errno.h>
 #include <unistd.h>
 #include <time.h>
+#include <string.h>
 #include "sm_util_types.h"
 #include "sm_debug.h"
+#include "sm_trap.h"
+
+SmSimpleAction::SmSimpleAction(const char* action_name, SmSimpleActionCallback callback)
+{
+    _callback = callback;
+    strncpy(_action_name, action_name, sizeof(_action_name));
+}
+
+SmSimpleAction::~SmSimpleAction()
+{
+}
+
+void SmSimpleAction::action()
+{
+    if(NULL != _callback)
+    {
+        _callback(*this);
+    }
+}
+
+const char* SmSimpleAction::get_name() const
+{
+    return _action_name;
+}
 
 SmWorkerThread SmWorkerThread::_the_worker;
 
@@ -68,6 +93,10 @@ SmWorkerThread::~SmWorkerThread()
 // ****************************************************************************
 void* SmWorkerThread::thread_helper(SmWorkerThread* workerThread)
 {
+    pthread_setname_np( pthread_self(), "worker" );
+    sm_debug_set_thread_info();
+    sm_trap_set_thread_info();
+    DPRINTFI("worker thread started");
     workerThread->thread_run();
     return 0;
 }
@@ -126,20 +155,33 @@ SmErrorT SmWorkerThread::stop()
 // ****************************************************************************
 // SmWorkerThread::add_action add a regular priority action
 // ****************************************************************************
-void SmWorkerThread::add_action(SmAction& action)
+void SmWorkerThread::add_action(SmAction* action)
 {
     mutex_holder(&this->_mutex);
-    this->_regular_queue.push(&action);
+    this->_regular_queue.push(action);
+    int res = sem_post(&_sem);
+    if(0 != res)
+    {
+        DPRINTFE("failed to signal semaphore. error %d", errno);
+    }
+
+    DPRINTFI("Action %s is added", action->get_name());
 }
 // ****************************************************************************
 
 // ****************************************************************************
 // SmWorkerThread::add_priority_action add a high priority action
 // ****************************************************************************
-void SmWorkerThread::add_priority_action(SmAction& action)
+void SmWorkerThread::add_priority_action(SmAction* action)
 {
     mutex_holder(&this->_mutex);
-    this->_priority_queue.push(&action);
+    this->_priority_queue.push(action);
+    int res = sem_post(&_sem);
+    if(0 != res)
+    {
+        DPRINTFE("failed to signal semaphore. error %d", errno);
+    }
+    DPRINTFI("Action %s is added to priority queue", action->get_name());
 }
 // ****************************************************************************
 
@@ -177,7 +219,9 @@ void SmWorkerThread::thread_run()
             }
             if( NULL != action )
             {
+                DPRINTFI("Executing action %s", action->get_name());
                 action->action();
+                DPRINTFI("Executing action %s completed", action->get_name());
             }
         }else if(ETIMEDOUT != errno)
         {
