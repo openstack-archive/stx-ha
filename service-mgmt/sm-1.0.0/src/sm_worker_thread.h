@@ -18,10 +18,23 @@ class SmAction
 {
     public:
         virtual void action() = 0;
+        virtual const char* get_name() const = 0;
+};
+
+class SmSimpleAction : public SmAction
+{
+    public:
+        typedef void(*SmSimpleActionCallback)(SmSimpleAction&);
+        SmSimpleAction(const char* action_name, SmSimpleActionCallback callback);
+        virtual ~SmSimpleAction();
+        void action();
+        const char* get_name() const;
+    private:
+        SmSimpleActionCallback _callback;
+        char _action_name[32];
 };
 
 typedef std::queue<SmAction*> SmActionQueueT;
-class SmWorkerThread;
 
 // ****************************************************************************
 // SmWorkerThread work thread class
@@ -36,13 +49,13 @@ class SmWorkerThread
            A normal priority action will be scheduled after all
            high priority actions.
         */
-        void add_action(SmAction& action);
+        void add_action(SmAction* action);
         /*
            Add an action to high priority FCFS queue.
            A high priority action is nonpreemptive. It will
            be scheduled after the current action.
         */
-        void add_priority_action(SmAction& action);
+        void add_priority_action(SmAction* action);
 
 
         // retrieve singleton object

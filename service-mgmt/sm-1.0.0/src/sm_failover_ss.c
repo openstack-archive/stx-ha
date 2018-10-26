@@ -15,6 +15,40 @@
 #include "sm_node_api.h"
 #include "sm_failover.h"
 
+//
+SmErrorT _get_survivor_dc(const SmSystemStatusT& system_status, SmSystemFailoverStatus& selection);
+
+// select standby as failed
+SmErrorT _fail_standby(const SmSystemStatusT& system_status, SmSystemFailoverStatus& selection)
+{
+    if(SM_NODE_STATE_STANDBY == system_status.host_status.current_schedule_state)
+    {
+        selection.set_host_schedule_state(SM_NODE_STATE_FAILED);
+        selection.set_peer_schedule_state(SM_NODE_STATE_ACTIVE);
+    }else if(SM_NODE_STATE_STANDBY == system_status.peer_status.current_schedule_state)
+    {
+        selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+        selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
+    }else
+    {
+        DPRINTFE("Runtime error. Unexpected scheduling state: host %s, peer %s (no standby)",
+        sm_node_schedule_state_str(system_status.host_status.current_schedule_state),
+        sm_node_schedule_state_str(system_status.peer_status.current_schedule_state));
+        return SM_FAILED;
+    }
+    return SM_OKAY;
+}
+
+const char SmSystemFailoverStatus::filename[] = "/var/lib/sm/failover.status";
+const char SmSystemFailoverStatus::file_format[] =
+    "This is a very important system file.\n"
+    "Any modification is strictly forbidden and will cause serious consequence.\n"
+    "host_schedule_state=%1d\n"
+    "peer_schedule_state=%1d\n"
+    "last_update=%19s\n";
+
+SmSystemFailoverStatus SmSystemFailoverStatus::_failover_status;
+
 SmSystemFailoverStatus::SmSystemFailoverStatus()
 {
     SmErrorT error;
@@ -42,11 +76,17 @@ SmSystemFailoverStatus::~SmSystemFailoverStatus()
 {
 }
 
+SmSystemFailoverStatus& SmSystemFailoverStatus::get_status()
+{
+    return _failover_status;
+}
+
 bool SmSystemFailoverStatus::_is_valid_schedule_state(SmNodeScheduleStateT state)
 {
     return (SM_NODE_STATE_ACTIVE == state ||
             SM_NODE_STATE_STANDBY == state ||
-            SM_NODE_STATE_FAILED == state);
+            SM_NODE_STATE_FAILED == state ||
+            SM_NODE_STATE_INIT == state);
 }
 
 void SmSystemFailoverStatus::set_host_schedule_state(SmNodeScheduleStateT state)
@@ -56,6 +96,20 @@ void SmSystemFailoverStatus::set_host_schedule_state(SmNodeScheduleStateT state)
         if(_host_schedule_state != state)
         {
             _host_schedule_state=state;
+        }
+    }else
+    {
+        DPRINTFE("Runtime error, schedule state unknown %d", state);
+    }
+}
+
+void SmSystemFailoverStatus::set_host_pre_failure_schedule_state(SmNodeScheduleStateT state)
+{
+    if(_is_valid_schedule_state(state))
+    {
+        if(_host_pre_failure_schedule_state != state)
+        {
+            _host_pre_failure_schedule_state = state;
         }
     }else
     {
@@ -77,12 +131,65 @@ void SmSystemFailoverStatus::set_peer_schedule_state(SmNodeScheduleStateT state)
     }
 }
 
-typedef enum
+void SmSystemFailoverStatus::set_peer_pre_failure_schedule_state(SmNodeScheduleStateT state)
 {
-    SM_FAILOVER_INFRA_DOWN = 1,
-    SM_FAILOVER_MGMT_DOWN = 2,
-    SM_FAILOVER_OAM_DOWN = 4,
-}SmFailoverCommFaultBitFlagT;
+    if(_is_valid_schedule_state(state))
+    {
+        if(_peer_pre_failure_schedule_state != state)
+        {
+            _peer_pre_failure_schedule_state = state;
+        }
+    }else
+    {
+        DPRINTFE("Runtime error, schedule state unknown %d", state);
+    }
+}
+
+void SmSystemFailoverStatus::serialize()
+{
+    FILE* f;
+    time_t last_update;
+    struct tm* local_time;
+    time(&last_update);
+    local_time = localtime(&last_update);
+    char timestamp[20];
+
+
+    sprintf(timestamp, "%04d-%02d-%02dT%02d:%02d:%02d", local_time->tm_year + 1900,
+                local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+
+    f = fopen(filename, "w");
+    fprintf(f, file_format, _host_schedule_state, _peer_schedule_state, timestamp);
+    for(int i = 0; i < 72; i ++)
+    {
+       fputs(".", f);
+    }
+    fclose(f);
+}
+
+void SmSystemFailoverStatus::deserialize()
+{
+//    FILE* f;
+//    char timestamp[20];
+//
+//    _host_schedule_state = _peer_schedule_state = SM_NODE_STATE_UNKNOWN;
+//    int host_state, peer_state;
+//    f = fopen(filename, "r");
+//    if(NULL != f)
+//    {
+//        DPRINTFI("Loading schedule state from %s", filename);
+//        int cnt = fscanf(f, file_format, &host_state, &peer_state, timestamp);
+//        fclose(f);
+//        if(cnt != 3)
+//        {
+//            DPRINTFE("Runtime error, %s has been modified.", filename);
+//        }else
+//        {
+//            set_host_schedule_state((SmNodeScheduleStateT)host_state);
+//            set_peer_schedule_state((SmNodeScheduleStateT)peer_state);
+//        }
+//    }
+}
 
 // ****************************************************************************
 // sm_failover_ss get_node_if_healthy_score - get node interface healthy score
@@ -98,7 +205,7 @@ static int get_node_if_healthy_score(unsigned int interface_state)
     {
         healthy_score -= 2;
     }
-    if(interface_state & SM_FAILOVER_INFRA_DOWN)
+    if(interface_state & SM_FAILOVER_MGMT_DOWN)
     {
         healthy_score -= 4;
     }
@@ -152,7 +259,6 @@ SmErrorT _get_system_status(SmSystemStatusT& sys_status, char host_name[], char 
     sys_status.peer_status.current_schedule_state = sm_get_controller_state(peer_name);
     return SM_OKAY;
 }
-
 // ****************************************************************************
 // sm_failover_ss_get_survivor - select the failover survivor
 // This is the main entry/container for the failover logic to determine how
@@ -175,10 +281,17 @@ SmErrorT sm_failover_ss_get_survivor(SmSystemFailoverStatus& selection)
 
 SmErrorT sm_failover_ss_get_survivor(const SmSystemStatusT& system_status, SmSystemFailoverStatus& selection)
 {
+    DPRINTFI("get survivor %s %s, %s %s",
+        system_status.host_status.node_name,
+        sm_node_schedule_state_str(system_status.host_status.current_schedule_state),
+        system_status.peer_status.node_name,
+        sm_node_schedule_state_str(system_status.peer_status.current_schedule_state));
+
     selection.set_host_schedule_state(system_status.host_status.current_schedule_state);
     selection.set_peer_schedule_state(system_status.peer_status.current_schedule_state);
     if(SM_HEARTBEAT_OK == system_status.heartbeat_state)
     {
+        DPRINTFI("Heartbeat alive");
         int host_healthy_score, peer_healthy_score;
         host_healthy_score = get_node_if_healthy_score(system_status.host_status.interface_state);
         peer_healthy_score = get_node_if_healthy_score(system_status.peer_status.interface_state);
@@ -187,16 +300,52 @@ SmErrorT sm_failover_ss_get_survivor(const SmSystemStatusT& system_status, SmSys
             //host is more healthy
             selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
             selection.set_peer_schedule_state(SM_NODE_STATE_STANDBY);
+            if(system_status.peer_status.interface_state & SM_FAILOVER_MGMT_DOWN)
+            {
+                DPRINTFI("Disable peer, host go active");
+                selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+            }
         }else if(peer_healthy_score > host_healthy_score)
         {
             //peer is more healthy
             selection.set_host_schedule_state(SM_NODE_STATE_STANDBY);
             selection.set_peer_schedule_state(SM_NODE_STATE_ACTIVE);
+            if(system_status.host_status.interface_state & SM_FAILOVER_MGMT_DOWN)
+            {
+                DPRINTFI("Disable host, peer go active");
+                selection.set_host_schedule_state(SM_NODE_STATE_FAILED);
+            }
         }
+    }else
+    {
+        DPRINTFI("Loss of heartbeat ALL");
+        selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
+        selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
     }
 
-    if(system_status.host_status.current_schedule_state != selection.get_host_schedule_state() ||
-        system_status.peer_status.current_schedule_state != selection.get_peer_schedule_state() )
+    if(SM_SYSTEM_MODE_CPE_DUPLEX == system_status.system_mode)
+    {
+    }
+
+    if(SM_SYSTEM_MODE_CPE_DUPLEX_DC == system_status.system_mode)
+    {
+        return _get_survivor_dc(system_status, selection);
+    }
+
+    SmNodeScheduleStateT host_schedule_state, peer_schedule_state;
+    host_schedule_state = selection.get_host_schedule_state();
+    peer_schedule_state = selection.get_peer_schedule_state();
+    DPRINTFI("Host from %s to %s, Peer from %s to %s.",
+        sm_node_schedule_state_str(system_status.host_status.current_schedule_state),
+        sm_node_schedule_state_str(host_schedule_state),
+        sm_node_schedule_state_str(system_status.peer_status.current_schedule_state),
+        sm_node_schedule_state_str(peer_schedule_state)
+    );
+
+    if((system_status.host_status.current_schedule_state == SM_NODE_STATE_ACTIVE &&
+        host_schedule_state != SM_NODE_STATE_ACTIVE) ||
+        (system_status.peer_status.current_schedule_state == SM_NODE_STATE_ACTIVE &&
+        peer_schedule_state != SM_NODE_STATE_ACTIVE))
     {
         DPRINTFI("Uncontrolled swact starts. Host from %s to %s, Peer from %s to %s.",
             sm_node_schedule_state_str(system_status.host_status.current_schedule_state),
@@ -205,6 +354,43 @@ SmErrorT sm_failover_ss_get_survivor(const SmSystemStatusT& system_status, SmSys
             sm_node_schedule_state_str(selection.get_peer_schedule_state())
         );
     }
+
+    selection.serialize();
     return SM_OKAY;
 }
 // ****************************************************************************
+
+
+// ****************************************************************************
+// Direct connected
+SmErrorT _get_survivor_dc(const SmSystemStatusT& system_status, SmSystemFailoverStatus& selection)
+{
+    if(SM_SYSTEM_MODE_CPE_DUPLEX_DC != system_status.system_mode)
+    {
+        DPRINTFE("Runtime error, not the right system mode %d", system_status.system_mode);
+        return SM_FAILED;
+    }
+
+    if(SM_HEARTBEAT_LOSS == system_status.heartbeat_state)
+    {
+        if(system_status.host_status.mgmt_state == SM_FAILOVER_INTERFACE_DOWN &&
+            (system_status.host_status.infra_state == SM_FAILOVER_INTERFACE_DOWN ||
+            system_status.host_status.infra_state == SM_FAILOVER_INTERFACE_UNKNOWN))
+        {
+            if(SM_FAILOVER_INTERFACE_DOWN == system_status.host_status.oam_state)
+            {
+                selection.set_host_schedule_state(SM_NODE_STATE_FAILED);
+                selection.set_peer_schedule_state(SM_NODE_STATE_ACTIVE);
+            }else
+            {
+                selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+                selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
+            }
+        }else
+        {
+            selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+            selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
+        }
+    }
+    return SM_OKAY;
+}
