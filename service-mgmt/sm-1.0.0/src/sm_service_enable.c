@@ -588,7 +588,7 @@ static int get_initial_throttle()
         return MAX_SERVICE_EXPECTED;
     }
 
-    char buf[SM_CONFIGURATION_KEY_MAX_CHAR + 1];
+    char buf[SM_CONFIGURATION_VALUE_MAX_CHAR + 1];
     int size;
     if( SM_OKAY == sm_configuration_table_get("ENABLING_THROTTLE", buf, sizeof(buf) - 1) )
     {
