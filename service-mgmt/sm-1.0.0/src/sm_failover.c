@@ -36,6 +36,7 @@
 #include "sm_failover_utils.h"
 #include "sm_failover_fsm.h"
 #include "sm_api.h"
+#include "sm_cluster_hbs_info_msg.h"
 
 typedef enum
 {
@@ -455,7 +456,7 @@ void sm_failover_lost_hello_msg()
 }
 
 // ****************************************************************************
-// Failover - Hello msg restor
+// Failover - Hello msg restore
 // ==================
 void sm_failover_hello_msg_restore()
 {
@@ -1556,6 +1557,12 @@ SmErrorT sm_failover_initialize( void )
            sm_failover_audit_timeout,
            0, &failover_audit_timer_id );
 
+    error = SmClusterHbsInfoMsg::initialize();
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to initialize cluster hbs info messaging");
+    }
+
     return SM_OKAY;
 }
 // ****************************************************************************
@@ -1568,6 +1575,12 @@ SmErrorT sm_failover_finalize( void )
     _total_interfaces = 0;
 
     SmErrorT error;
+    error = SmClusterHbsInfoMsg::finalize();
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to finalize cluster hbs info messaging");
+    }
+
     sm_timer_deregister( failover_audit_timer_id );
     if( NULL != _sm_db_handle )
     {
@@ -1588,6 +1601,7 @@ SmErrorT sm_failover_finalize( void )
         return error;
     }
 
+    pthread_mutex_destroy(&_mutex);
     return SM_OKAY;
 }
 // ****************************************************************************
