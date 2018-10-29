@@ -27,6 +27,7 @@
 #include "sm_failover.h"
 #include "sm_service_domain_neighbor_fsm.h"
 #include "sm_service_domain_fsm.h"
+#include "sm_cluster_hbs_info_msg.h"
 
 #define SM_TROUBLESHOOT_NAME                                "sm_troubleshoot"
 
@@ -125,6 +126,7 @@ SmErrorT sm_troubleshoot_dump_data( const char reason[] )
             sm_service_domain_dump_state( log ); fprintf( log, "\n" );
             sm_service_domain_interface_dump_state( log ); fprintf( log, "\n" );
             sm_domain_neighbor_fsm_dump( log );
+            SmClusterHbsInfoMsg::dump_hbs_record(log);
             sm_timer_dump_data( log ); fprintf( log, "\n" );
             sm_msg_dump_data( log );   fprintf( log, "\n" );
 

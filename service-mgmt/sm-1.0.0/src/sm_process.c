@@ -623,7 +623,7 @@ SmErrorT sm_process_main( int argc, char *argv[], char *envp[] )
 
     sm_process_setup_signal_handler();
 
-    DPRINTFI( "Starting" );
+    DPRINTFI( "Starting. SW built at %s %s", __DATE__, __TIME__ );
 
     if( sm_utils_process_running( SM_PROCESS_PID_FILENAME ) )
     {
