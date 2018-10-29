@@ -26,10 +26,10 @@ SRCS+=sm_eru_db.c
 SRCS+=sm_util_types.c
 
 OBJS = $(SRCS:.c=.o)
-CCFLAGS= -fPIC -g -O2 -Wall -Werror
+CCFLAGS= -fPIC -g -O2 -Wall -Werror -std=c++11
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS -DSW_VERSION=\"$(SW_VERSION)\"
 
-LDLIBS= -lsqlite3 -lglib-2.0 -lgmodule-2.0 -luuid -lrt -lpthread -std=c++11
+LDLIBS= -lsqlite3 -lglib-2.0 -lgmodule-2.0 -luuid -lrt -lpthread
 LDFLAGS = -shared -rdynamic
 
 build: libsm_common.so libsm_watchdog_nfs.so sm_watchdog sm_eru sm_eru_dump
