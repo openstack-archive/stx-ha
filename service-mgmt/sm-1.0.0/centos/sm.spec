@@ -12,6 +12,7 @@ Source1: LICENSE
 BuildRequires: fm-common-dev
 BuildRequires: sm-db-dev
 BuildRequires: sm-common-dev
+BuildRequires: mtce-dev
 BuildRequires: glib2-devel
 BuildRequires: glibc
 BuildRequires: sqlite-devel
