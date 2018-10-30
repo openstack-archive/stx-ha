@@ -53,9 +53,19 @@ def main():
         sys_parser.set_defaults(which='system')
         sys_parser.add_argument(
             "--cpe_mode", choices=[cpe_duplex, cpe_duplex_direct],
-            required=True,
             help='cpe mode, available selections: %s, %s' % (
                 cpe_duplex, cpe_duplex_direct)
+        )
+
+        sys_parser.add_argument(
+            "--sm_server_port",
+            help='port sm receives '
+                 'hbs agent cluster information update'
+        )
+
+        sys_parser.add_argument(
+            "--sm_client_port",
+            help='port mtce receives sm commands from'
         )
 
         sg_parser = subparsers.add_parser('service_group',
@@ -78,6 +88,12 @@ def main():
                 configure_cpe_duplex()
             elif cpe_duplex_direct == args.cpe_mode:
                 configure_cpe_dc()
+
+            if args.sm_server_port:
+                configure_system_opt("sm_server_port", args.sm_server_port)
+
+            if args.sm_client_port:
+                configure_system_opt("sm_client_port", args.sm_client_port)
         else:
             database = sqlite3.connect(database_name)
             _dispatch_config_action(args, database)
@@ -221,3 +237,16 @@ def configure_if_connect_type(if_name, connect_type):
     cursor.execute(sql)
     database.commit()
     database.close()
+
+
+def configure_system_opt(key, value):
+    database = sqlite3.connect(database_name)
+
+    cursor = database.cursor()
+    sql = "UPDATE CONFIGURATION SET VALUE='%s' " \
+          "WHERE KEY = '%s'" % (value, key)
+
+    cursor.execute(sql)
+    database.commit()
+    database.close()
+
