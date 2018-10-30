@@ -962,6 +962,8 @@ CREATE TABLE SCHEMA_VERSION (ID INTEGER PRIMARY KEY AUTOINCREMENT, MAJOR INTEGER
 INSERT INTO "SCHEMA_VERSION" VALUES(2,0,0);
 CREATE TABLE CONFIGURATION ( ID INTEGER PRIMARY KEY AUTOINCREMENT, "KEY" CHAR(32), "VALUE" CHAR(32) );
 INSERT INTO "CONFIGURATION" VALUES(1,'ENABLING_THROTTLE','2');
+INSERT INTO "CONFIGURATION" VALUES(2,'sm_client_port', '');
+INSERT INTO "CONFIGURATION" VALUES(2,'sm_server_port', '');
 -- to add new service or service memeber, follow the examples below, avoid using a hardcoded id
 -- INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','drbd-patch-vault','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 -- INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcorch-nova-api-proxy','critical' FROM "SERVICE_GROUP_MEMBERS";
