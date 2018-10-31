@@ -53,7 +53,7 @@ def do_service_show(cc, args):
                                "requires 'admin' level")
     else:
         if service is None:
-            print "Service %s could not be found" % args.service
+            print("Service %s could not be found" % args.service)
             return
         if service.status:
             setattr(service, 'state', service.state + '-' + service.status)

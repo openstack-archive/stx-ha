@@ -29,9 +29,8 @@ import json
 from six.moves.urllib.parse import urlparse
 from oslo_config import cfg
 
-from sqlalchemy import Column, ForeignKey, Integer, Boolean
-from sqlalchemy import Enum, UniqueConstraint, String
-from sqlalchemy import Index
+from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.types import TypeDecorator, VARCHAR
 

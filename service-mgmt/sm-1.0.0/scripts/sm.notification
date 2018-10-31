@@ -11,7 +11,7 @@
 #    SERVICE_GROUP_AGGREGATE_DESIRED_STATE=<service-group-state>
 #    SERVICE_GROUP_AGGREGATE_STATE=<service-group-state>
 #
-#    SERVICE_GROUP_NAME=<service-group-name> 
+#    SERVICE_GROUP_NAME=<service-group-name>
 #    SERVICE_GROUP_DESIRED_STATE=<service-group-state>
 #    SERVICE_GROUP_STATE=<service-group-state>
 #    SERVICE_GROUP_NOTIFICATION=<service-group-notification>

@@ -470,7 +470,7 @@ def _parse_tokenize(rule):
 
         # Handle leading parens on the token
         clean = tok.lstrip('(')
-        for i in range(len(tok) - len(clean)):
+        for _i in range(len(tok) - len(clean)):
             yield '(', '('
 
         # If it was only parentheses, continue
@@ -498,7 +498,7 @@ def _parse_tokenize(rule):
                 yield 'check', _parse_check(clean)
 
         # Yield the trailing parens
-        for i in range(trail):
+        for _i in range(trail):
             yield ')', ')'
 
 

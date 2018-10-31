@@ -8,7 +8,6 @@
 Hooks
 """
 
-import sqlite3
 from pecan import hooks
 
 from sm_api.common import context
@@ -60,6 +59,7 @@ class ContextHook(hooks.PecanHook):
         or admin substring. Otherwise it is set to False.
 
     """
+
     def __init__(self, public_api_routes):
         self.public_api_routes = public_api_routes
         super(ContextHook, self).__init__()
