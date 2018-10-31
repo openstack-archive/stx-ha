@@ -9,9 +9,7 @@
 #
 
 from sqlalchemy import Column, MetaData, String, Table, UniqueConstraint
-from sqlalchemy import Boolean, Integer, Enum, Text, ForeignKey, DateTime
-from sqlalchemy import Index
-from sqlalchemy.dialects import postgresql
+from sqlalchemy import Integer, Text, ForeignKey, DateTime
 
 ENGINE = 'InnoDB'
 CHARSET = 'utf8'
@@ -70,5 +68,5 @@ def upgrade(migrate_engine):
 def downgrade(migrate_engine):
     raise NotImplementedError('Downgrade from Initial is unsupported.')
 
-    #t = Table('i_disk', meta, autoload=True)
-    #t.drop()
+    # t = Table('i_disk', meta, autoload=True)
+    # t.drop()

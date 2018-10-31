@@ -49,7 +49,7 @@ def main():
         si_parser.add_argument('parameters', help='instance parameters')
 
         sys_parser = subparsers.add_parser('system',
-                                          help='system Configuration')
+                                           help='system Configuration')
         sys_parser.set_defaults(which='system')
         sys_parser.add_argument(
             "--cpe_mode", choices=[cpe_duplex, cpe_duplex_direct],

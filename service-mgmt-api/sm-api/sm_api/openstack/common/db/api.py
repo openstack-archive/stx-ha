@@ -100,7 +100,7 @@ class DBAPI(object):
     def __getattr__(self, key):
         backend = self.__backend or self.__get_backend()
         attr = getattr(backend, key)
-        if not self.__use_tpool or not hasattr(attr, '__call__'):
+        if not self.__use_tpool or not callable(attr):
             return attr
 
         def tpool_wrapper(*args, **kwargs):

@@ -19,7 +19,6 @@
 #
 
 
-
 import contextlib
 import errno
 import os

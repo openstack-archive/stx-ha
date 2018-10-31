@@ -16,6 +16,7 @@ def _print_sm_service_node_show(node):
               'availability_status', 'ready_state']
     utils.print_mapping(node, fields, wrap=72)
 
+
 def do_servicenode_list(cc, args):
     """List Service Nodes."""
     try:
@@ -44,6 +45,6 @@ def do_servicenode_show(cc, args):
                                "requires 'admin' level")
     else:
         if node is None:
-            print "Service node %s could not be found" % args.node
+            print("Service node %s could not be found" % args.node)
             return
         _print_sm_service_node_show(node)

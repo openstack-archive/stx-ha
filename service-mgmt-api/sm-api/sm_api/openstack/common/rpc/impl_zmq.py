@@ -228,13 +228,13 @@ class ZmqClient(object):
 
         if not envelope:
             self.outq.send(map(bytes,
-                           (msg_id, topic, 'cast', _serialize(data))))
+                               (msg_id, topic, 'cast', _serialize(data))))
             return
 
         rpc_envelope = rpc_common.serialize_msg(data[1], envelope)
         zmq_msg = reduce(lambda x, y: x + y, rpc_envelope.items())
         self.outq.send(map(bytes,
-                       (msg_id, topic, 'impl_zmq_v2', data[0]) + zmq_msg))
+                           (msg_id, topic, 'impl_zmq_v2', data[0]) + zmq_msg))
 
     def close(self):
         self.outq.close()
@@ -242,6 +242,7 @@ class ZmqClient(object):
 
 class RpcContext(rpc_common.CommonRpcContext):
     """Context that supports replying to a rpc.call."""
+
     def __init__(self, **kwargs):
         self.replies = []
         super(RpcContext, self).__init__(**kwargs)
@@ -331,7 +332,7 @@ class ConsumerBase(object):
 
     @classmethod
     def normalize_reply(self, result, replies):
-        #TODO(ewindisch): re-evaluate and document this method.
+        # TODO(ewindisch): re-evaluate and document this method.
         if isinstance(result, types.GeneratorType):
             return list(result)
         elif replies:
@@ -451,7 +452,7 @@ class ZmqProxy(ZmqBaseReactor):
     def consume(self, sock):
         ipc_dir = CONF.rpc_zmq_ipc_dir
 
-        #TODO(ewindisch): use zero-copy (i.e. references, not copying)
+        # TODO(ewindisch): use zero-copy (i.e. references, not copying)
         data = sock.recv()
         topic = data[1]
 
@@ -576,7 +577,7 @@ class ZmqReactor(ZmqBaseReactor):
         super(ZmqReactor, self).__init__(conf)
 
     def consume(self, sock):
-        #TODO(ewindisch): use zero-copy (i.e. references, not copying)
+        # TODO(ewindisch): use zero-copy (i.e. references, not copying)
         data = sock.recv()
         LOG.debug(_("CONSUMER RECEIVED DATA: %s"), data)
         if sock in self.mapping:

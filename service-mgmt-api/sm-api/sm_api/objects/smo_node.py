@@ -12,18 +12,19 @@ from sm_api.db import api as db_api
 from sm_api.objects import base
 from sm_api.objects import utils
 
+
 class sm_node(base.Sm_apiObject):
 
     dbapi = db_api.get_instance()
 
     fields = {
-            'id': int,
-            'name': utils.str_or_none,
-            'administrative_state': utils.str_or_none,
-            'operational_state': utils.str_or_none,
-            'availability_status': utils.str_or_none,
-            'ready_state': utils.str_or_none,
-            }
+        'id': int,
+        'name': utils.str_or_none,
+        'administrative_state': utils.str_or_none,
+        'operational_state': utils.str_or_none,
+        'availability_status': utils.str_or_none,
+        'ready_state': utils.str_or_none,
+    }
 
     @staticmethod
     def _from_db_object(server, db_server):

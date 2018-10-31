@@ -157,7 +157,7 @@ class Connection(object):
 
     @abc.abstractmethod
     def sm_service_get_list(self, limit=None, marker=None,
-                          sort_key=None, sort_dir=None):
+                            sort_key=None, sort_dir=None):
         """Return a list of services.
 
         :param limit: Maximum number of services to return.
@@ -173,7 +173,6 @@ class Connection(object):
         """Return a service by name.
            :param name: The name of the services.
         """
-
 
     @abc.abstractmethod
     def sm_service_group_members_get_list(self, service_group_name):
