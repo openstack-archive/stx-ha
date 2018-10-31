@@ -14,4 +14,4 @@ app = {'root': 'sm_api.api.controllers.root.RootController',
        'debug': False,
        'enable_acl': True,
        'acl_public_routes': ['/', '/v1']
-      }
+       }

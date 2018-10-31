@@ -29,7 +29,7 @@ import errno
 import hashlib
 import json
 import os
-#import paramiko
+# import paramiko
 import random
 import re
 import shutil
@@ -120,7 +120,7 @@ def execute(*cmd, **kwargs):
 
     if len(kwargs):
         raise exception.SmApiException(_('Got unknown keyword args '
-                                        'to utils.execute: %r') % kwargs)
+                                         'to utils.execute: %r') % kwargs)
 
     if run_as_root and os.geteuid() != 0:
         cmd = ['sudo', 'sm_api-rootwrap', CONF.rootwrap_config] + list(cmd)
@@ -158,10 +158,10 @@ def execute(*cmd, **kwargs):
             if not ignore_exit_code and _returncode not in check_exit_code:
                 (stdout, stderr) = result
                 raise exception.ProcessExecutionError(
-                        exit_code=_returncode,
-                        stdout=stdout,
-                        stderr=stderr,
-                        cmd=' '.join(cmd))
+                    exit_code=_returncode,
+                    stdout=stdout,
+                    stderr=stderr,
+                    cmd=' '.join(cmd))
             return result
         except exception.ProcessExecutionError:
             if not attempts:
@@ -376,7 +376,7 @@ def is_valid_cidr(address):
     ip_segment = address.split('/')
 
     if (len(ip_segment) <= 1 or
-        ip_segment[1] == ''):
+            ip_segment[1] == ''):
         return False
 
     return True
@@ -530,7 +530,7 @@ def mkfs(fs, path, label=None):
         args = ['mkswap']
     else:
         args = ['mkfs', '-t', fs]
-    #add -F to force no interactive execute on non-block device.
+    # add -F to force no interactive execute on non-block device.
     if fs in ('ext3', 'ext4'):
         args.extend(['-F'])
     if label:
@@ -548,13 +548,13 @@ def mkfs(fs, path, label=None):
 #             or reimplement as a common lib,
 #             or make a driver that doesn't need to do this.
 #
-#def cache_image(context, target, image_id, user_id, project_id):
+# def cache_image(context, target, image_id, user_id, project_id):
 #    if not os.path.exists(target):
 #        libvirt_utils.fetch_image(context, target, image_id,
 #                                  user_id, project_id)
 #
 #
-#def inject_into_image(image, key, net, metadata, admin_password,
+# def inject_into_image(image, key, net, metadata, admin_password,
 #        files, partition, use_cow=False):
 #    try:
 #        disk_api.inject_data(image, key, net, metadata, admin_password,
@@ -572,7 +572,7 @@ def unlink_without_raise(path):
             return
         else:
             LOG.warn(_("Failed to unlink %(path)s, error: %(e)s") %
-                      {'path': path, 'e': e})
+                     {'path': path, 'e': e})
 
 
 def rmtree_without_raise(path):
@@ -581,7 +581,7 @@ def rmtree_without_raise(path):
             shutil.rmtree(path)
     except OSError as e:
         LOG.warn(_("Failed to remove dir %(path)s, error: %(e)s") %
-                {'path': path, 'e': e})
+                 {'path': path, 'e': e})
 
 
 def write_to_file(path, contents):
@@ -598,7 +598,7 @@ def create_link_without_raise(source, link):
         else:
             LOG.warn(_("Failed to create symlink from %(source)s to %(link)s"
                        ", error: %(e)s") %
-                       {'source': source, 'link': link, 'e': e})
+                     {'source': source, 'link': link, 'e': e})
 
 
 def safe_rstrip(value, chars=None):
@@ -659,13 +659,13 @@ def notify_mtc_and_recv(mtc_address, mtc_port, idict):
         try:
             mtc_response_dict = json.loads(mtc_response)
             LOG.warning("Mtc Response: %s" % mtc_response_dict)
-        except:
+        except Exception as e:
             LOG.exception("Mtc Response Error: %s" % mtc_response)
             pass
 
     except socket.error as e:
         LOG.exception(_("Socket Error: %s on %s:%s for %s") % (e,
-                        mtc_address, mtc_port, serialized_idict))
+                                                               mtc_address, mtc_port, serialized_idict))
         # if e not in [errno.EWOULDBLOCK, errno.EINTR]:
         #  raise exception.CommunicationError(_(
         #   "Socket error:  address=%s port=%s error=%s ") % (

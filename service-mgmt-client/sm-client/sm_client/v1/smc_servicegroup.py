@@ -7,7 +7,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 #
-from sm_client import exc
 from sm_client.common import base
 
 

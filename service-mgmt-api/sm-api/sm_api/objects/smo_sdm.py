@@ -18,13 +18,13 @@ class sm_sdm(base.Sm_apiObject):
     dbapi = db_api.get_instance()
 
     fields = {
-            'id': int,
-            'name': utils.str_or_none,
-            'service_group_name': utils.str_or_none,
-            'redundancy_model': utils.str_or_none,
-            'n_active': int,
-            'm_standby': int,
-            }
+        'id': int,
+        'name': utils.str_or_none,
+        'service_group_name': utils.str_or_none,
+        'redundancy_model': utils.str_or_none,
+        'n_active': int,
+        'm_standby': int,
+    }
 
     @staticmethod
     def _from_db_object(server, db_server):

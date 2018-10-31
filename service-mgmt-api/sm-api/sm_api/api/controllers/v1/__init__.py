@@ -75,10 +75,10 @@ class Version1(wsme_types.Base):
         v1.servicenode = [link.Link.make_link('self',
                                               pecan.request.host_url,
                                               'servicenode', ''),
-                         link.Link.make_link('bookmark',
-                                             pecan.request.host_url,
-                                             'servicenode', '',
-                                             bookmark=True)]
+                          link.Link.make_link('bookmark',
+                                              pecan.request.host_url,
+                                              'servicenode', '',
+                                              bookmark=True)]
         v1.sm_sda = [link.Link.make_link('self',
                                          pecan.request.host_url,
                                          'sm_sda', ''),
@@ -102,5 +102,6 @@ class Controller(rest.RestController):
     @wsme_pecan.wsexpose(Version1)
     def get(self):
         return Version1.convert()
+
 
 __all__ = Controller

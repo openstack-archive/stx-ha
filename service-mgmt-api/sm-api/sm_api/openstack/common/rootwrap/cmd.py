@@ -90,7 +90,7 @@ def main():
         rawconfig.read(configfile)
         config = wrapper.RootwrapConfig(rawconfig)
     except ValueError as exc:
-        msg = "Incorrect value in %s: %s" % (configfile, exc.message)
+        msg = "Incorrect value in %s: %s" % (configfile, str(exc))
         _exit_error(execname, msg, RC_BADCONFIG, log=False)
     except configparser.Error:
         _exit_error(execname, "Incorrect configuration file: %s" % configfile,

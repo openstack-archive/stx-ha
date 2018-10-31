@@ -19,7 +19,6 @@
 #
 
 
-
 from six.moves import configparser
 import logging
 import logging.handlers
@@ -39,6 +38,7 @@ class FilterMatchNotExecutable(Exception):
     This exception is raised when a filter matched but no executable was
     found.
     """
+
     def __init__(self, match=None, **kwargs):
         self.match = match
 

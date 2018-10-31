@@ -56,6 +56,7 @@ class Exchange(object):
     Implements lookups.
     Subclass this to support hashtables, dns, etc.
     """
+
     def __init__(self):
         pass
 
@@ -67,6 +68,7 @@ class Binding(object):
     """
     A binding on which to perform a lookup.
     """
+
     def __init__(self):
         pass
 
@@ -80,6 +82,7 @@ class MatchMakerBase(object):
     Build off HeartbeatMatchMakerBase if building a
     heartbeat-capable MatchMaker.
     """
+
     def __init__(self):
         # Array of tuples. Index [2] toggles negation, [3] is last-if-true
         self.bindings = []
@@ -145,9 +148,9 @@ class MatchMakerBase(object):
     def add_binding(self, binding, rule, last=True):
         self.bindings.append((binding, rule, False, last))
 
-    #NOTE(ewindisch): kept the following method in case we implement the
+    # NOTE(ewindisch): kept the following method in case we implement the
     #                 underlying support.
-    #def add_negate_binding(self, binding, rule, last=True):
+    # def add_negate_binding(self, binding, rule, last=True):
     #    self.bindings.append((binding, rule, True, last))
 
     def queues(self, key):
@@ -155,7 +158,7 @@ class MatchMakerBase(object):
 
         # bit is for negate bindings - if we choose to implement it.
         # last stops processing rules if this matches.
-        for (binding, exchange, bit, last) in self.bindings:
+        for (binding, exchange, _bit, last) in self.bindings:
             if binding.test(key):
                 workers.extend(exchange.run(key))
 
@@ -171,6 +174,7 @@ class HeartbeatMatchMakerBase(MatchMakerBase):
     Provides common methods for registering,
     unregistering, and maintaining heartbeats.
     """
+
     def __init__(self):
         self.hosts = set()
         self._heart = None
@@ -269,6 +273,7 @@ class DirectBinding(Binding):
     Although dots are used in the key, the behavior here is
     that it maps directly to a host, thus direct.
     """
+
     def test(self, key):
         if '.' in key:
             return True
@@ -283,6 +288,7 @@ class TopicBinding(Binding):
     that of a topic exchange (whereas where there are dots, behavior
     matches that of a direct exchange.
     """
+
     def test(self, key):
         if '.' not in key:
             return True
@@ -291,6 +297,7 @@ class TopicBinding(Binding):
 
 class FanoutBinding(Binding):
     """Match on fanout keys, where key starts with 'fanout.' string."""
+
     def test(self, key):
         if key.startswith('fanout~'):
             return True
@@ -299,12 +306,14 @@ class FanoutBinding(Binding):
 
 class StubExchange(Exchange):
     """Exchange that does nothing."""
+
     def run(self, key):
         return [(key, None)]
 
 
 class LocalhostExchange(Exchange):
     """Exchange where all direct topics are local."""
+
     def __init__(self, host='localhost'):
         self.host = host
         super(Exchange, self).__init__()
@@ -318,6 +327,7 @@ class DirectExchange(Exchange):
     Exchange where all topic keys are split, sending to second half.
     i.e. "compute.host" sends a message to "compute.host" running on "host"
     """
+
     def __init__(self):
         super(Exchange, self).__init__()
 
@@ -331,6 +341,7 @@ class MatchMakerLocalhost(MatchMakerBase):
     Match Maker where all bare topics resolve to localhost.
     Useful for testing.
     """
+
     def __init__(self, host='localhost'):
         super(MatchMakerLocalhost, self).__init__()
         self.add_binding(FanoutBinding(), LocalhostExchange(host))
@@ -344,6 +355,7 @@ class MatchMakerStub(MatchMakerBase):
     Useful for testing, or for AMQP/brokered queues.
     Will not work where knowledge of hosts is known (i.e. zeromq)
     """
+
     def __init__(self):
         super(MatchMakerLocalhost, self).__init__()
 

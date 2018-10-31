@@ -8,6 +8,7 @@
 from sm_client.common import utils
 from keystoneclient.v3 import client as ksclient
 
+
 def _get_ksclient(**kwargs):
     """Get an endpoint and auth token from Keystone.
 

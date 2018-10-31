@@ -10,6 +10,7 @@ import sys
 
 class BaseException(Exception):
     """An error occurred."""
+
     def __init__(self, message=None):
         self.message = message
 
@@ -163,6 +164,7 @@ class EndpointNotFound(Exception):
 class AmbiguousAuthSystem(ClientException):
     """Could not obtain token and endpoint using provided credentials."""
     pass
+
 
 # Alias for backwards compatibility
 AmbigiousAuthSystem = AmbiguousAuthSystem

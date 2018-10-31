@@ -92,6 +92,7 @@ class Resource(object):
     :param info: dictionary representing resource attributes
     :param loaded: prevent lazy-loading if set to True
     """
+
     def __init__(self, manager, info, loaded=False):
         self.manager = manager
         self._info = info

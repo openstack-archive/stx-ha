@@ -18,12 +18,12 @@ class service(base.Sm_apiObject):
     dbapi = db_api.get_instance()
 
     fields = {
-            'id': int,
-            'name': utils.str_or_none,
-            'desired_state': utils.str_or_none,
-            'state': utils.str_or_none,
-            'status': utils.str_or_none,
-            }
+        'id': int,
+        'name': utils.str_or_none,
+        'desired_state': utils.str_or_none,
+        'state': utils.str_or_none,
+        'status': utils.str_or_none,
+    }
 
     @staticmethod
     def _from_db_object(server, db_server):

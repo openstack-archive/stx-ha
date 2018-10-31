@@ -20,7 +20,7 @@ def get_pid(pid_file):
             pid = f.readline().strip('\n ')
             try:
                 pid = int(pid)
-            except:
+            except Exception as e:
                 pid = -1
             return pid
     return -1
@@ -39,7 +39,7 @@ def get_process_name(pid):
                 name = ntpath.basename(cmd_line[1])
 
         return name
-    except:
+    except Exception as e:
         # most likely it is a leftover pid
         return ''
 
@@ -112,7 +112,7 @@ def main():
                     pid_file = row[5]
                     pid = get_pid(pid_file)
                     pn = get_process_name(pid)
-                    msg = "%-32s %-20s %-20s " % (row[0], row[1],row[2])
+                    msg = "%-32s %-20s %-20s " % (row[0], row[1], row[2])
                     if args.impact:
                         msg += "%-10s" % (row[6])
                     if args.pid:
@@ -122,7 +122,7 @@ def main():
                     if args.pid_file:
                         msg += "%-25s" % (pid_file)
                     msg += "%-10s %20s" % (row[3], row[4])
-                    print msg
+                    print(msg)
 
             print("%s" % ('-' * len))
 
@@ -168,7 +168,7 @@ def main():
                     pid_file = row[4]
                     pid = get_pid(pid_file)
                     pn = get_process_name(pid)
-                    msg = "%-32s %-20s %-20s " % (row[0], row[1],row[2])
+                    msg = "%-32s %-20s %-20s " % (row[0], row[1], row[2])
                     if args.impact:
                         msg += "%-10s" % (row[5])
                     if args.pid:
@@ -193,9 +193,9 @@ def main():
 
     try:
         sys.stdout.close()
-    except:
+    except Exception as e:
         pass
     try:
         sys.stderr.close()
-    except:
+    except Exception as e:
         pass

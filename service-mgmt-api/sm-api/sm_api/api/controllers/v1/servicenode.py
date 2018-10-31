@@ -33,7 +33,6 @@ import json
 from sm_api.api.controllers.v1 import base
 from sm_api.api.controllers.v1 import smc_api
 from sm_api.openstack.common import log
-from sm_api.api.controllers.v1 import services
 
 LOG = log.getLogger(__name__)
 
@@ -226,7 +225,7 @@ class ServiceNodeController(rest.RestController):
         # check whether hostname exists in nodes table
         node_exists = False
         sm_nodes = pecan.request.dbapi.sm_node_get_by_name(hostname)
-        for sm_node in sm_nodes:
+        for _sm_node in sm_nodes:
             node_exists = True
 
         return node_exists
@@ -339,7 +338,7 @@ class ServiceNodeController(rest.RestController):
                 # degraded or failure of A/A service on the target host
                 # would not stop swact
                 sdm = self._sm_sdm_get(sm_sda.name,
-                                               sm_sda.service_group_name)
+                                       sm_sda.service_group_name)
                 if (self._is_aa_service_group(sdm)):
                     continue
 
@@ -349,14 +348,14 @@ class ServiceNodeController(rest.RestController):
                 # or service only provisioned in the other host
                 # or service state are the same on both hosts
                 if SM_SERVICE_GROUP_STATE_ACTIVE != sm_sda.state \
-                    and SM_SERVICE_GROUP_STATE_STANDBY != sm_sda.state \
-                    and sm_sda.service_group_name in origin_state \
-                    and origin_state[sm_sda.service_group_name] != sm_sda.state:
+                        and SM_SERVICE_GROUP_STATE_STANDBY != sm_sda.state \
+                        and sm_sda.service_group_name in origin_state \
+                        and origin_state[sm_sda.service_group_name] != sm_sda.state:
                     check_result = (
                         "%s on %s is not ready to take service, "
                         "service not in the active or standby "
                         "state" % (sm_sda.service_group_name,
-                        sm_sda.node_name))
+                                   sm_sda.node_name))
                     break
 
                 # Verify that all the services are in the desired state on
@@ -481,7 +480,7 @@ class ServiceNodeController(rest.RestController):
                     rsvc = self.get_remote_svc(sda.node_name, service_name)
                     if (SM_SERVICE_STATE_ENABLED_ACTIVE ==
                             rsvc['desired_state'] and
-                                SM_SERVICE_STATE_ENABLED_ACTIVE == rsvc['state']):
+                            SM_SERVICE_STATE_ENABLED_ACTIVE == rsvc['state']):
                         chk_list[sda.service_group_name].remove(service_name)
 
         all_good = True
@@ -495,7 +494,7 @@ class ServiceNodeController(rest.RestController):
         target_services = []
         for sda in sdas:
             if (sda.node_name == hostname and
-                        sda.service_group_name in chk_list):
+                    sda.service_group_name in chk_list):
                 for service_name in chk_list[sda.service_group_name]:
                     LOG.info("checking %s on %s" % (service_name, hostname))
                     rsvc = self.get_remote_svc(sda.node_name, service_name)
@@ -503,7 +502,7 @@ class ServiceNodeController(rest.RestController):
                         continue
                     if (SM_SERVICE_STATE_ENABLED_ACTIVE ==
                             rsvc['desired_state'] and
-                        SM_SERVICE_STATE_ENABLED_ACTIVE == rsvc['state']):
+                            SM_SERVICE_STATE_ENABLED_ACTIVE == rsvc['state']):
                         LOG.info("which is %s %s" % (rsvc['desired_state'], rsvc['state']))
                         target_services.append(service_name)
         LOG.info("services %s solely running on %s" % (','.join(target_services), hostname))
@@ -579,30 +578,30 @@ class ServiceNodeController(rest.RestController):
             ack_avail = sm_ack_dict['SM_API_MSG_NODE_AVAIL'].lower()
 
             LOG.info("sm-api _do_modify_command sm_ack_dict: %s ACK admin: "
-                      "%s oper: %s avail: %s." % (sm_ack_dict, ack_admin,
-                                                  ack_oper, ack_avail))
+                     "%s oper: %s avail: %s." % (sm_ack_dict, ack_admin,
+                                                 ack_oper, ack_avail))
 
             # loose check on admin and oper only
             if (command.admin == ack_admin) and (command.oper == ack_oper):
                 return ServiceNodeCommandResult(
-                              origin=sm_ack_dict['SM_API_MSG_ORIGIN'],
-                              hostname=sm_ack_dict['SM_API_MSG_NODE_NAME'],
-                              action=sm_ack_dict['SM_API_MSG_NODE_ACTION'],
-                              admin=ack_admin,
-                              oper=ack_oper,
-                              avail=ack_avail,
-                              error_code=ERR_CODE_SUCCESS,
-                              error_msg="success")
+                    origin=sm_ack_dict['SM_API_MSG_ORIGIN'],
+                    hostname=sm_ack_dict['SM_API_MSG_NODE_NAME'],
+                    action=sm_ack_dict['SM_API_MSG_NODE_ACTION'],
+                    admin=ack_admin,
+                    oper=ack_oper,
+                    avail=ack_avail,
+                    error_code=ERR_CODE_SUCCESS,
+                    error_msg="success")
             else:
                 result = ServiceNodeCommandResult(
-                                origin="sm",
-                                hostname=hostname,
-                                action=sm_ack_dict['SM_API_MSG_NODE_ACTION'],
-                                admin=ack_admin,
-                                oper=ack_oper,
-                                avail=ack_avail,
-                                error_code=ERR_CODE_ACTION_FAILED,
-                                error_details="action failed")
+                    origin="sm",
+                    hostname=hostname,
+                    action=sm_ack_dict['SM_API_MSG_NODE_ACTION'],
+                    admin=ack_admin,
+                    oper=ack_oper,
+                    avail=ack_avail,
+                    error_code=ERR_CODE_ACTION_FAILED,
+                    error_details="action failed")
 
                 return wsme.api.Response(result, status_code=500)
         else:
@@ -613,7 +612,7 @@ class ServiceNodeController(rest.RestController):
 
         try:
             data = self._get_sm_node_state(hostname)
-        except:
+        except Exception as e:
             LOG.exception("No entry in database for %s:" % hostname)
             return ServiceNode(origin="sm",
                                hostname=hostname,

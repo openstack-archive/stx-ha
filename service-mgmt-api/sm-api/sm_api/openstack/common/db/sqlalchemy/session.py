@@ -246,7 +246,6 @@ Efficient use of soft deletes:
 
 """
 
-import os.path
 import re
 import time
 
@@ -277,13 +276,13 @@ sqlite_db_opts = [
 ]
 
 database_opts = [
-     cfg.StrOpt('connection',
-                default='sqlite:////var/run/sm/sm.db',
-                help='The SQLAlchemy connection string used to connect to the '
-                     'database',
-                deprecated_name='sql_connection',
-                deprecated_group=DEFAULT,
-                secret=True),
+    cfg.StrOpt('connection',
+               default='sqlite:////var/run/sm/sm.db',
+               help='The SQLAlchemy connection string used to connect to the '
+               'database',
+               deprecated_name='sql_connection',
+               deprecated_group=DEFAULT,
+               secret=True),
     cfg.IntOpt('idle_timeout',
                default=3600,
                deprecated_name='sql_idle_timeout',
@@ -366,6 +365,7 @@ class SqliteForeignKeysListener(PoolListener):
     so the foreign key constraints will be enabled here for every
     database connection
     """
+
     def connect(self, dbapi_con, con_record):
         dbapi_con.execute('pragma foreign_keys=ON')
 
@@ -627,6 +627,7 @@ def create_engine(sql_connection, sqlite_fk=False):
 
 class Query(sqlalchemy.orm.query.Query):
     """Subclass of sqlalchemy.query with soft_delete() method."""
+
     def soft_delete(self, synchronize_session='evaluate'):
         return self.update({'deleted': literal_column('id'),
                             'updated_at': literal_column('updated_at'),

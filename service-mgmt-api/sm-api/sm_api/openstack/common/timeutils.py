@@ -52,9 +52,9 @@ def parse_isotime(timestr):
     try:
         return iso8601.parse_date(timestr)
     except iso8601.ParseError as e:
-        raise ValueError(e.message)
+        raise ValueError(str(e))
     except TypeError as e:
-        raise ValueError(e.message)
+        raise ValueError(str(e))
 
 
 def strtime(at=None, fmt=PERFECT_TIME_FORMAT):
@@ -124,7 +124,7 @@ def set_time_override(override_time=datetime.datetime.utcnow()):
 
 def advance_time_delta(timedelta):
     """Advance overridden time using a datetime.timedelta."""
-    assert(not utcnow.override_time is None)
+    assert(utcnow.override_time is not None)
     try:
         for dt in utcnow.override_time:
             dt += timedelta

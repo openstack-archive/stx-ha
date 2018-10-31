@@ -120,7 +120,7 @@ def _import_module(mod_str):
 
 def _is_in_group(opt, group):
     "Check if opt is in group."
-    for key, value in group._opts.items():
+    for _key, value in group._opts.items():
         if value['opt'] == opt:
             return True
     return False
@@ -132,7 +132,7 @@ def _guess_groups(opt, mod_obj):
         return 'DEFAULT'
 
     # what other groups is it in?
-    for key, value in cfg.CONF.items():
+    for _key, value in cfg.CONF.items():
         if isinstance(value, cfg.CONF.GroupAttr):
             if _is_in_group(opt, value._group):
                 return value._group.name
@@ -253,6 +253,7 @@ def main():
         print("usage: %s [srcfile]...\n" % sys.argv[0])
         sys.exit(0)
     generate(sys.argv[1:])
+
 
 if __name__ == '__main__':
     main()

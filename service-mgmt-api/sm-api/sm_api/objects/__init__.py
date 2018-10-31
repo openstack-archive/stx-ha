@@ -50,10 +50,10 @@ sm_node = smo_node.sm_node
 service_group_member = smo_sgm.service_group_member
 
 __all__ = (
-           service_groups,
-           service_group_member,
-           service,
-           sm_sdm,
-           sm_sda,
-           sm_node,
-           objectify)
+    service_groups,
+    service_group_member,
+    service,
+    sm_sdm,
+    sm_sda,
+    sm_node,
+    objectify)

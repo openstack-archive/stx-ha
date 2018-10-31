@@ -64,7 +64,7 @@ def main():
 
             cursor.execute("SELECT NAME, DESIRED_STATE, STATE FROM "
                            "SERVICE_GROUPS WHERE NAME IN (%s) AND PROVISIONED='yes';"
-                           % ','.join("'%s'"%i for i in args.service_group_name))
+                           % ','.join("'%s'" % i for i in args.service_group_name))
 
             rows = cursor.fetchall()
 
@@ -90,7 +90,7 @@ def main():
                     not_found_list.append(g)
 
             if len(not_found_list) > 1:
-                print("%s are not provisioned"%','.join( (g for g in not_found_list)))
+                print("%s are not provisioned" % ','.join((g for g in not_found_list)))
             elif len(not_found_list) == 1:
                 print("%s is not provisioned" % ','.join((g for g in not_found_list)))
 

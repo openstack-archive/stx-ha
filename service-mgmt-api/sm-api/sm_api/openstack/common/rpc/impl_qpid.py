@@ -239,6 +239,7 @@ class Publisher(object):
 
 class DirectPublisher(Publisher):
     """Publisher class for 'direct'"""
+
     def __init__(self, conf, session, msg_id):
         """Init a 'direct' publisher."""
         super(DirectPublisher, self).__init__(session, msg_id,
@@ -247,6 +248,7 @@ class DirectPublisher(Publisher):
 
 class TopicPublisher(Publisher):
     """Publisher class for 'topic'"""
+
     def __init__(self, conf, session, topic):
         """init a 'topic' publisher.
         """
@@ -257,6 +259,7 @@ class TopicPublisher(Publisher):
 
 class FanoutPublisher(Publisher):
     """Publisher class for 'fanout'"""
+
     def __init__(self, conf, session, topic):
         """init a 'fanout' publisher.
         """
@@ -267,6 +270,7 @@ class FanoutPublisher(Publisher):
 
 class NotifyPublisher(Publisher):
     """Publisher class for notifications"""
+
     def __init__(self, conf, session, topic):
         """init a 'topic' publisher.
         """
@@ -406,7 +410,7 @@ class Connection(object):
         def _connect_error(exc):
             log_info = {'topic': topic, 'err_str': str(exc)}
             LOG.error(_("Failed to declare consumer for topic '%(topic)s': "
-                      "%(err_str)s") % log_info)
+                        "%(err_str)s") % log_info)
 
         def _declare_consumer():
             consumer = consumer_cls(self.conf, self.session, topic, callback)
@@ -460,7 +464,7 @@ class Connection(object):
         def _connect_error(exc):
             log_info = {'topic': topic, 'err_str': str(exc)}
             LOG.exception(_("Failed to publish message to topic "
-                          "'%(topic)s': %(err_str)s") % log_info)
+                            "'%(topic)s': %(err_str)s") % log_info)
 
         def _publisher_send():
             publisher = cls(self.conf, self.session, topic)
