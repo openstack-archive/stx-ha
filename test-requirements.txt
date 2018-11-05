@@ -1,3 +1,6 @@
-bashate >= 0.2
+bashate>=0.2 # Apache-2.0
+flake8 < 3.6.0
+flake8-bugbear
+hacking
 PyYAML >= 3.1.0
 yamllint >= 0.5.2
