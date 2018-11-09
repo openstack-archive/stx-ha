@@ -44,7 +44,7 @@ libsm_common.so.$(VER_MJR): libsm_common.so.$(VER)
 	ln -sf $^ $@
 
 libsm_common.so.$(VER): ${OBJS}
-	$(CXX) ${LDFLAGS} $(LDLIBS) -Wl,-soname,libsm_common.so.$(VER_MJR) -o $@ $^
+	$(CXX) ${LDFLAGS} -Wl,--start-group $(LDLIBS) -Wl,-soname,libsm_common.so.$(VER_MJR) -o $@ $^
 
 libsm_watchdog_nfs.so: libsm_watchdog_nfs.so.$(VER_MJR)
 	ln -sf $^ $@
