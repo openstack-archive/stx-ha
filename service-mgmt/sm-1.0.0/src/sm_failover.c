@@ -37,24 +37,6 @@
 #include "sm_failover_fsm.h"
 #include "sm_api.h"
 
-typedef enum
-{
-    SM_FAILOVER_ACTION_NO_ACTION = 0,
-    SM_FAILOVER_ACTION_DISABLE_STANDBY = 1,
-    SM_FAILOVER_ACTION_DISABLE = 2,
-    SM_FAILOVER_ACTION_SWACT = 4,
-    SM_FAILOVER_ACTION_DEGRADE = 8,
-    SM_FAILOVER_ACTION_ACTIVATE = 16,
-    SM_FAILOVER_ACTION_FAIL_NODE = 32,
-    SM_FAILOVER_ACTION_UNDEFINED = 64,
-    //as part of the gradual delivery of enhancement with more
-    //complex algorithm to determine the failover survivor routine
-    //the SM_FAILOVER_ACTION_ROUTINE will redirect the lookup to
-    //new logic. Until all actions are migrated to new logic, the
-    //lookup tables will be eliminated.
-    SM_FAILOVER_ACTION_ROUTINE = 1 << 31,
-}SmFailoverActionT;
-
 #define SM_FAILOVER_STATE_TRANSITION_TIME_IN_MS 2000
 #define SM_FAILOVER_MULTI_FAILURE_WAIT_TIMER_IN_MS 2000
 #define SM_FAILOVER_RECOVERY_INTERVAL_IN_SEC 100
@@ -132,16 +114,6 @@ class SmFailoverInterfaceInfo
         }
 };
 
-typedef enum
-{
-    SM_FAILOVER_INFRA_DOWN = 1,
-    SM_FAILOVER_MGMT_DOWN = 2,
-    SM_FAILOVER_OAM_DOWN = 4,
-    SM_FAILOVER_HEARTBEAT_ALIVE = 8,
-    SM_FAILOVER_HELLO_MSG_ALIVE = 16,
-    SM_FAILOVER_PEER_DISABLED = 0x4000,
-}SmFailoverCommFaultBitFlagT;
-
 SmTimerIdT failover_audit_timer_id;
 static char _host_name[SM_NODE_NAME_MAX_CHAR];
 static char _peer_name[SM_NODE_NAME_MAX_CHAR];
@@ -159,13 +131,12 @@ static SmFailoverInterfaceInfo* _oam_interface_info = NULL;
 static SmFailoverInterfaceInfo* _mgmt_interface_info = NULL;
 static SmFailoverInterfaceInfo* _infra_interface_info = NULL;
 static SmFailoverInterfaceInfo _peer_if_list[SM_INTERFACE_MAX];
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t _mutex;
 static SmDbHandleT* _sm_db_handle = NULL;
 
 static SmNodeScheduleStateT _host_state;
 static SmNodeScheduleStateT _host_state_at_last_action; // host state when action was taken last time
 static int64_t _node_comm_state = -1;
-static bool _to_disable_peer = false; //set flag for failover thread to send http request to mtce to disable peer
 static int _prev_if_state_flag = -1;
 time_t _last_if_state_ms = 0;
 static SmNodeScheduleStateT _prev_host_state= SM_NODE_STATE_UNKNOWN;
@@ -175,194 +146,12 @@ static SmSystemModeT _system_mode;
 static time_t _last_report_ts = 0;
 static int _heartbeat_count = 0;
 
-// The class is to accommodate batching i/f state changes
-// during the failover_audit interval.
-class FailoverEventHolder
-{
-    public:
-        FailoverEventHolder();
-        void push_event(SmFailoverEventT, const ISmFSMEventData* event_data);
-        void send_event();
-    private:
-        bool _event_to_send;
-        SmFailoverEventT _failover_event;
-        const ISmFSMEventData* _event_data;
-};
 
-FailoverEventHolder::FailoverEventHolder()
-{
-    _event_to_send = false;
-}
-
-void FailoverEventHolder::push_event(SmFailoverEventT event, const ISmFSMEventData* event_data)
-{
-    SmFailoverEventT list[] = {
-        SM_INTERFACE_DOWN,
-        SM_HEARTBEAT_LOST,
-        SM_INTERFACE_UP,
-        SM_HEARTBEAT_RECOVER
-    };
-
-    unsigned int i;
-    if(!_event_to_send)
-    {
-        _event_to_send = true;
-        for(i = 0; i < sizeof(list) / sizeof(SmFailoverEventT); i ++)
-        {
-            if(event == list[i])
-            {
-                _failover_event = event;
-                _event_data = event_data;
-                _event_to_send = true;
-                DPRINTFI("Push event %d", event);
-                return;
-            }
-        }
-        DPRINTFE("Runtime error: unsupported event %d", event);
-        return;
-    }
-
-    for(i = 0; list[i] != _failover_event && i < sizeof(list) / sizeof(SmFailoverEventT); i ++)
-    {
-        if(list[i] == event)
-        {
-            _failover_event = event;
-            _event_data = event_data;
-            return;
-        }
-    }
-    DPRINTFE("Runtime error: unsupported event %d", event);
-}
-
-void FailoverEventHolder::send_event()
-{
-    if(_event_to_send)
-    {
-        DPRINTFI("Send event %d", _failover_event);
-        SmFailoverFSM::get_fsm().send_event(_failover_event, _event_data);
-        _event_to_send = false;
-    }
-}
-
-
-static FailoverEventHolder _event_holder;
-
-// std 2+2/2+2+x failover actions
-SmFailoverActionPairT action_map_std_infra[16] =
-{
-    //Active action                         standby action                 if_state
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_ACTIVATE},   //0
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //1
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //2
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //3
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_ACTIVATE},   //4
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //5
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //6
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //7
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //8
-    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE},  //9
-    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE},  //10
-    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE},  //11
-    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_DEGRADE},  //12
-    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE},  //13
-    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE},  //14
-    {SM_FAILOVER_ACTION_ROUTINE,            SM_FAILOVER_ACTION_ROUTINE}   //15
-};
-
-SmFailoverActionPairT action_map_std_no_infra[16] =
-{
-    //Active action                         standby action                 if_state
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_ACTIVATE},   //0
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //1
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //2
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //3
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_ACTIVATE},   //4
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //5
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //6
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //7
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //8
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //9
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},  //10
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //11
-    {SM_FAILOVER_ACTION_SWACT,              SM_FAILOVER_ACTION_NO_ACTION},  //12
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //13
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},  //14
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED}   //15
-};
-
-// cpe duplex failover actions
-SmFailoverActionPairT *action_map_cpe_infra = action_map_std_infra;
-SmFailoverActionPairT *action_map_cpe_no_infra = action_map_std_no_infra;
-
-// cpe duplex-direct failover actions
-SmFailoverActionPairT action_map_cpe_dc_infra[16] =
-{
-    //Active action                         standby action                   if_state
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_ACTIVATE},    //0
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_ACTIVATE},    //1
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_ACTIVATE},    //2
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_ACTIVATE},    //3
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_ACTIVATE},    //4
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_ACTIVATE},    //5
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_ACTIVATE},    //6
-    {SM_FAILOVER_ACTION_FAIL_NODE,          SM_FAILOVER_ACTION_FAIL_NODE},   //7
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},   //8
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_NO_ACTION},   //9
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_NO_ACTION},   //10
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_NO_ACTION},   //11
-    {SM_FAILOVER_ACTION_SWACT,              SM_FAILOVER_ACTION_DEGRADE},     //12
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_NO_ACTION},   //13
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_NO_ACTION},   //14
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED}    //15
-};
-
-SmFailoverActionPairT action_map_cpe_dc_no_infra[16] =
-{
-    //Active action                         standby action                   if_state
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_ACTIVATE},    //0
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},   //1
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_ACTIVATE},    //2
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},   //3
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_ACTIVATE},    //4
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},   //5
-    {SM_FAILOVER_ACTION_FAIL_NODE,          SM_FAILOVER_ACTION_ACTIVATE},    //6
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},   //7
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},   //8
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},   //9
-    {SM_FAILOVER_ACTION_DISABLE_STANDBY,    SM_FAILOVER_ACTION_NO_ACTION},   //10
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},   //11
-    {SM_FAILOVER_ACTION_SWACT,              SM_FAILOVER_ACTION_DEGRADE},     //12
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},   //13
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED},   //14
-    {SM_FAILOVER_ACTION_UNDEFINED,          SM_FAILOVER_ACTION_UNDEFINED}    //15
-};
-
-SmFailoverActionPairT action_map_simplex[16] =
-{
-    //Active action                         standby action
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION},
-    {SM_FAILOVER_ACTION_NO_ACTION,          SM_FAILOVER_ACTION_NO_ACTION}
-};
-SmFailoverActionPairT *action_maps_no_infra[SM_SYSTEM_MODE_MAX] = {0};
-SmFailoverActionPairT *action_maps_infra[SM_SYSTEM_MODE_MAX] = {0};
+static bool _if_state_changed = false;
 
 SmErrorT sm_exec_json_command(const char* cmd, char result_buf[], int result_len);
 SmErrorT sm_failover_get_node_oper_state(char* node_name, SmNodeOperationalStateT *state);
-void _log_nodes_state(int action);
+void _log_nodes_state();
 
 // ****************************************************************************
 // Failover - interface check
@@ -501,7 +290,7 @@ void sm_failover_lost_heartbeat( SmFailoverInterfaceT* interface )
         DPRINTFI("Interface %s lose heartbeat.", interface->interface_name);
     }
 
-    _event_holder.push_event(SM_HEARTBEAT_LOST, NULL);
+    _if_state_changed = true;
 }
 // ****************************************************************************
 
@@ -534,7 +323,7 @@ void sm_failover_heartbeat_restore( SmFailoverInterfaceT* interface )
         DPRINTFI("Interface %s heartbeat is OK.", interface->interface_name);
     }
 
-    _event_holder.push_event(SM_HEARTBEAT_RECOVER, NULL);
+    _if_state_changed = true;
 }
 // ****************************************************************************
 
@@ -571,7 +360,7 @@ void sm_failover_interface_down( const char* const interface_name )
         DPRINTFI("%d domain interfaces are impacted as i/f %s is down.",
             impacted, interface_name);
 
-        _event_holder.push_event(SM_INTERFACE_DOWN, NULL);
+        _if_state_changed = true;
     }
 }
 // ****************************************************************************
@@ -609,7 +398,7 @@ void sm_failover_interface_up( const char* const interface_name )
         DPRINTFI("%d domain interfaces are impacted as i/f %s is up.",
             impacted, interface_name);
 
-        _event_holder.push_event(SM_INTERFACE_UP, NULL);
+        _if_state_changed = true;
     }
 }
 // ****************************************************************************
@@ -685,7 +474,7 @@ bool is_infra_configured()
 // ****************************************************************************
 // Failover - get interface state
 // ==================
-int _failover_get_if_state()
+int sm_failover_get_if_state()
 {
     SmFailoverInterfaceStateT mgmt_state = _mgmt_interface_info->get_state();
     SmFailoverInterfaceStateT oam_state = _oam_interface_info->get_state();
@@ -732,7 +521,7 @@ int _failover_get_if_state()
 SmHeartbeatMsgIfStateT sm_failover_if_state_get()
 {
     mutex_holder holder(&_mutex);
-    int if_state_flag = _failover_get_if_state();
+    int if_state_flag = sm_failover_get_if_state();
     return (if_state_flag & 0b0111); //the lower 3 bits i/f state flag
 }
 // ****************************************************************************
@@ -760,7 +549,7 @@ SmNodeScheduleStateT get_controller_state()
 // ****************************************************************************
 // Failover - is active controller
 // ==================
-bool is_active_controller()
+bool sm_is_active_controller()
 {
     return SM_NODE_STATE_ACTIVE == _host_state;
 }
@@ -846,8 +635,10 @@ SmFailoverActionResultT sm_failover_disable_node(char* node_name)
     DPRINTFI("To disable %s", node_name);
 
     SmErrorT error;
+    char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR];
+    snprintf(reason_text, sizeof(reason_text), "%s has failed", node_name);
     error = sm_node_fsm_event_handler(
-        node_name, SM_NODE_EVENT_DISABLED, NULL, "Host is isolated" );
+        node_name, SM_NODE_EVENT_DISABLED, NULL, reason_text );
 
     if( SM_OKAY != error )
     {
@@ -855,7 +646,6 @@ SmFailoverActionResultT sm_failover_disable_node(char* node_name)
                       node_name, sm_error_str( error ) );
         return SM_FAILOVER_ACTION_RESULT_FAILED;
     }
-    _to_disable_peer = true;
     return SM_FAILOVER_ACTION_RESULT_OK;
 }
 // ****************************************************************************
@@ -876,13 +666,13 @@ static void active_self_callback(void* user_data[], SmServiceDomainT* domain)
 // ****************************************************************************
 // Failover - active self
 // =======================
-SmFailoverActionResultT sm_failover_activate_self()
+SmErrorT sm_failover_activate_self()
 {
     DPRINTFI("Uncontrolled swact start (active local only)");
     SmNodeSwactMonitor::SwactStart(SM_NODE_STATE_ACTIVE);
     sm_service_domain_table_foreach( NULL, active_self_callback);
 
-    return SM_FAILOVER_ACTION_RESULT_OK;
+    return SM_OKAY;
 }
 // ****************************************************************************
 
@@ -1022,8 +812,7 @@ SmErrorT sm_failover_set_system(const SmSystemFailoverStatus& failover_status)
         if(SM_NODE_STATE_STANDBY == _host_state &&
             SM_NODE_STATE_FAILED == peer_target_state)
         {
-            result = sm_failover_activate_self();
-            if(SM_FAILOVER_ACTION_RESULT_FAILED == result)
+            if(SM_OKAY != sm_failover_activate_self())
             {
                 DPRINTFE("Failed to activate %s.", _host_name);
                 return SM_FAILED;
@@ -1097,7 +886,6 @@ void sm_failover_audit()
         _prev_host_state = _host_state;
     }
 
-    bool is_active = is_active_controller();
     bool in_transition = false;
     bool infra_configured = is_infra_configured();
     in_transition = in_transition &&
@@ -1116,20 +904,7 @@ void sm_failover_audit()
         return;
     }
 
-    SmFailoverActionPairT* actions;
-    int action;
-
-    SmFailoverActionPairT *action_map = NULL;
-
-    SmFailoverActionPairT **action_map_mode_list = action_maps_no_infra;
-    if(infra_configured)
-    {
-        action_map_mode_list = action_maps_infra;
-    }
-
-    action_map = action_map_mode_list[(int) _system_mode];
-
-    int if_state_flag = _failover_get_if_state();
+    int if_state_flag = sm_failover_get_if_state();
     if(if_state_flag & SM_FAILOVER_HEARTBEAT_ALIVE)
     {
         _heartbeat_count ++;
@@ -1176,7 +951,21 @@ void sm_failover_audit()
         return;
     }
 
-    _event_holder.send_event();
+    if(_if_state_changed)
+    {
+        SmIFStateChangedEventData event_data;
+        event_data.set_interface_state(SM_INTERFACE_OAM, _oam_interface_info->get_state());
+        event_data.set_interface_state(SM_INTERFACE_MGMT, _mgmt_interface_info->get_state());
+        if( NULL != _infra_interface_info)
+        {
+            event_data.set_interface_state(SM_INTERFACE_INFRA, _infra_interface_info->get_state());
+        }else
+        {
+            event_data.set_interface_state(SM_INTERFACE_INFRA, SM_FAILOVER_INTERFACE_UNKNOWN);
+        }
+        SmFailoverFSM::get_fsm().send_event(SM_FAILOVER_EVENT_IF_STATE_CHANGED, &event_data);
+        _if_state_changed = false;
+    }
 
     int64_t curr_node_state = if_state_flag;
 
@@ -1200,74 +989,7 @@ void sm_failover_audit()
     _host_state_at_last_action = _host_state;
     _peer_if_state_at_last_action = _peer_if_state;
 
-    actions = &(action_map[if_state_flag & 0xf]);
-    if(is_active)
-    {
-        action = actions->active_controller_action;
-        if(if_state_flag & SM_FAILOVER_OAM_DOWN)
-        {
-            if(_peer_if_state & SM_FAILOVER_OAM_DOWN)
-            {
-                DPRINTFI("No swact, oam down on both controllers");
-                action &= (~SM_FAILOVER_ACTION_SWACT);
-            }
-            else
-            {
-                DPRINTFI("Swact to %s, it's oam is UP", _peer_name);
-                action &= SM_FAILOVER_ACTION_SWACT;
-            }
-        }
-    }
-    else
-    {
-        action = actions->standby_controller_action;
-    }
-
-    _log_nodes_state(action);
-
-    DPRINTFI("Action to take %d", action);
-    if (action & SM_FAILOVER_ACTION_ROUTINE)
-    {
-          action = SM_FAILOVER_ACTION_NO_ACTION;
-    }
-
-    if (action & SM_FAILOVER_ACTION_ACTIVATE)
-    {
-        DPRINTFI("ACTIVE");
-        _retry |= ( SM_FAILOVER_ACTION_RESULT_OK != sm_failover_activate_self());
-    }
-
-    if(action & SM_FAILOVER_ACTION_DEGRADE) {
-        DPRINTFI("DEGRADE");
-        _retry |= ( SM_OKAY != sm_failover_degrade(SM_FAILOVER_DEGRADE_SOURCE_IF_DOWN) );
-    }
-    else
-    {
-        _retry |= ( SM_OKAY != sm_failover_degrade_clear(SM_FAILOVER_DEGRADE_SOURCE_IF_DOWN) );
-    }
-
-    if(action & SM_FAILOVER_ACTION_SWACT)
-    {
-        DPRINTFI("SWACT");
-        _retry |= ( SM_FAILOVER_ACTION_RESULT_OK != sm_failover_swact() );
-    }
-
-    if(action & SM_FAILOVER_ACTION_DISABLE)
-    {
-        DPRINTFI("DISABLE");
-        _retry |= (SM_FAILOVER_ACTION_RESULT_OK != sm_failover_disable_node(_host_name));
-    }
-
-    if(action & SM_FAILOVER_ACTION_FAIL_NODE)
-    {
-        DPRINTFI("FAIL SELF");
-        _retry |= (SM_FAILOVER_ACTION_RESULT_OK != sm_failover_fail_self());
-    }
-
-    if(action & SM_FAILOVER_ACTION_DISABLE_STANDBY) {
-        DPRINTFI("DISABLE STANDBY");
-        _retry |= (SM_FAILOVER_ACTION_RESULT_OK != sm_failover_disable_node(_peer_name));
-    }
+    _log_nodes_state();
 }
 // ****************************************************************************
 
@@ -1340,7 +1062,7 @@ SmErrorT sm_exec_mtce_command(const char cmd[], char result_buf[], int result_le
 // ****************************************************************************
 // Failover - log current state
 // =======================
-void _log_nodes_state(int action)
+void _log_nodes_state()
 {
     SmDbNodeT host, peer;
     SmErrorT error = sm_failover_get_node(_host_name, host);
@@ -1358,51 +1080,32 @@ void _log_nodes_state(int action)
             sm_node_avail_status_str(peer.avail_status)
         );
     }
-    DPRINTFI("Host state %d, I/F state %d, peer I/F state %d, action %d",
+    DPRINTFI("Host state %d, I/F state %d, peer I/F state %d",
             _node_comm_state,
             _peer_if_state,
-            _host_state,
-            action
+            _host_state
         );
 }
 // ****************************************************************************
 
+
 // ****************************************************************************
-// Failover - failover action
+// Failover - disable peer node
 // =======================
-SmErrorT sm_failover_action()
+SmErrorT sm_failover_disable_peer()
 {
-    //This runs in failover thread for long action
-    // so main thread and hello msg are not blocked
-    bool *flag = NULL;
     char result_buf[1024];
     char cmd_buf[1024];
-    bool to_disable_peer;
+    snprintf(cmd_buf, sizeof(cmd_buf), "curl --header \"Content-Type:application/json\"  "
+        "--header \"Accept: application/json\" --header \"User-Agent: sm/1.0\" "
+        "--data '{\"action\": \"event\", \"hostname\":\"%s\", \"operational\": \"disabled\", \"availability\": \"failed\"}'  "
+        "\"http://localhost:2112/v1/hosts/%s/\"", _peer_name, _peer_name);
+
+    SmErrorT error = sm_exec_mtce_command(cmd_buf, result_buf, sizeof(result_buf));
+    if (SM_OKAY != error )
     {
-        mutex_holder holder(&_mutex);
-
-        to_disable_peer = _to_disable_peer;
-    }
-
-    if ( to_disable_peer )
-    {
-        flag = &_to_disable_peer;
-        snprintf(cmd_buf, sizeof(cmd_buf), "curl --header \"Content-Type:application/json\"  "
-            "--header \"Accept: application/json\" --header \"User-Agent: sm/1.0\" "
-            "--data '{\"action\": \"event\", \"hostname\":\"%s\", \"operational\": \"disabled\", \"availability\": \"failed\"}'  "
-            "\"http://localhost:2112/v1/hosts/%s/\"", _peer_name, _peer_name);
-
-        SmErrorT error = sm_exec_mtce_command(cmd_buf, result_buf, sizeof(result_buf));
-        if (SM_OKAY != error )
-        {
-            return SM_FAILED;
-        }
-    }
-
-    if( flag )
-    {
-        mutex_holder holder(&_mutex);
-        * flag = false;
+        DPRINTFE("Failed to disable peer %s", _peer_name);
+        return SM_FAILED;
     }
     return SM_OKAY;
 }
@@ -1436,6 +1139,26 @@ SmFailoverInterfaceStateT sm_failover_get_interface_info(SmInterfaceTypeT interf
 }
 // ****************************************************************************
 
+static void sm_failover_interface_change_callback(
+    SmHwInterfaceChangeDataT* if_change )
+{
+    switch ( if_change->interface_state )
+    {
+        case SM_INTERFACE_STATE_DISABLED:
+            DPRINTFI("Interface %s is down", if_change->interface_name);
+            sm_failover_interface_down(if_change->interface_name);
+            break;
+        case SM_INTERFACE_STATE_ENABLED:
+            DPRINTFI("Interface %s is up", if_change->interface_name);
+            sm_failover_interface_up(if_change->interface_name);
+            break;
+        default:
+            DPRINTFI("Interface %s state changed to %d",
+                if_change->interface_name, if_change->interface_state);
+            break;
+    }
+}
+
 // ****************************************************************************
 // Failover - Initialize
 // ======================
@@ -1444,6 +1167,28 @@ SmErrorT sm_failover_initialize( void )
     void* user_data[1] = {&_total_interfaces};
     bool enabled;
     SmErrorT error;
+
+    pthread_mutexattr_t attr;
+
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    int res = pthread_mutex_init(&_mutex, &attr);
+    if( 0 != res )
+    {
+        DPRINTFE("Failed to initialize mutex, error %d", res);
+        return SM_FAILED;
+    }
+
+    SmHwCallbacksT callbacks;
+    memset( &callbacks, 0, sizeof(callbacks) );
+    callbacks.interface_change = sm_failover_interface_change_callback;
+    error = sm_hw_initialize( &callbacks );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to initialize hardware module, error=%s.",
+                  sm_error_str( error ) );
+        return( error );
+    }
 
     error = SmFailoverFSM::initialize();
     if( SM_OKAY != error )
@@ -1454,16 +1199,6 @@ SmErrorT sm_failover_initialize( void )
 
     _system_mode = sm_node_utils_get_system_mode();
     DPRINTFI("System mode %s", sm_system_mode_str(_system_mode));
-
-    action_maps_no_infra[SM_SYSTEM_MODE_STANDARD] = action_map_std_no_infra;
-    action_maps_no_infra[SM_SYSTEM_MODE_CPE_DUPLEX] = action_map_cpe_no_infra;
-    action_maps_no_infra[SM_SYSTEM_MODE_CPE_DUPLEX_DC] = action_map_cpe_dc_no_infra;
-    action_maps_no_infra[SM_SYSTEM_MODE_CPE_SIMPLEX] = action_map_simplex;
-
-    action_maps_infra[SM_SYSTEM_MODE_STANDARD] = action_map_std_infra;
-    action_maps_infra[SM_SYSTEM_MODE_CPE_DUPLEX] = action_map_cpe_infra;
-    action_maps_infra[SM_SYSTEM_MODE_CPE_DUPLEX_DC] = action_map_cpe_dc_infra;
-    action_maps_infra[SM_SYSTEM_MODE_CPE_SIMPLEX] = action_map_simplex;
 
     error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle );
     if( SM_OKAY != error )
@@ -1552,7 +1287,7 @@ SmErrorT sm_failover_initialize( void )
         }
     }
 
-    error = sm_timer_register( "failover audit", 1000,
+    error = sm_timer_register( "failover audit", 50,
            sm_failover_audit_timeout,
            0, &failover_audit_timer_id );
 
@@ -1620,7 +1355,7 @@ static const char* get_map_str( KeyStringMapT mappings[],
 void dump_host_state(FILE* fp)
 {
     const char* state = sm_node_schedule_state_str(_host_state);
-    fprintf(fp, "         host state:   %s\n", state);
+    fprintf(fp, "           host state:   %s\n", state);
 }
 
 static KeyStringMapT if_state_map[] = {
@@ -1656,12 +1391,13 @@ void dump_interfaces_state(FILE* fp)
 
 void dump_peer_if_state(FILE* fp)
 {
-    fprintf(fp, "      Peer Interface state:   %d\n", _peer_if_state);
+    fprintf(fp, " Peer Interface state:   %d\n", _peer_if_state);
 }
 
 void dump_failover_fsm_state(FILE* fp)
 {
-    fprintf(fp, "      Failover FSM state: %d\n", SmFailoverFSM::get_fsm().get_state());
+    SmFailoverStateT state = SmFailoverFSM::get_fsm().get_state();
+    fprintf(fp, "   Failover FSM state:   %s\n", sm_failover_state_str(state));
 }
 
 // ****************************************************************************
