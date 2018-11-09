@@ -21,7 +21,10 @@ struct _SmClusterHbsInfoT
 {
     bool storage0_responding;
     int number_of_node_reachable;
-    _SmClusterHbsInfoT() : storage0_responding(false), number_of_node_reachable(0)
+    int number_of_node_enabled;
+    _SmClusterHbsInfoT() : storage0_responding(false),
+                           number_of_node_reachable(0),
+                           number_of_node_enabled(0)
     {
     }
 };
@@ -47,6 +50,12 @@ typedef struct
 bool operator==(const SmClusterHbsStateT& lhs, const SmClusterHbsStateT& rhs);
 bool operator!=(const SmClusterHbsStateT& lhs, const SmClusterHbsStateT& rhs);
 
+inline bool is_valid(const SmClusterHbsStateT& state)
+{
+    return state.last_update > 0;
+}
+
+void log_cluster_hbs_state(const SmClusterHbsStateT& state);
 
 typedef void(*cluster_hbs_query_ready_callback)();
 // ****************************************************************************

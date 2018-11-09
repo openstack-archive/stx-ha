@@ -40,6 +40,7 @@ void SmIFStateChangedEventData::set_interface_state(
             DPRINTFE("Runtime error: invalid interface type %d", interface_type);
     }
 }
+
 SmFailoverInterfaceStateT SmIFStateChangedEventData::get_interface_state(SmInterfaceTypeT interface_type) const
 {
     switch (interface_type)
@@ -54,7 +55,6 @@ SmFailoverInterfaceStateT SmIFStateChangedEventData::get_interface_state(SmInter
             DPRINTFE("Runtime error: invalid interface type %d", interface_type);
             return SM_FAILOVER_INTERFACE_UNKNOWN;
     }
-
 }
 
 SmErrorT SmFSMState::enter_state()

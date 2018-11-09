@@ -5,6 +5,7 @@
 //
 
 #include "sm_failover_ss.h"
+#include <string.h>
 #include <time.h>
 #include "sm_debug.h"
 #include "sm_limits.h"
@@ -14,6 +15,14 @@
 #include "sm_node_utils.h"
 #include "sm_node_api.h"
 #include "sm_failover.h"
+
+// uncomment when debugging this module to enabled DPRINTFD output to log file
+// #define __DEBUG__MSG__
+
+#ifdef __DEBUG__MSG__
+#undef DPRINTFD
+#define DPRINTFD DPRINTFI
+#endif
 
 //
 SmErrorT _get_survivor_dc(const SmSystemStatusT& system_status, SmSystemFailoverStatus& selection);
@@ -115,6 +124,26 @@ void SmSystemFailoverStatus::set_host_pre_failure_schedule_state(SmNodeScheduleS
     {
         DPRINTFE("Runtime error, schedule state unknown %d", state);
     }
+}
+
+void SmSystemFailoverStatus::set_cluster_hbs_state(const SmClusterHbsStateT& state)
+{
+    if( !is_valid(state) )
+    {
+        DPRINTFE("Runtime error. Invalid cluster hbs state");
+        return;
+    }
+    _cluster_hbs_state = state;
+}
+
+void SmSystemFailoverStatus::set_pre_failure_cluster_hbs_state(const SmClusterHbsStateT& state)
+{
+    if( !is_valid(state) )
+    {
+        DPRINTFE("Runtime error. Invalid cluster hbs state");
+        return;
+    }
+    _pre_failure_cluster_hbs_state = state;
 }
 
 void SmSystemFailoverStatus::set_peer_schedule_state(SmNodeScheduleStateT state)
@@ -250,6 +279,8 @@ SmErrorT _get_system_status(SmSystemStatusT& sys_status, char host_name[], char 
         sys_status.heartbeat_state = SM_HEARTBEAT_LOSS;
     }
 
+    SmSystemFailoverStatus::get_status().set_heartbeat_state(sys_status.heartbeat_state);
+
     sys_status.host_status.node_name = host_name;
     sys_status.host_status.interface_state = sm_failover_if_state_get();
     sys_status.host_status.current_schedule_state = host_state;
@@ -319,8 +350,154 @@ SmErrorT sm_failover_ss_get_survivor(const SmSystemStatusT& system_status, SmSys
     }else
     {
         DPRINTFI("Loss of heartbeat ALL");
-        selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
-        selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+        bool expect_storage_0 = false;
+        SmClusterHbsStateT pre_failure_cluster_hbs_state = selection.get_pre_failure_cluster_hbs_state();
+        SmClusterHbsStateT current_cluster_hbs_state = selection.get_cluster_hbs_state();
+        bool has_cluser_info = true;
+        int max_nodes_available = 0;
+        if(is_valid(pre_failure_cluster_hbs_state))
+        {
+            expect_storage_0 = pre_failure_cluster_hbs_state.storage0_enabled;
+            for(unsigned int i = 0; i < max_controllers; i ++)
+            {
+                if(max_nodes_available < pre_failure_cluster_hbs_state.controllers[i].number_of_node_reachable)
+                {
+                    max_nodes_available = pre_failure_cluster_hbs_state.controllers[i].number_of_node_reachable;
+                }
+            }
+        }else if(is_valid(current_cluster_hbs_state))
+        {
+            expect_storage_0 = current_cluster_hbs_state.storage0_enabled;
+            for(unsigned int i = 0; i < max_controllers; i ++)
+            {
+                if(max_nodes_available < pre_failure_cluster_hbs_state.controllers[i].number_of_node_reachable)
+                {
+                    max_nodes_available = pre_failure_cluster_hbs_state.controllers[i].number_of_node_reachable;
+                }
+            }
+        }else
+        {
+            has_cluser_info = false;
+        }
+
+        if(has_cluser_info && max_nodes_available > 1)
+        {
+            DPRINTFD("storage-0 is %senabled", expect_storage_0 ? "":"not ");
+            int this_controller_index, peer_controller_index;
+
+            char host_name[SM_NODE_NAME_MAX_CHAR];
+            SmErrorT error = sm_node_utils_get_hostname(host_name);
+            if( SM_OKAY != error )
+            {
+                DPRINTFE( "Failed to get hostname, error=%s.",
+                          sm_error_str( error ) );
+                return SM_FAILED;
+            }
+
+            if(0 == strncmp(SM_NODE_CONTROLLER_0_NAME, host_name, sizeof(SM_NODE_CONTROLLER_0_NAME)))
+            {
+                this_controller_index = 0;
+                peer_controller_index = 1;
+            }else
+            {
+                this_controller_index = 1;
+                peer_controller_index = 0;
+            }
+
+            bool survivor_selected = false;
+            if(expect_storage_0)
+            {
+                if(current_cluster_hbs_state.controllers[this_controller_index].storage0_responding &&
+                    !current_cluster_hbs_state.controllers[peer_controller_index].storage0_responding)
+                {
+                    DPRINTFI("peer cannot reach storage-0. host can. host will be survivor");
+                    selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
+                    selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+                    survivor_selected = true;
+                }else if(!current_cluster_hbs_state.controllers[this_controller_index].storage0_responding &&
+                         current_cluster_hbs_state.controllers[peer_controller_index].storage0_responding)
+                {
+                    DPRINTFI("host cannot reach storage-0. peer can. peer will be survivor");
+                    selection.set_host_schedule_state(SM_NODE_STATE_FAILED);
+                    selection.set_peer_schedule_state(SM_NODE_STATE_ACTIVE);
+                    survivor_selected = true;
+                }
+            }
+
+            if(!survivor_selected)
+            {
+                // so no storage-0 or storage-0 state same on both side
+                if(current_cluster_hbs_state.controllers[this_controller_index].number_of_node_reachable >
+                   current_cluster_hbs_state.controllers[peer_controller_index].number_of_node_reachable)
+                {
+                    DPRINTFI("host reaches %d nodes, peer reaches %d nodes, host will be survivor",
+                        current_cluster_hbs_state.controllers[this_controller_index].number_of_node_reachable,
+                        current_cluster_hbs_state.controllers[peer_controller_index].number_of_node_reachable
+                    );
+                    selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
+                    selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+                    survivor_selected = true;
+                }else if (current_cluster_hbs_state.controllers[this_controller_index].number_of_node_reachable <
+                   current_cluster_hbs_state.controllers[peer_controller_index].number_of_node_reachable)
+                {
+                    DPRINTFI("host reaches %d nodes, peer reaches %d nodes, peer will be survivor",
+                        current_cluster_hbs_state.controllers[this_controller_index].number_of_node_reachable,
+                        current_cluster_hbs_state.controllers[peer_controller_index].number_of_node_reachable
+                    );
+                    selection.set_host_schedule_state(SM_NODE_STATE_FAILED);
+                    selection.set_peer_schedule_state(SM_NODE_STATE_ACTIVE);
+                    survivor_selected = true;
+                }else
+                {
+                    if(pre_failure_cluster_hbs_state != current_cluster_hbs_state)
+                    {
+                        if(0 == current_cluster_hbs_state.controllers[this_controller_index].number_of_node_reachable)
+                        {
+                            // Cannot reach any nodes, I am dead
+                            DPRINTFI("host cannot reach any nodes, peer will be survivor",
+                                    current_cluster_hbs_state.controllers[this_controller_index].number_of_node_reachable,
+                                    current_cluster_hbs_state.controllers[peer_controller_index].number_of_node_reachable
+                                );
+                            selection.set_host_schedule_state(SM_NODE_STATE_FAILED);
+                            selection.set_peer_schedule_state(SM_NODE_STATE_ACTIVE);
+                        }else
+                        {
+                            // equaly split, failed the standby
+                            if(SM_NODE_STATE_ACTIVE == system_status.host_status.current_schedule_state)
+                            {
+                                DPRINTFI("host reaches %d nodes, peer reaches %d nodes, host will be survivor",
+                                    current_cluster_hbs_state.controllers[this_controller_index].number_of_node_reachable,
+                                    current_cluster_hbs_state.controllers[peer_controller_index].number_of_node_reachable
+                                );
+                                selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+                            }else
+                            {
+                                DPRINTFI("host reaches %d nodes, peer reaches %d nodes, peer will be survivor",
+                                    current_cluster_hbs_state.controllers[this_controller_index].number_of_node_reachable,
+                                    current_cluster_hbs_state.controllers[peer_controller_index].number_of_node_reachable
+                                );
+                                selection.set_host_schedule_state(SM_NODE_STATE_FAILED);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // no connectivity status changed? peer sm is not responding
+                        DPRINTFI("Peer SM is not responding, host will be survivor");
+                        selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
+                        selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+                    }
+                }
+            }
+        }
+        else
+        {
+            // no cluster info, peer is assumed down
+            // the connecting to majority nodes rule is postponed
+            DPRINTFI("No cluster hbs info, host will be survivor");
+            selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
+            selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+        }
     }
 
     if(SM_SYSTEM_MODE_CPE_DUPLEX == system_status.system_mode)

@@ -22,8 +22,11 @@ class SmFailoverFailPendingState : public SmFSMState
 
     private:
         SmTimerIdT _pending_timer_id;
+        SmTimerIdT _delay_query_hbs_timer_id;
 
         static bool _fail_pending_timeout(SmTimerIdT timer_id, int64_t user_data);
+        static bool _delay_query_hbs_timeout(SmTimerIdT timer_id, int64_t user_data);
+        static void cluster_hbs_response_callback();
         SmErrorT _register_timer();
         SmErrorT _deregister_timer();
 };

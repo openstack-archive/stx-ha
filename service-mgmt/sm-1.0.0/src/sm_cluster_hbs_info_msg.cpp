@@ -21,7 +21,15 @@
 #include "sm_debug.h"
 #include "sm_limits.h"
 #include "sm_selobj.h"
-#include "sm_timer.h"
+#include "sm_worker_thread.h"
+
+// uncomment when debugging this module to enabled DPRINTFD output to log file
+// #define __DEBUG__MSG__
+
+#ifdef __DEBUG__MSG__
+#undef DPRINTFD
+#define DPRINTFD DPRINTFI
+#endif
 
 #define LOOPBACK_IP "127.0.0.1"
 #define SM_CLIENT_PORT_KEY "sm_client_port"
@@ -64,6 +72,45 @@ bool operator!=(const SmClusterHbsStateT& lhs, const SmClusterHbsStateT& rhs)
     return !(lhs == rhs);
 }
 
+void log_cluster_hbs_state(const SmClusterHbsStateT& state)
+{
+    if(0 == state.last_update)
+    {
+        DPRINTFI("Cluster hbs state not available");
+        return;
+    }
+
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    int secs_since_update = ts.tv_sec - state.last_update;
+
+    if(state.storage0_enabled)
+    {
+        DPRINTFI("Cluster hbs last updated %d secs ago, storage-0 is provisioned, "
+                 "from controller-0: %d nodes enabled, %d nodes reachable, storage-0 %s responding "
+                 "from controller-1: %d nodes enabled, %d nodes reachable, storage-0 %s responding",
+                 secs_since_update,
+                 state.controllers[0].number_of_node_enabled,
+                 state.controllers[0].number_of_node_reachable,
+                 state.controllers[0].storage0_responding ? "is" : "is not",
+                 state.controllers[1].number_of_node_enabled,
+                 state.controllers[1].number_of_node_reachable,
+                 state.controllers[1].storage0_responding ? "is" : "is not"
+                );
+    }else
+    {
+        DPRINTFI("Cluster hbs last updated %d secs ago, storage-0 is not provisioned, "
+                 "from controller-0: %d nodes enabled, %d nodes reachable, "
+                 "from controller-1: %d nodes enabled, %d nodes reachable",
+                 secs_since_update,
+                 state.controllers[0].number_of_node_enabled,
+                 state.controllers[0].number_of_node_reachable,
+                 state.controllers[1].number_of_node_enabled,
+                 state.controllers[1].number_of_node_reachable
+                );
+    }
+}
+
 pthread_mutex_t SmClusterHbsInfoMsg::_mutex;
 const unsigned short Invalid_Req_Id = 0;
 int SmClusterHbsInfoMsg::_sock = -1;
@@ -103,8 +150,8 @@ bool SmClusterHbsInfoMsg::_process_cluster_hbs_history(mtce_hbs_cluster_history_
         DPRINTFE("Invalid oldest entry index %d", history.oldest_entry_index);
         return false;
     }
-    int newest_entry_index = (history.oldest_entry_index + history.entries) % MTCE_HBS_HISTORY_ENTRIES;
 
+    int newest_entry_index = (history.oldest_entry_index + history.entries - 1) % MTCE_HBS_HISTORY_ENTRIES;
     mtce_hbs_cluster_entry_type& entry = history.entry[newest_entry_index];
 
     SmClusterHbsInfoT& controller_state = state.controllers[history.controller];
@@ -112,7 +159,11 @@ bool SmClusterHbsInfoMsg::_process_cluster_hbs_history(mtce_hbs_cluster_history_
     if(entry.hosts_responding > controller_state.number_of_node_reachable)
     {
         controller_state.number_of_node_reachable = entry.hosts_responding;
+        controller_state.number_of_node_enabled = entry.hosts_enabled;
     }
+
+    DPRINTFD("Oldest index %d, entries %d, newest index %d, nodes %d",
+        history.oldest_entry_index, history.entries, newest_entry_index, entry.hosts_responding);
     return true;
 }
 
@@ -123,7 +174,6 @@ void SmClusterHbsInfoMsg::_cluster_hbs_info_msg_received( int selobj, int64_t us
     while(true)
     {
         int bytes_read = recv( selobj, &msg, sizeof(msg), MSG_NOSIGNAL | MSG_DONTWAIT );
-        DPRINTFD("msg received %d bytes. buffer size %d", bytes_read, sizeof(msg));
         if(bytes_read < 0)
         {
             if(EAGAIN != errno)
@@ -132,6 +182,7 @@ void SmClusterHbsInfoMsg::_cluster_hbs_info_msg_received( int selobj, int64_t us
             }
             return;
         }
+        DPRINTFD("msg received %d bytes. buffer size %d", bytes_read, sizeof(msg));
         if(size_of_msg_header > (unsigned int)bytes_read)
         {
             DPRINTFE("size not right, msg size %d, expected not less than %d",
@@ -173,6 +224,8 @@ void SmClusterHbsInfoMsg::_cluster_hbs_info_msg_received( int selobj, int64_t us
         {
             _cluster_hbs_state_previous = _cluster_hbs_state_current;
             _cluster_hbs_state_current = state;
+            DPRINTFD("cluster hbs state changed");
+            log_cluster_hbs_state(_cluster_hbs_state_current);
         }
         else
         {
@@ -220,6 +273,13 @@ SmErrorT SmClusterHbsInfoMsg::_get_address(const char* port_key, struct sockaddr
     return SM_OKAY;
 }
 
+static void send_query(SmSimpleAction&)
+{
+    SmClusterHbsInfoMsg::cluster_hbs_info_query();
+}
+
+static SmSimpleAction _query_hbs_cluster_info_action("send hbs-cluster query", send_query);
+
 // ****************************************************************************
 // SmClusterHbsInfoMsg::cluster_hbs_info_query -
 //      trigger a query of cluster hbs info.
@@ -244,35 +304,37 @@ bool SmClusterHbsInfoMsg::cluster_hbs_info_query(cluster_hbs_query_ready_callbac
     char query[request_size];
     unsigned short reqid;
     struct timespec ts;
-    mutex_holder holder(&_mutex);
-    if(0 != clock_gettime(CLOCK_REALTIME, &ts))
     {
-        DPRINTFE("Failed to get realtime");
-        reqid = (unsigned short)1;
-    }else
-    {
-        unsigned short* v = (unsigned short*)(&ts.tv_nsec);
-        reqid = (*v) % 0xFFFE + 1;
-    }
+        mutex_holder holder(&_mutex);
+        if(0 != clock_gettime(CLOCK_REALTIME, &ts))
+        {
+            DPRINTFE("Failed to get realtime");
+            reqid = (unsigned short)1;
+        }else
+        {
+            unsigned short* v = (unsigned short*)(&ts.tv_nsec);
+            reqid = (*v) % 0xFFFE + 1;
+        }
 
-    struct sockaddr_in addr;
-    if(SM_OKAY != _get_address(SM_SERVER_PORT_KEY, &addr))
-    {
-        DPRINTFE("Failed to get address");
-        return false;
-    }
+        struct sockaddr_in addr;
+        if(SM_OKAY != _get_address(SM_SERVER_PORT_KEY, &addr))
+        {
+            DPRINTFE("Failed to get address");
+            return false;
+        }
 
-    int msg_size = snprintf(query, sizeof(query), json_fmt, reqid);
+        int msg_size = snprintf(query, sizeof(query), json_fmt, reqid);
 
-    DPRINTFD("msg (%d:%d) to send %s", msg_size + 1, strlen(query), query);
-    if(0 > sendto(_sock, query, msg_size + 1, 0, (sockaddr*)&addr, sizeof(addr)))
-    {
-        DPRINTFE("Failed to send msg. Error %s", strerror(errno));
-        return false;
-    }
-    if(NULL != callback)
-    {
-        _callbacks.push_back(callback);
+        DPRINTFD("send %d bytes %s", msg_size, query);
+        if(0 > sendto(_sock, query, msg_size, 0, (sockaddr*)&addr, sizeof(addr)))
+        {
+            DPRINTFE("Failed to send msg. Error %s", strerror(errno));
+            return false;
+        }
+        if(NULL != callback)
+        {
+            _callbacks.push_back(callback);
+        }
     }
     return true;
 }
@@ -386,6 +448,7 @@ SmErrorT SmClusterHbsInfoMsg::initialize()
         return SM_FAILED;
     }
 
+    SmWorkerThread::get_worker().add_action(&_query_hbs_cluster_info_action);
     return SM_OKAY;
 }
 
@@ -432,6 +495,7 @@ void SmClusterHbsInfoMsg::dump_hbs_record(FILE* fp)
 
     if(0 != _cluster_hbs_state_previous.last_update)
     {
+        t = ts.tv_sec - _cluster_hbs_state_previous.last_update;
         fprintf(fp, "\n  Previous state, since %d seconds ago\n", (int)t);
 
         fprintf(fp, "  storage-0 is %s configured\n", _cluster_hbs_state_previous.storage0_enabled ? "" : "not");
