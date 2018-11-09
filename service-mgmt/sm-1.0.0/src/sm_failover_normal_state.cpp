@@ -13,6 +13,7 @@
 #include "sm_failover_utils.h"
 #include "sm_failover_fsm.h"
 #include "sm_failover_ss.h"
+#include "sm_cluster_hbs_info_msg.h"
 
 SmErrorT SmFailoverNormalState::event_handler(SmFailoverEventT event, const ISmFSMEventData* event_data)
 {
@@ -77,6 +78,29 @@ SmErrorT SmFailoverNormalState::exit_state()
     {
         SmNodeScheduleStateT peer_state = sm_get_controller_state(peer_name);
         failover_status.set_peer_pre_failure_schedule_state(peer_state);
+    }
+
+    const SmClusterHbsStateT& cluster_hbs_state_cur = SmClusterHbsInfoMsg::get_current_state();
+    const SmClusterHbsStateT& cluster_hbs_state_pre = SmClusterHbsInfoMsg::get_previous_state();
+    SmClusterHbsStateT pre_failure_cluster_hsb_state;
+    if(!is_valid(cluster_hbs_state_cur))
+    {
+        DPRINTFE("No cluster hbs state available");
+    }else
+    {
+        struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        if(ts.tv_sec - cluster_hbs_state_cur.last_update <= 1 && cluster_hbs_state_pre.last_update != 0)
+        {
+            // cluster hbs state changed within past 1 second, take the pre state as pre-failure state.
+            pre_failure_cluster_hsb_state = cluster_hbs_state_pre;
+        }else
+        {
+            pre_failure_cluster_hsb_state = cluster_hbs_state_cur;
+        }
+
+        log_cluster_hbs_state(pre_failure_cluster_hsb_state);
+        failover_status.set_pre_failure_cluster_hbs_state(pre_failure_cluster_hsb_state);
     }
 
     SmFSMState::exit_state();

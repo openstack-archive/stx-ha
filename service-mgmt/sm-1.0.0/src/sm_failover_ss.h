@@ -8,6 +8,7 @@
 #define __SM_FAILOVER_SS_H__
 #include <stdio.h>
 #include "sm_types.h"
+#include "sm_cluster_hbs_info_msg.h"
 
 typedef struct
 {
@@ -30,13 +31,13 @@ typedef enum
     SM_HEARTBEAT_INDIRECT,
     //no heartbeat
     SM_HEARTBEAT_LOSS
-}SmHeartbeatStatusT;
+}SmHeartbeatStateT;
 
 typedef struct
 {
     SmNodeStatusT host_status;
     SmNodeStatusT peer_status;
-    SmHeartbeatStatusT heartbeat_state;
+    SmHeartbeatStateT heartbeat_state;
     SmSystemModeT system_mode;
 }SmSystemStatusT;
 
@@ -48,11 +49,30 @@ class SmSystemFailoverStatus
         inline SmNodeScheduleStateT get_host_schedule_state() const {
             return _host_schedule_state;
         }
+
         inline SmNodeScheduleStateT get_host_pre_failure_schedule_state() const {
             return _host_pre_failure_schedule_state;
         }
+
+        inline SmClusterHbsStateT get_cluster_hbs_state() const {
+            return _cluster_hbs_state;
+        }
+
+        inline SmClusterHbsStateT get_pre_failure_cluster_hbs_state() const {
+            return _pre_failure_cluster_hbs_state;
+        }
+
+        inline void set_heartbeat_state(SmHeartbeatStateT heartbeat_state)
+        {
+            _heartbeat_state = heartbeat_state;
+        }
+        inline SmHeartbeatStateT get_heartbeat_state() const {
+            return _heartbeat_state;
+        }
         void set_host_schedule_state(SmNodeScheduleStateT state);
         void set_host_pre_failure_schedule_state(SmNodeScheduleStateT state);
+        void set_cluster_hbs_state(const SmClusterHbsStateT& state);
+        void set_pre_failure_cluster_hbs_state(const SmClusterHbsStateT& state);
         inline SmNodeScheduleStateT get_peer_schedule_state() const {
             return _peer_schedule_state;
         }
@@ -68,8 +88,11 @@ class SmSystemFailoverStatus
         SmSystemFailoverStatus();
         SmNodeScheduleStateT _host_pre_failure_schedule_state;
         SmNodeScheduleStateT _peer_pre_failure_schedule_state;
+        SmClusterHbsStateT   _pre_failure_cluster_hbs_state;
         SmNodeScheduleStateT _host_schedule_state;
         SmNodeScheduleStateT _peer_schedule_state;
+        SmClusterHbsStateT   _cluster_hbs_state;
+        SmHeartbeatStateT    _heartbeat_state;
         static const char filename[];
         static const char file_format[];
 

@@ -6,6 +6,7 @@
 #include "sm_failover_fail_pending_state.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include "sm_cluster_hbs_info_msg.h"
 #include "sm_types.h"
 #include "sm_limits.h"
 #include "sm_debug.h"
@@ -17,7 +18,8 @@
 #include "sm_node_api.h"
 #include "sm_worker_thread.h"
 
-static const int FAIL_PENDING_TIMEOUT = 2000; //2000ms
+static const int FAIL_PENDING_TIMEOUT = 2000; // 2seconds
+static const int DELAY_QUERY_HBS_MS   = FAIL_PENDING_TIMEOUT - 200; // give 200ms for hbs agent to respond
 
 static SmTimerIdT action_timer_id = SM_TIMER_ID_INVALID;
 static const int RESET_TIMEOUT = 10 * 1000; // 10 seconds for a reset command to reboot a node
@@ -294,6 +296,20 @@ SmErrorT SmFailoverFailPendingState::enter_state()
     return error;
 }
 
+void _cluster_hbs_response_callback()
+{
+    const SmClusterHbsStateT& cluster_hbs_state = SmClusterHbsInfoMsg::get_current_state();
+    log_cluster_hbs_state(cluster_hbs_state);
+    SmSystemFailoverStatus::get_status().set_cluster_hbs_state(cluster_hbs_state);
+}
+
+bool SmFailoverFailPendingState::_delay_query_hbs_timeout(
+    SmTimerIdT timer_id, int64_t user_data)
+{
+    SmClusterHbsInfoMsg::cluster_hbs_info_query(_cluster_hbs_response_callback);
+    return false;
+}
+
 SmErrorT SmFailoverFailPendingState::_register_timer()
 {
     SmErrorT error;
@@ -303,31 +319,47 @@ SmErrorT SmFailoverFailPendingState::_register_timer()
         this->_deregister_timer();
     }
 
-    error = sm_timer_register( timer_name, FAIL_PENDING_TIMEOUT,
-                               SmFailoverFailPendingState::_fail_pending_timeout,
-                               0, &this->_pending_timer_id);
+    error = sm_timer_register(timer_name, FAIL_PENDING_TIMEOUT,
+                              SmFailoverFailPendingState::_fail_pending_timeout,
+                              0, &this->_pending_timer_id);
+
+    const char* delay_query_hbs_timer_name = "DELAY QUERY HBS";
+
+    error = sm_timer_register(delay_query_hbs_timer_name, DELAY_QUERY_HBS_MS,
+                              SmFailoverFailPendingState::_delay_query_hbs_timeout,
+                              0, &this->_delay_query_hbs_timer_id);
 
     return error;
 }
 
 SmErrorT SmFailoverFailPendingState::_deregister_timer()
 {
-    SmErrorT error;
-    if(SM_TIMER_ID_INVALID == this->_pending_timer_id)
+    SmErrorT error = SM_OKAY;
+    if(SM_TIMER_ID_INVALID != this->_pending_timer_id)
     {
-        return SM_OKAY;
+        error = sm_timer_deregister(this->_pending_timer_id);
+        if( SM_OKAY != error )
+        {
+            DPRINTFE( "Failed to cancel fail pending timer, error=%s.",
+                      sm_error_str( error ) );
+        }else
+        {
+            this->_pending_timer_id = SM_TIMER_ID_INVALID;
+        }
     }
 
-    error = sm_timer_deregister(this->_pending_timer_id);
-    if( SM_OKAY != error )
+    if(SM_TIMER_ID_INVALID != this->_delay_query_hbs_timer_id)
     {
-        DPRINTFE( "Failed to cancel fail pending timer, error=%s.",
-                  sm_error_str( error ) );
-    }else
-    {
-        this->_pending_timer_id = SM_TIMER_ID_INVALID;
+        error = sm_timer_deregister(this->_delay_query_hbs_timer_id);
+        if( SM_OKAY != error )
+        {
+            DPRINTFE( "Failed to cancel query hbs info timer, error=%s.",
+                      sm_error_str( error ) );
+        }else
+        {
+            this->_delay_query_hbs_timer_id = SM_TIMER_ID_INVALID;
+        }
     }
-
     return error;
 }
 
