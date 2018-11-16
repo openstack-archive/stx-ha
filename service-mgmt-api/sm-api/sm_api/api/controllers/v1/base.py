@@ -9,8 +9,6 @@
 # All Rights Reserved.
 #
 
-import datetime
-
 import wsme
 from wsme import types as wsme_types
 
@@ -50,6 +48,6 @@ class APIBase(wsme_types.Base):
         # Unset non-required fields so they do not appear
         # in the message body
         obj_dict.update(dict((k, wsme.Unset)
-                        for k in obj_dict.keys()
-                        if fields and k not in fields))
+                             for k in obj_dict.keys()
+                             if fields and k not in fields))
         return cls(**obj_dict)

@@ -106,6 +106,7 @@ def remotable_classmethod(fn):
 # "orphaned" and remotable methods cannot be called.
 def remotable(fn):
     """Decorator for remotable object methods."""
+
     def wrapper(self, *args, **kwargs):
         ctxt = self._context
         try:
@@ -337,7 +338,8 @@ class Sm_apiObject(object):
                     name in self.obj_extra_fields):
                 yield name, getattr(self, name)
 
-    items = lambda self: list(self.items())
+    def items(self):
+        return list(self.items())
 
     def __getitem__(self, name):
         """For backwards-compatibility with dict-based objects.
@@ -377,8 +379,8 @@ class Sm_apiObject(object):
 
     def as_dict(self):
         return dict((k, getattr(self, k))
-                for k in self.fields
-                if hasattr(self, k))
+                    for k in self.fields
+                    if hasattr(self, k))
 
     @classmethod
     def get_defaults(cls):
@@ -398,7 +400,7 @@ class ObjectListBase(object):
     """
     fields = {
         'objects': list,
-        }
+    }
 
     def __iter__(self):
         """List iterator interface."""

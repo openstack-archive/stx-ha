@@ -28,7 +28,7 @@ from six.moves.urllib.parse import urlparse
 try:
     import ssl
 except ImportError:
-    #TODO(bcwaldon): Handle this failure more gracefully
+    # TODO(bcwaldon): Handle this failure more gracefully
     pass
 
 try:

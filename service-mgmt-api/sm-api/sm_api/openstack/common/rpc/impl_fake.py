@@ -74,7 +74,7 @@ class Consumer(object):
                 # Caller might have called ctxt.reply() manually
                 for (reply, failure) in ctxt._response:
                     if failure:
-                        raise_(failure[0],failure[1],failure[2])
+                        raise_(failure[0], failure[1], failure[2])
                     res.append(reply)
                 # if ending not 'sent'...we might have more data to
                 # return from the function itself

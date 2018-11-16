@@ -31,7 +31,6 @@ from sm_api.common import utils
 from sm_api.db import api
 from sm_api.db.sqlalchemy import models
 from sm_api import objects
-from sm_api.openstack.common.db import exception as db_exc
 from sm_api.openstack.common.db.sqlalchemy import session as db_session
 from sm_api.openstack.common.db.sqlalchemy import utils as db_utils
 from sm_api.openstack.common import log
@@ -169,8 +168,7 @@ class Connection(api.Connection):
     @objects.objectify(objects.service)
     def iservice_get_by_name(self, name):
         result = model_query(models.service, read_deleted="no").\
-                             filter_by(name=name)
-                             # first() since want a list
+            filter_by(name=name)
 
         if not result:
             raise exception.NodeNotFound(node=name)
@@ -211,7 +209,7 @@ class Connection(api.Connection):
 
     @objects.objectify(objects.sm_node)
     def sm_node_get_list(self, limit=None, marker=None,
-                          sort_key=None, sort_dir=None):
+                         sort_key=None, sort_dir=None):
         return _paginate_query(models.sm_node, limit, marker,
                                sort_key, sort_dir)
 
@@ -231,8 +229,7 @@ class Connection(api.Connection):
     @objects.objectify(objects.sm_node)
     def sm_node_get_by_name(self, name):
         result = model_query(models.sm_node, read_deleted="no").\
-                             filter_by(name=name)
-                             # first() since want a list
+            filter_by(name=name)
 
         if not result:
             raise exception.NodeNotFound(node=name)
@@ -256,20 +253,19 @@ class Connection(api.Connection):
 
     @objects.objectify(objects.service)
     def sm_service_get_list(self, limit=None, marker=None,
-                          sort_key=None, sort_dir=None):
+                            sort_key=None, sort_dir=None):
         return _paginate_query(models.service, limit, marker,
                                sort_key, sort_dir)
 
     @objects.objectify(objects.service)
     def sm_service_get_by_name(self, name):
         result = model_query(models.service, read_deleted="no").\
-                             filter_by(name=name)
+            filter_by(name=name)
 
         if not result:
             raise exception.ServiceNotFound(service=name)
 
         return result
-
 
     @objects.objectify(objects.service_group_member)
     def sm_service_group_members_get_list(self, service_group_name):

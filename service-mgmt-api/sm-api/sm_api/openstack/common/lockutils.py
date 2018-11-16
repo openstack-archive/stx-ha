@@ -19,7 +19,6 @@
 #
 
 
-
 import errno
 import functools
 import os

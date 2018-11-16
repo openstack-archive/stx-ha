@@ -4,8 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-import json
-import wsme
 from wsme import types as wsme_types
 import wsmeext.pecan as wsme_pecan
 import pecan
@@ -65,7 +63,7 @@ class Services(base.APIBase):
         minimum_fields = ['id', 'name', 'desired_state', 'state', 'status']
         fields = minimum_fields if not expand else None
         services = Services.from_rpc_object(
-                           rpc_services, fields)
+            rpc_services, fields)
 
         return services
 
@@ -84,8 +82,8 @@ class ServicesCollection(collection.Collection):
                            expand=False, **kwargs):
         collection = ServicesCollection()
         collection.services = [
-                    Services.convert_with_links(ch, expand)
-                              for ch in services]
+            Services.convert_with_links(ch, expand)
+            for ch in services]
         url = url or None
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
@@ -102,12 +100,12 @@ class ServicesController(rest.RestController):
         marker_obj = None
         if marker:
             marker_obj = objects.service.get_by_uuid(
-                                 pecan.request.context, marker)
+                pecan.request.context, marker)
 
         services = pecan.request.dbapi.sm_service_get_list(limit,
-                                                     marker_obj,
-                                                     sort_key=sort_key,
-                                                     sort_dir=sort_dir)
+                                                           marker_obj,
+                                                           sort_key=sort_key,
+                                                           sort_dir=sort_dir)
         return services
 
     @wsme_pecan.wsexpose(Services, six.text_type)
@@ -134,9 +132,9 @@ class ServicesController(rest.RestController):
         """Retrieve list of services."""
 
         services = self._get_services(marker,
-                                limit,
-                                sort_key,
-                                sort_dir)
+                                      limit,
+                                      sort_key,
+                                      sort_dir)
 
         return ServicesCollection.convert_with_links(services, limit,
                                                      sort_key=sort_key,

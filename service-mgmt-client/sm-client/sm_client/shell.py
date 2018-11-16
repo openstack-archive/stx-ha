@@ -8,7 +8,7 @@
 """
 Command-line interface for Service Manager (SM)
 """
-
+from __future__ import print_function
 import argparse
 import httplib2
 import logging
@@ -131,7 +131,7 @@ class SmcShell(object):
 
         parser.add_argument('--smc-api-version',
                             default=utils.env(
-                            'SMC_API_VERSION', default='1'),
+                                'SMC_API_VERSION', default='1'),
                             help='Defaults to env[SMC_API_VERSION] '
                             'or 1')
 
@@ -203,8 +203,8 @@ class SmcShell(object):
             httplib2.debuglevel = 1
         else:
             logging.basicConfig(
-                    format="%(levelname)s %(message)s",
-                    level=logging.CRITICAL)
+                format="%(levelname)s %(message)s",
+                level=logging.CRITICAL)
 
     def main(self, argv):
         # Parse args once to find version
@@ -249,7 +249,7 @@ class SmcShell(object):
 
         client = cgclient.get_client(api_version, **(args.__dict__))
 
-        nargs = args.__dict__
+        # nargs = args.__dict__
         # nargs['neutron_endpoint'] = client.neutron_endpoint
         # client.neutronClient = get_neutron_client(**nargs)
 
@@ -284,8 +284,9 @@ def main():
         SmcShell().main(sys.argv[1:])
 
     except Exception as e:
-        print >> sys.stderr, e
+        print(e, file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
