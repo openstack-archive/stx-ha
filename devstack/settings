@@ -1,0 +1,20 @@
+#!/bin/bash
+# Devstack settings
+
+# Defaults
+# --------
+
+STX_HA_NAME=stx-ha
+
+######### Plugin Specific ##########
+define_plugin $STX_HA_NAME
+enable_service $STX_HA_NAME
+
+# This works for Zuul jobs using OpenStack's DevStack roles
+plugin_requires stx-ha stx-metal
+
+#Maybe we can force this in for other plugins temporarily?
+plugin_requires stx-config stx-metal
+
+# Initial source of lib script
+source $DEST/stx-ha/devstack/lib/stx-ha
