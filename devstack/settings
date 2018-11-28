@@ -1,0 +1,13 @@
+#!/bin/bash
+# Devstack settings
+
+# Defaults
+# --------
+
+STX_HA_NAME=stx-ha
+
+######### Plugin Specific ##########
+enable_service $STX_HA_NAME
+
+# Initial source of lib script
+source $DEST/stx-ha/devstack/lib/stx-ha.sh
