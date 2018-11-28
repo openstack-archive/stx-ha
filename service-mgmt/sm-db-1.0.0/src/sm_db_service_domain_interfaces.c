@@ -363,7 +363,7 @@ SmErrorT sm_db_service_domain_interfaces_update( SmDbHandleT* sm_db_handle,
                          sm_auth_type_str(record->auth_type) );
     }
 
-    if( '\0' != record->auth_key )
+    if( '\0' != record->auth_key[0] )
     {
         len += snprintf( sql+len, sizeof(sql)-len, "%s = '%s', ",
                          SM_SERVICE_DOMAIN_INTERFACES_TABLE_COLUMN_AUTH_KEY,
