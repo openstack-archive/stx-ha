@@ -1,0 +1,359 @@
+#!/bin/bash
+#
+# lib/stx-config
+# Functions to control the configuration and operation of stx-ha
+
+# ``plugin.sh`` calls the following entry points:
+#
+# - install_ha
+# - configure_ha
+# - init_ha
+# - start_ha
+# - stop_ha
+# - cleanup_ha
+
+_XTRACE_STX_HA=$(set +o | grep xtrace)
+set -o xtrace
+
+# Defaults
+# --------
+
+STX_HA_DIR=${GITDIR[$STX_HA_NAME]}
+STX_SYSCONFDIR=${STX_SYSCONFDIR:-/etc}
+
+STX_SM_VERSION=${STX_SM_VERSION:="1.0.0"}
+STX_SM_COMMON_VERSION=${STX_SM_COMMON_VERSION:=$STX_SM_VERSION}
+STX_SM_DB_VERSION=${STX_SM_DB_VERSION:=$STX_SM_VERSION}
+
+STX_SM_DIR=$STX_HA_DIR/service-mgmt/sm-${STX_SM_VERSION}
+STX_SM_CONF_DIR=$STX_SYSCONFDIR/sm
+STX_SM_VAR_DIR=/var/lib/sm
+STX_SM_API_CONF_DIR=$STX_SYSCONFDIR/sm-api
+
+# STX_INST_DIR should be a non-root-writable place to install build artifacts
+STX_INST_DIR=${STX_INST_DIR:-/usr/local}
+STX_BIN_DIR=${STX_BIN_DIR:-$STX_INST_DIR/bin}
+STX_SBIN_DIR=${STX_SBIN_DIR:-$STX_INST_DIR/sbin}
+
+# Set up so we don't use sudo for installs when not necessary
+STX_SUDO="sudo"
+[[ -w $STX_INST_DIR ]] && STX_SUDO="env"
+
+PYTHON_SITE_DIR=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+
+# Functions
+# ---------
+
+function build_sm {
+    pushd $STX_HA_DIR/service-mgmt/sm-${STX_SM_VERSION}
+
+    # On Xenial needed to remove -Werror and add -Wunused-result
+    # CCFLAGS= -g -O2 -Wall -Werror -Wformat  -std=c++11
+    make \
+        CCFLAGS="-g -O2 -Wall -Wformat -Wunused-result -std=c++11" \
+        INCLUDES="-I$STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -I$STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src -I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include" \
+        LDLIBS="-L $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -L $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src  -lsqlite3 -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl" \
+        build
+
+    popd
+}
+
+function build_sm_api {
+    pushd ${GITDIR[$STX_HA_NAME]}/service-mgmt-api/sm-api
+
+    python setup.py build
+
+    popd
+}
+
+function build_sm_common {
+    pushd $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}
+
+    # On Xenial needed to remove -O2
+    # CCFLAGS= -fPIC -g -O2 -Wall -Werror
+    make \
+        VER=$STX_SM_COMMON_VERSION \
+        VER_MJR=${STX_SM_COMMON_VERSION%%.*} \
+        CCFLAGS="-fPIC -g -Wall -Werror" \
+        INCLUDES="-I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include" \
+        build
+
+    popd
+}
+
+function build_sm_db {
+    pushd $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}
+
+    # INCLUDES because we need /usr/lib/x86_64-linux-gnu/glib-2.0/include
+    make \
+        VER=$STX_SM_DB_VERSION \
+        VER_MJR=${STX_SM_DB_VERSION%%.*} \
+        INCLUDES="-I$STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include" \
+        LDLIBS="-L $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -lsqlite3 -lglib-2.0 -lrt -lsm_common -luuid" \
+        EXTRACCFLAGS="-D__STDC_FORMAT_MACROS -fpermissive" \
+        build
+
+    popd
+}
+
+function cleanup_ha {
+    stop_ha
+
+    if is_service_enabled sm-api; then
+        cleanup_sm_api
+    fi
+    if is_service_enabled sm-daemon; then
+        cleanup_sm
+    fi
+    if is_service_enabled sm-db; then
+        cleanup_sm_db
+    fi
+    if is_service_enabled sm-common; then
+        cleanup_sm_common
+    fi
+}
+
+function cleanup_sm {
+    pushd $STX_HA_DIR/service-mgmt/sm-${STX_SM_COMMON_VERSION}
+
+    make clean
+
+    $STX_SUDO rm -f ${STX_BIN_DIR}/sm
+
+    popd
+}
+
+function cleanup_sm_api {
+    pushd $STX_HA_DIR/service-mgmt-api/sm-api
+
+    sudo rm -f $STX_BIN_DIR/sm-api \
+        $STX_SYSCONFDIR/init.d/sm-api \
+        $STX_SYSCONFDIR/systemd/system/sm-api.service \
+        $STX_SYSCONFDIR/pmon.d/sm-api.conf
+
+    sudo rm -rf $STX_SM_CONF_DIR $STX_SM_API_CONF_DIR
+
+    popd
+}
+
+function cleanup_sm_common {
+    pushd $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}
+
+    make clean
+
+    sudo rm -f \
+        $STX_INST_DIR/include/sm_*.h \
+        $STX_INST_DIR/lib64/libsm_common.so.* \
+        $STX_BIN_DIR/sm-eru \
+        $STX_BIN_DIR/sm-eru-dump \
+        $STX_BIN_DIR/sm-watchdog \
+        $STX_SM_VAR_DIR/watchdog/modules/libsm_watchdog_nfs.so.* \
+        $STX_SYSCONFDIR/systemd/system/sm-eru.service \
+        $STX_SYSCONFDIR/systemd/system/sm-watchdog.service \
+        $STX_SYSCONFDIR/pmon.d/sm-eru.conf \
+        $STX_SYSCONFDIR/pmon.d/sm-watchdog.conf \
+        $STX_SYSCONFDIR/init.d/sm-eru \
+        $STX_SYSCONFDIR/init.d/sm-watchdog \
+        /etc/ld.so.conf.d/stx-ha.conf
+
+    popd
+}
+
+function cleanup_sm_db {
+    pushd $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}
+
+    make clean
+
+    sudo rm -rf database/*.db \
+        $STX_INST_DIR/include/sm_db_*.h \
+        $STX_INST_DIR/lib64/libsm_db.so* \
+        $STX_SM_VAR_DIR
+
+    popd
+}
+
+function configure_ha {
+    if is_service_enabled sm-api; then
+        create_sm_accounts
+    fi
+}
+
+function create_sm_accounts {
+    create_service_user "smapi"
+    get_or_create_service "smapi" "servicemanagement" "Service Management"
+    get_or_create_endpoint \
+        "servicemanagement" \
+        "$REGION_NAME" \
+        "$SM_RESTAPI_SERVICE_PROTOCOL://$SM_RESTAPI_SERVICE_HOST:$SM_RESTAPI_SERVICE_PORT/v1"
+}
+
+function init_ha {
+    :
+}
+
+function install_ha {
+    if is_service_enabled sm-common; then
+        install_sm_common
+    fi
+    if is_service_enabled sm-db; then
+        install_sm_db
+    fi
+    if is_service_enabled sm-daemon; then
+        install_sm
+    fi
+    if is_service_enabled sm-client; then
+        install_sm_client
+    fi
+    if is_service_enabled sm-tools; then
+        install_sm_tools
+    fi
+    if is_service_enabled sm-api; then
+        install_sm_api
+    fi
+}
+
+function install_sm {
+    pushd $STX_HA_DIR/service-mgmt/sm-${STX_SM_VERSION}
+
+    build_sm
+
+    # Skip make install_non_bb, it hard-codes /usr/bin as the destination
+    $STX_SUDO install -m 755 src/sm ${STX_BIN_DIR}/sm
+
+    popd
+}
+
+function install_sm_api {
+    pushd $STX_HA_DIR/service-mgmt-api/sm-api
+
+    build_sm_api
+
+    # Lacking setup.cfg to use setup_package here
+    sudo python setup.py install \
+        --root=/ \
+        --install-lib=$PYTHON_SITE_DIR \
+        --prefix=/usr \
+        --install-data=/usr/share
+
+    sudo install -m 755 scripts/sm-api $STX_SYSCONFDIR/init.d
+    # sudo sed -i "/^SM_API=/s/=.*$/=\/usr\/local\/bin\/\${SM_API_NAME}/" $STX_SYSCONFDIR/init.d/sm-api
+    sudo install -m 644 -D scripts/sm-api.service $STX_SYSCONFDIR/systemd/system
+    sudo install -m 644 -D scripts/sm_api.ini $STX_SM_CONF_DIR
+    sudo install -m 644 scripts/sm-api.conf $STX_SYSCONFDIR/pmon.d
+    sudo install -m 644 -D etc/sm-api/policy.json $STX_SM_API_CONF_DIR
+
+    popd
+}
+
+function install_sm_client {
+    setup_install $STX_HA_DIR/service-mgmt-client/sm-client
+    $STX_SUDO install -m 755 ${GITDIR[$STX_HA_NAME]}/service-mgmt-client/sm-client/usr/bin/smc $STX_BIN_DIR
+}
+
+# This should only be things needed to build other things (libs, headers, etc)
+function install_sm_common_libs {
+    pushd $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}
+
+    build_sm_common
+
+    # $STX_SUDO make \
+    #     VER=$STX_SM_COMMON_VERSION \
+    #     VER_MJR=${STX_SM_COMMON_VERSION%%.*} \
+    #     DESTDIR=$STX_INST_DIR \
+    #     BINDIR=/bin \
+    #     LIBDIR=/lib64 \
+    #     INCDIR=/include \
+    #     UNIT_DIR= \
+    #     BUILDSUBDIR=. \
+    #     install
+
+    # The Makefiles do not quite support proper prefixing so do it here
+
+    # src/
+    # @(cd src; make DEST_DIR=$(DEST_DIR) BIN_DIR=$(BIN_DIR) LIB_DIR=$(LIB_DIR) INC_DIR=$(INC_DIR) VER=$(VER) VER_MJR=$(VER_MJR) install)
+    $STX_SUDO install -d $STX_INST_DIR/lib64
+    $STX_SUDO install src/libsm_common.so.${STX_SM_COMMON_VERSION%%.*} $STX_INST_DIR/lib64
+    $STX_SUDO cp -P src/libsm_common.so src/libsm_common.so.${STX_SM_COMMON_VERSION%%.*} $STX_INST_DIR/lib64
+    $STX_SUDO install -d $STX_INST_DIR/include
+    $STX_SUDO install -m 644 src/*.h $STX_INST_DIR/include
+
+    popd
+}
+
+function install_sm_common {
+    pushd $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}
+
+    install_sm_common_libs
+
+    sudo install -m 0755 -p -D -t $STX_SM_VAR_DIR/watchdog/modules src/libsm_watchdog_nfs.so.${STX_SM_COMMON_VERSION}
+    sudo cp -P src/libsm_watchdog_nfs.so src/libsm_watchdog_nfs.so.${STX_SM_COMMON_VERSION%%.*} $STX_SM_VAR_DIR/watchdog/modules
+
+    # scripts/
+    (cd scripts; sudo make DEST_DIR= UNIT_DIR=$STX_SYSCONFDIR/systemd/system install)
+
+    sudo install -m 750 -p -D src/sm_eru $STX_BIN_DIR/sm-eru
+    sudo install -m 750 -p -D src/sm_eru_dump $STX_BIN_DIR/sm-eru-dump
+    sudo install -m 750 -p -D src/sm_watchdog $STX_BIN_DIR/sm-watchdog
+
+    echo $STX_INST_DIR/lib64 | sudo tee /etc/ld.so.conf.d/stx-ha.conf
+    sudo ldconfig
+
+    popd
+}
+
+function install_sm_db {
+    pushd $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}
+
+    build_sm_db
+
+    # NOTE: We don't use the make install target as it doesn't
+    #       properly support $PREFIX.
+    $STX_SUDO install -m 0644 -p src/*.h $STX_INST_DIR/include
+    $STX_SUDO install -m 0755 -p src/libsm_db.so.${STX_SM_DB_VERSION} $STX_INST_DIR/lib64
+    $STX_SUDO cp -P src/libsm_db.so src/libsm_db.so.${STX_SM_DB_VERSION%%.*} $STX_INST_DIR/lib64
+
+    # NOTE: These belong in configure_sm_db but the Makefile insists they
+    #       be there for install target
+    sqlite3 database/sm.db < database/create_sm_db.sql
+    sqlite3 database/sm.hb.db < database/create_sm_hb_db.sql
+
+    # Call database make directly, it works
+    local dest_dir=""
+    if [[ "$STX_SUDO" != "sudo" ]]; then
+        dest_dir=$STX_INST_DIR
+    fi
+
+    (cd database; \
+        $STX_SUDO -E make \
+            DEST_DIR=$dest_dir \
+            install; \
+    )
+
+    popd
+}
+
+function install_sm_tools {
+    pushd ${GITDIR[$STX_HA_NAME]}/service-mgmt-tools/sm-tools
+
+    sudo python setup.py install \
+        --root=/ \
+        --install-lib=$PYTHON_SITE_DIR \
+        --prefix=/usr \
+        --install-data=/usr/share
+
+    popd
+}
+
+function start_ha {
+    if is_service_enabled sm-api; then
+        run_process sm-api "/usr/bin/sm-api --config-file=${STX_SM_API_CONF_DIR}"
+    fi
+}
+
+function stop_ha {
+    if is_service_enabled sm-api; then
+        stop_process sm-api
+    fi
+}
+
+$_XTRACE_STX_HA

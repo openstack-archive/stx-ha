@@ -308,14 +308,14 @@ SmErrorT sm_db_service_domain_neighbors_update( SmDbHandleT* sm_db_handle,
     len = snprintf( sql, sizeof(sql), "UPDATE %s SET  ",
                     SM_SERVICE_DOMAIN_NEIGHBORS_TABLE_NAME);
 
-    if( '\0' != record->orchestration )
+    if( '\0' != record->orchestration[0] )
     {
         len += snprintf( sql+len, sizeof(sql)-len, "%s = '%s', ",
                          SM_SERVICE_DOMAIN_NEIGHBORS_TABLE_COLUMN_ORCHESTRATION,
                          record->orchestration );
     }
 
-    if( '\0' != record->designation )
+    if( '\0' != record->designation[0] )
     {
         len += snprintf( sql+len, sizeof(sql)-len, "%s = '%s', ",
                          SM_SERVICE_DOMAIN_NEIGHBORS_TABLE_COLUMN_DESIGNATION,
