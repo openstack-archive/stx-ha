@@ -29,7 +29,10 @@ static int handle_special_upgrade_case(int* timeout_ms)
     if ( NULL == fp)
         return 0;
 
-    fscanf( fp, "%d", &reading_sec );
+    if( fscanf( fp, "%d", &reading_sec ) < 0 )
+    {
+        DPRINTFE( "Error reading from iscsi_enable_timeout file." );
+    }
     fclose(fp);
 
     if ( reading_sec <= *timeout_ms )

@@ -29,9 +29,11 @@ SRCS+=sm_db_configuration.c
 
 OBJS = $(SRCS:.c=.o)
 CCFLAGS= -fPIC -g -O2 -Wall -Werror -std=c++11
-EXTRACCFLAGS= -D__STDC_FORMAT_MACROS
+EXTRACCFLAGS= -D__STDC_FORMAT_MACROS -fstack-protector-strong
+EXTRACCFLAGS+= -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security
 LDLIBS= -lsqlite3 -lglib-2.0 -luuid -lrt -lsm_common
 LDFLAGS = -shared -rdynamic
+SECLDFLAGS = -Wl,-z,noexecstack,-z,relro,-z,now
 
 build: libsm_db.so sm_db_build
 
@@ -45,10 +47,10 @@ libsm_db.so.$(VER_MJR): libsm_db.so.$(VER)
 	ln -sf $^ $@
 
 libsm_db.so.$(VER): ${OBJS}
-	$(CXX) ${LDFLAGS} $(LDLIBS) -Wl,-soname,libsm_db.so.$(VER_MJR) -o $@ $^
+	$(CXX) ${LDFLAGS} $(SECLDFLAGS) $(LDLIBS) -Wl,-soname,libsm_db.so.$(VER_MJR) -o $@ $^
 
 sm_db_build: ${OBJS}
-	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(OBJS) $(LDLIBS) -o sm_db_build
+	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(SECLDFLAGS) $(OBJS) $(LDLIBS) -o sm_db_build
 
 install_non_bb:
 	install -d ${DEST_DIR}/usr/lib64

@@ -268,9 +268,15 @@ static void sm_process_death_dispatch( int selobj, int64_t user_data )
     SmProcessCallbackInfoT* callback = NULL;
     unsigned int num_process_death_dispatched = 0;
 
-    read( _process_death_fd, &process_death_count,
+    int bytes_read = 0;
+    bytes_read = read( _process_death_fd, &process_death_count,
           sizeof(process_death_count) );
-   
+    if( bytes_read < 0 )
+    {
+        DPRINTFE( "An error occurred while reading process death "
+                 "file descriptor." );
+    }
+
     unsigned int death_i;
     for( death_i=_last_entry; SM_PROCESS_DEATH_MAX > death_i; ++death_i )
     {

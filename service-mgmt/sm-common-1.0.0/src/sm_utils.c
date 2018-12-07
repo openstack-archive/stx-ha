@@ -36,7 +36,11 @@ bool sm_utils_process_running( const char* pid_filename )
     } else {
         int pid;
 
-        fscanf( fp, "%d", &pid );
+        if( fscanf( fp, "%d", &pid ) != 1 )
+        {
+            running = false;
+            return(running);
+        }
         if( pid != getpid() )
         {
             result = kill( pid, 0 );

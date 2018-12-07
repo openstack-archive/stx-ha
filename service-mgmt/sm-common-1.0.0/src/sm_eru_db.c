@@ -208,11 +208,18 @@ SmErrorT sm_eru_db_read( int read_index, SmEruDatabaseEntryT* entry )
     }
 
     fseek(_file_info.fp, (read_index*sizeof(SmEruDatabaseEntryT))+SM_ERU_DB_HEADER_SIZE, SEEK_SET);
-    fread(entry, 1, sizeof(SmEruDatabaseEntryT), _file_info.fp);
-
+    int bytes_read = fread(entry, 1, sizeof(SmEruDatabaseEntryT), _file_info.fp);
     sm_eru_db_unlock();
 
-    return( SM_OKAY );
+    if( bytes_read == sizeof(SmEruDatabaseEntryT) )
+    {
+        return( SM_OKAY );
+    }
+    else
+    {
+        DPRINTFE( "Error reading DB entry." );
+        return( SM_FAILED );
+    }
 }
 // ****************************************************************************
 
@@ -554,10 +561,19 @@ SmErrorT sm_eru_db_initialize( char* filename, bool read_only )
             memset( _1MB_data_block, 0, sizeof(_1MB_data_block) );
 
             int block_i;
+            bool write_errors = false;
             for( block_i=0; block_i < num_blocks; ++block_i )
             {
-                write( _file_info.fd, (void*) _1MB_data_block,
-                       sizeof(_1MB_data_block) );
+                if( write( _file_info.fd, (void*) _1MB_data_block,
+                       sizeof(_1MB_data_block) ) != sizeof(_1MB_data_block) )
+                {
+                    write_errors = true;
+                }
+            }
+
+            if( write_errors )
+            {
+                DPRINTFI( "Some Errors occurred while writing into database." );
             }
 
             result = fstat( _file_info.fd, &stat_info );

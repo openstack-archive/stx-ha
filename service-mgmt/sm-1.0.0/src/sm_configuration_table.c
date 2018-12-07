@@ -62,7 +62,7 @@ SmErrorT sm_configuration_table_get( const char* key, char* buf, unsigned int bu
 
     if( 0 != count )
     {
-        snprintf( buf, buf_size, value.value );
+        snprintf( buf, buf_size, "%s", value.value );
     }else
     {
         buf[0] = '\0';

@@ -37,14 +37,34 @@ void affine_tasks( void )
     {
         case SM_SWACT_STATE_START:
 	    DPRINTFI("Invoking system call, affining to idle cores...");
-	    system("source /etc/init.d/task_affinity_functions.sh; affine_tasks_to_idle_cores 2>/dev/null");
-            DPRINTFI("Done affining tasks to idle cores, set state to none");
+
+            int ret_code;
+            ret_code = system("source /etc/init.d/task_affinity_functions.sh; affine_tasks_to_idle_cores 2>/dev/null");
+
+            if( ret_code != 0 )
+            {
+                DPRINTFI("Errors may be happened while affining to idle cores.");
+            }
+            else
+            {
+                DPRINTFI("Done affining tasks to idle cores, set state to none");
+            }
             sm_set_swact_state( SM_SWACT_STATE_NONE );
             return;
         case SM_SWACT_STATE_END:
   	    DPRINTFI("Invoking system call, affining to platform cores...");
-            system("source /etc/init.d/task_affinity_functions.sh; affine_tasks_to_platform_cores 2>/dev/null");
-	    DPRINTFI("Done affining tasks to platform cores, set state to none");
+
+            ret_code = system("source /etc/init.d/task_affinity_functions.sh; affine_tasks_to_platform_cores 2>/dev/null");
+
+            if( ret_code != 0 )
+            {
+                DPRINTFI("Errors may be happened while affining to platform cores.");
+            }
+            else
+            {
+                DPRINTFI("Done affining tasks to platform cores, set state to none");
+            }
+
             sm_set_swact_state( SM_SWACT_STATE_NONE );
 	    return;
 	default:
