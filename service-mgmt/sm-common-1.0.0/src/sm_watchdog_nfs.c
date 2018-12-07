@@ -246,7 +246,11 @@ static void sm_watchdog_nfs_do_reboot( void )
             return;
         }
 
-        write( sysrq_handler_fd, "1", 1 );
+        if( 0 > write( sysrq_handler_fd, "1", 1 ) )
+        {
+            DPRINTFE( "An error occurred while writing in sysrq-handler file" );
+        }
+
         close( sysrq_handler_fd );
 
         // Trigger sysrq command.
@@ -256,7 +260,11 @@ static void sm_watchdog_nfs_do_reboot( void )
             return;
         }
 
-        write( sysrq_tigger_fd, "b", 1 ); 
+        if( 0 > write( sysrq_tigger_fd, "b", 1 ) )
+        {
+            DPRINTFE( "An error occurred while writing in sysrq-trigger file" );
+        }
+
         close( sysrq_tigger_fd );
 
         exit( EXIT_SUCCESS );
@@ -356,7 +364,10 @@ static void sm_watchdog_nfs_do_reboot( void )
               "echo \"*******************************************\" >> %s; "
               "echo \"NFS HANG DETECTED\" >> %s", SM_WATCHDOG_NFS_DEBUG_FILE,
               SM_WATCHDOG_NFS_DEBUG_FILE, SM_WATCHDOG_NFS_DEBUG_FILE );
-    system( cmd );
+    if ( system( cmd ) != 0 )
+    {
+        DPRINTFI( "Error occurred while writing in Watchdog NFS debug file." );
+    }
 
     int thread_i;
     for( thread_i=0; SM_WATCHDOG_NFS_MAX_BLOCKED_THREADS > thread_i;
@@ -372,7 +383,11 @@ static void sm_watchdog_nfs_do_reboot( void )
                       "cat /proc/%i/sched >> %s", SM_WATCHDOG_NFS_DEBUG_FILE,
                       entry->pid, SM_WATCHDOG_NFS_DEBUG_FILE, entry->pid,
                       SM_WATCHDOG_NFS_DEBUG_FILE );
-            system( cmd );
+
+            if( system( cmd ) != 0 )
+            {
+                DPRINTFI( "Error occurred while writing in Watchdog NFS debug file." );
+            }
 
             snprintf( cmd, sizeof(cmd),
                       "date >> %s; "
@@ -380,14 +395,24 @@ static void sm_watchdog_nfs_do_reboot( void )
                       "cat /proc/%i/stack >> %s", SM_WATCHDOG_NFS_DEBUG_FILE,
                       entry->pid, SM_WATCHDOG_NFS_DEBUG_FILE, entry->pid,
                       SM_WATCHDOG_NFS_DEBUG_FILE );
-            system( cmd );
+
+            if( system( cmd ) != 0 )
+            {
+                DPRINTFI( "Error occurred while writing in Watchdog NFS debug file." );
+            }
+
         }
     }
 
     snprintf( cmd, sizeof(cmd),
               "echo \"*******************************************\" >> %s",
               SM_WATCHDOG_NFS_DEBUG_FILE );
-    system( cmd );
+
+    if( system( cmd ) != 0)
+    {
+        DPRINTFI( "Error occurred while writing in Watchdog NFS debug file." );
+    }
+
 }
 // ****************************************************************************
 

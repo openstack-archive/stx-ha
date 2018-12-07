@@ -28,6 +28,7 @@ SRCS+=sm_util_types.c
 OBJS = $(SRCS:.c=.o)
 CCFLAGS= -fPIC -g -O2 -Wall -Werror -std=c++11
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS -DSW_VERSION=\"$(SW_VERSION)\"
+EXTRACCFLAGS+= -fstack-protector-strong -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security
 
 LDLIBS= -lsqlite3 -lglib-2.0 -lgmodule-2.0 -luuid -lrt -lpthread
 LDFLAGS = -shared -rdynamic
@@ -56,13 +57,13 @@ libsm_watchdog_nfs.so.$(VER): libsm_common.so.$(VER)
 	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) sm_watchdog_nfs.c ${LDFLAGS} $(LDLIBS) -L./ -lsm_common -Wl,-soname,libsm_watchdog_nfs.so.$(VER_MJR) -o $@
 
 sm_watchdog: libsm_common.so
-	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(OBJS) sm_watchdog_module.c sm_watchdog_process.c sm_watchdog_main.c $(LDLIBS) -L./ -lsm_common -o sm_watchdog
+	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(LDFLAGS) $(OBJS) sm_watchdog_module.c sm_watchdog_process.c sm_watchdog_main.c $(LDLIBS) -L./ -lsm_common -o sm_watchdog
 
 sm_eru: libsm_common.so
-	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(OBJS) sm_eru_process.c sm_eru_main.c $(LDLIBS) -L./ -lsm_common -o sm_eru
+	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(LDFLAGS) $(OBJS) sm_eru_process.c sm_eru_main.c $(LDLIBS) -L./ -lsm_common -o sm_eru
 
 sm_eru_dump: libsm_common.so
-	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(OBJS) sm_eru_dump.c $(LDLIBS) -L./ -lsm_common -o sm_eru_dump
+	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(LDFLAGS) $(OBJS) sm_eru_dump.c $(LDLIBS) -L./ -lsm_common -o sm_eru_dump
 
 install_non_bb:
 	# install of these 3 are in the .spec file so that they can be

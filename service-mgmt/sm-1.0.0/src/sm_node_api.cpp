@@ -829,7 +829,12 @@ static bool sm_node_api_reboot_timeout( SmTimerIdT timer_id, int64_t user_data )
         return( true );
     }
 
-    write( sysrq_handler_fd, "1", 1 );
+    if( 0 > write( sysrq_handler_fd, "1", 1 ) )
+    {
+        DPRINTFE( "Failed to write sysrq handler file, error=%s.",
+                  strerror(errno) );
+    }
+
     close( sysrq_handler_fd );
 
     // Trigger sysrq command.
@@ -856,7 +861,12 @@ static bool sm_node_api_reboot_timeout( SmTimerIdT timer_id, int64_t user_data )
               "************************************" );
 
     sleep(5); // wait 5 seconds before a forced reboot.
-    write( sysrq_tigger_fd, "b", 1 ); 
+    if( 0 > write( sysrq_tigger_fd, "b", 1 ) )
+    {
+        DPRINTFE( "Failed to write sysrq trigger file, error=%s.",
+                  strerror(errno) );
+    }
+
     close( sysrq_tigger_fd );
 
     return( true );

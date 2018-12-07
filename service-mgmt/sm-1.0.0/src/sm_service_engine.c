@@ -453,7 +453,10 @@ static void sm_service_engine_dispatch( int selobj, int64_t user_data )
 {
     uint64_t count;
 
-    read( _engine_fd, &count, sizeof(count) );
+    if( read( _engine_fd, &count, sizeof(count) ) < 0 )
+    {
+        DPRINTFE( "Error while handling _enfine_fd on dispatch." );
+    }
 
     sm_service_table_foreach( NULL, sm_service_engine_signal_handler );
 }

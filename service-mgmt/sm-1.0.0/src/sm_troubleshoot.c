@@ -140,7 +140,13 @@ SmErrorT sm_troubleshoot_dump_data( const char reason[] )
 
             snprintf( cmd, sizeof(cmd), "%s %s", SM_TROUBLESHOOT_SCRIPT,
                       SM_TROUBLESHOOT_LOG_FILE );
-            system( cmd );
+            int ret_code;
+            ret_code = system( cmd );
+            if ( ret_code != 0 )
+            {
+                DPRINTFE( "Error while running SM TROUBLESHOOT SCRIPT, "
+                         "exit code %d", ret_code );
+            }
         }
 
         exit( EXIT_SUCCESS );

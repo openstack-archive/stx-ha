@@ -121,8 +121,9 @@ SRCS+=sm_cluster_hbs_info_msg.cpp
 OBJS= $(SRCS:.c=.o)
 CCFLAGS= -g -O2 -Wall -Werror -Wformat  -std=c++11
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS
+EXTRACCFLAGS+= -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security
 LDLIBS= -lsqlite3 -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl
-LDFLAGS = -rdynamic
+LDFLAGS = -rdynamic -Wl,-z,noexecstack,-z,relro,-z,now
 
 .c.o:
 	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) -c $< -o $@
