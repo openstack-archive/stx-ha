@@ -163,14 +163,14 @@ SmErrorT sm_node_utils_is_aio( bool* is_aio )
 // ****************************************************************************
 
 // ****************************************************************************
-// Node Utilities - Sub-Functions Has Compute
+// Node Utilities - Sub-Functions Has Worker
 // ==========================================
-SmErrorT sm_node_utils_sub_function_has_compute( bool* has_compute )
+SmErrorT sm_node_utils_sub_function_has_worker( bool* has_worker )
 {
     char sub_functions[SM_NODE_SUB_FUNCTIONS_MAX_CHAR+1] = "";
     SmErrorT error;
 
-    *has_compute = false;
+    *has_worker = false;
 
     error = sm_node_utils_get_sub_functions( sub_functions );
     if( SM_OKAY != error )
@@ -180,9 +180,9 @@ SmErrorT sm_node_utils_sub_function_has_compute( bool* has_compute )
         return( error );
     }
 
-    if( NULL != strstr( sub_functions, "compute" ) )
+    if( NULL != strstr( sub_functions, "worker" ) )
     {
-        *has_compute = true;
+        *has_worker = true;
     }
 
     return( SM_OKAY );

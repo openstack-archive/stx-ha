@@ -73,26 +73,26 @@ def main():
             six.print_("          state: %s" % sg_state, file=f)
             six.print_("   notification: %s" % sg_notification, file=f)
 
-    # Script to start/stop compute services. Called here for CPE upgrade
+    # Script to start/stop worker services. Called here for CPE upgrade
     # support. Scripts will be run in a separate process so it does not
     # block sm.
-    if 'compute' in tsconfig.subfunctions:
-        compute_services_script = "/etc/init.d/compute_services"
+    if 'worker' in tsconfig.subfunctions:
+        worker_services_script = "/etc/init.d/worker_services"
         if sg_name == 'vim-services':
             if sg_desired_state == "active" and sg_state == "active":
                 if want_log_file:
                     with open(sm_log_file, 'a') as f:
                         six.print_("Called script: %s start" %
-                                   compute_services_script, file=f)
-                subprocess.Popen([compute_services_script, "start"])
+                                   worker_services_script, file=f)
+                subprocess.Popen([worker_services_script, "start"])
             elif sg_aggregate_state == "go-standby" \
                     and sg_desired_state == "standby" \
                     and sg_state == "standby":
                 if want_log_file:
                     with open(sm_log_file, 'a') as f:
                         six.print_("Called script: %s stop" %
-                                   compute_services_script, file=f)
-                subprocess.Popen([compute_services_script, "stop"])
+                                   worker_services_script, file=f)
+                subprocess.Popen([worker_services_script, "stop"])
 
 
 if __name__ == '__main__':

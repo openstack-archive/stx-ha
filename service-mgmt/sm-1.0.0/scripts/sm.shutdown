@@ -11,7 +11,7 @@ case "$1" in
 
     stop)
         . /etc/platform/platform.conf
-        if [[ "$subfunction" == "controller,compute"* ]]; then
+        if [[ "$subfunction" == "controller,worker"* ]]; then
             # Trigger logout of iSCSI connections to avoid shutdown race condition
             /sbin/iscsiadm -m node --logoutall=all
         fi
