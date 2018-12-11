@@ -29,6 +29,7 @@
 #include "sm_service_domain_neighbor_fsm.h"
 #include "sm_service_domain_member_table.h"
 #include "sm_service_domain_interface_fsm.h"
+#include "sm_service_domain_fsm.h"
 #include "sm_heartbeat_msg.h"
 #include "sm_node_swact_monitor.h"
 #include "sm_util_types.h"
@@ -602,36 +603,33 @@ SmFailoverActionResultT sm_failover_swact()
 // ****************************************************************************
 // Failover - fail self
 // ==================
-SmFailoverActionResultT sm_failover_fail_self()
+SmErrorT sm_failover_fail_self()
 {
     DPRINTFI("To disable %s", _host_name);
     SmErrorT error = sm_node_fsm_event_handler(
-        _host_name, SM_NODE_EVENT_DISABLED, NULL, "Host is isolated" );
+        _host_name, SM_NODE_EVENT_DISABLED, NULL, "Host is failed" );
     if( SM_OKAY != error )
     {
         DPRINTFE("Failed to disable %s, error: %s", _host_name, sm_error_str(error));
-        return SM_FAILOVER_ACTION_RESULT_FAILED;
+        return SM_FAILED;
     }
 
     sm_node_utils_set_unhealthy();
 
     error = sm_node_api_fail_node( _host_name );
-    if (SM_OKAY == error )
-    {
-        return SM_FAILOVER_ACTION_RESULT_OK;
-    }
-    else
+    if (SM_OKAY != error )
     {
         DPRINTFE("Failed to set %s failed, error %s.", _host_name, sm_error_str(error));
-        return SM_FAILOVER_ACTION_RESULT_FAILED;
+        return SM_FAILED;
     }
+    return SM_OKAY;
 }
 // ****************************************************************************
 
 // ****************************************************************************
 // Failover - disable node
 // ==================
-SmFailoverActionResultT sm_failover_disable_node(char* node_name)
+SmErrorT sm_failover_disable_node(char* node_name)
 {
     DPRINTFI("To disable %s", node_name);
 
@@ -645,9 +643,9 @@ SmFailoverActionResultT sm_failover_disable_node(char* node_name)
     {
         DPRINTFE( "Failed to disable node %s, error=%s.",
                       node_name, sm_error_str( error ) );
-        return SM_FAILOVER_ACTION_RESULT_FAILED;
+        return SM_FAILED;
     }
-    return SM_FAILOVER_ACTION_RESULT_OK;
+    return SM_OKAY;
 }
 // ****************************************************************************
 
@@ -796,6 +794,21 @@ bool this_controller_unlocked()
 }
 // ****************************************************************************
 
+static SmErrorT sm_ensure_leader_scheduler()
+{
+    char controller_domain[] = "controller";
+    char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR] = "Loss of heartbeat";
+
+    SmErrorT error = sm_service_domain_fsm_set_state(
+        controller_domain,
+        SM_SERVICE_DOMAIN_STATE_LEADER,
+        reason_text );
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to ensure leader scheduler. Error %s", sm_error_str(error));
+    }
+    return error;
+}
 // ****************************************************************************
 // Failover - set system to scheduled status
 // ==================
@@ -808,6 +821,16 @@ SmErrorT sm_failover_set_system(const SmSystemFailoverStatus& failover_status)
     SmNodeScheduleStateT host_target_state, peer_target_state;
     host_target_state = failover_status.get_host_schedule_state();
     peer_target_state = failover_status.get_peer_schedule_state();
+    SmHeartbeatStateT heartbeat_state = failover_status.get_heartbeat_state();
+    if(SM_HEARTBEAT_OK != heartbeat_state)
+    {
+        if(SM_OKAY != sm_ensure_leader_scheduler())
+        {
+            DPRINTFE("Failed to set new leader scheduler to local");
+            return SM_FAILED;
+        }
+    }
+
     if(SM_NODE_STATE_ACTIVE == host_target_state)
     {
         if(SM_NODE_STATE_STANDBY == _host_state &&
@@ -818,8 +841,7 @@ SmErrorT sm_failover_set_system(const SmSystemFailoverStatus& failover_status)
                 DPRINTFE("Failed to activate %s.", _host_name);
                 return SM_FAILED;
             }
-            result = sm_failover_disable_node(_peer_name);
-            if(SM_FAILOVER_ACTION_RESULT_FAILED == result)
+            if(SM_OKAY != sm_failover_disable_node(_peer_name))
             {
                 DPRINTFE("Failed to disable node %s.", _peer_name);
                 return SM_FAILED;
@@ -839,8 +861,7 @@ SmErrorT sm_failover_set_system(const SmSystemFailoverStatus& failover_status)
     }
     else if(SM_NODE_STATE_FAILED == host_target_state)
     {
-        result = sm_failover_disable_node(_host_name);
-        if(SM_FAILOVER_ACTION_RESULT_FAILED == result)
+        if(SM_OKAY != sm_failover_fail_self())
         {
             DPRINTFE("Failed disable host %s.", _host_name);
             return SM_FAILED;
