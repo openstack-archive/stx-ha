@@ -35,15 +35,15 @@ then
 fi
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
-COMPUTE_RESERVED_FILE=/etc/nova/compute_reserved.conf
+WORKER_RESERVED_FILE=/etc/platform/worker_reserved.conf
 SM_PLATFORM_CORES_FILE=/var/run/sm/.platform_cores
 
 export PATH
 
 case "$1" in
     start)
-        if [ -f $COMPUTE_RESERVED_FILE ]; then
-            . $COMPUTE_RESERVED_FILE
+        if [ -f $WORKER_RESERVED_FILE ]; then
+            . $WORKER_RESERVED_FILE
             mkdir /var/run/sm -p
             echo $PLATFORM_CPU_LIST > $SM_PLATFORM_CORES_FILE
         fi

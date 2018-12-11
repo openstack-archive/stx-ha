@@ -29,7 +29,7 @@ extern SmErrorT sm_node_utils_is_aio( bool* is_aio );
 // ****************************************************************************
 // Node Utilities - Sub-Functions Has Compute
 // ==========================================
-extern SmErrorT sm_node_utils_sub_function_has_compute( bool* has_compute );
+extern SmErrorT sm_node_utils_sub_function_has_worker( bool* has_worker );
 // ****************************************************************************
 
 // ****************************************************************************
