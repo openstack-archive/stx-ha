@@ -1,0 +1,11 @@
+Code-Review+1: Al Bailey <al.bailey@windriver.com>
+Code-Review+2: Bin Qian <bin.qian@windriver.com>
+Code-Review+1: zhulingjie <easyzlj@gmail.com>
+Code-Review+1: Abraham Arce <abraham.arce.moreno@intel.com>
+Workflow+1: Bin Qian <bin.qian@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Mon, 17 Dec 2018 18:49:58 +0000
+Reviewed-on: https://review.openstack.org/622825
+Project: openstack/stx-ha
+Branch: refs/heads/master
