@@ -3,7 +3,7 @@ STX-HA Services API v1
 ====================================================
 
 Manage HA Services running on the StarlingX OpenStack Controller cluster.
-This includes services, service nodes and service groups.
+This includes services, nodes and service groups.
 
 The typical port used for the STX-HA Services REST API is 7777. However, proper
 technique would be to look up the smapi service endpoint in Keystone.
@@ -316,17 +316,17 @@ badMediaType (415)
       "updated_at":null
    }
 
---------------
-Service Nodes
---------------
+-----
+Nodes
+-----
 
-These APIs allow the display of the service nodes and their attributes
+These APIs allow the display of the nodes and their attributes
 
-**************************************
-List all service nodes in the system
-**************************************
+***************************************
+List all controller nodes in the system
+***************************************
 
-.. rest_method:: GET /v1/servicenodes
+.. rest_method:: GET /v1/nodes
 
 **Normal response codes**
 
@@ -344,7 +344,7 @@ itemNotFound (404)
    :header: "Parameter", "Style", "Type", "Description"
    :widths: 20, 20, 20, 60
 
-   "nodes (Optional)", "plain", "xsd:list", "The list of service nodes."
+   "nodes (Optional)", "plain", "xsd:list", "The list of controller nodes."
    "administrative_state (Optional)", "plain", "xsd:string", "Administrative state of the node."
    "ready_state (Optional)", "plain", "xsd:string", "The operational state of the node."
    "name (Optional)", "plain", "xsd:string", "The name of the node."
@@ -377,11 +377,11 @@ itemNotFound (404)
 
 This operation does not accept a request body.
 
-*************************************************
-Shows the attributes of a specific service node
-*************************************************
+***************************************
+Shows the attributes of a specific node
+***************************************
 
-.. rest_method:: GET /v1/servicenodes/​{node_id}​
+.. rest_method:: GET /v1/nodes/​{node_id}​
 
 **Normal response codes**
 
@@ -399,7 +399,7 @@ itemNotFound (404)
    :header: "Parameter", "Style", "Type", "Description"
    :widths: 20, 20, 20, 60
 
-   "node_id", "URI", "csapi:UUID", "The unique identifier of an existing service node."
+   "node_id", "URI", "csapi:UUID", "The unique identifier of an existing node."
 
 **Response parameters**
 
@@ -437,7 +437,7 @@ These APIs allow the display of the service groups and their attributes
 List all service groups in the system - STX-HA Services API
 ***********************************************************
 
-.. rest_method:: GET /v1/servicegroup
+.. rest_method:: GET /v1/service_groups
 
 **Normal response codes**
 
@@ -465,7 +465,7 @@ itemNotFound (404)
 ::
 
    {
-      "sm_servicegroup":[
+      "service_groups":[
          {
             "status":"",
             "name":"controller",
@@ -552,7 +552,7 @@ This operation does not accept a request body.
 Shows the attributes of a specific service group - STX-HA Services API
 **********************************************************************
 
-.. rest_method:: GET /v1/servicegroup/​{servicegroup_id}​
+.. rest_method:: GET /v1/service_groups/​{service_groups_id}​
 
 **Normal response codes**
 
@@ -570,7 +570,7 @@ itemNotFound (404)
    :header: "Parameter", "Style", "Type", "Description"
    :widths: 20, 20, 20, 60
 
-   "servicegroup_id", "URI", "csapi:UUID", "The unique identifier of an existing service group."
+   "service_groups_id", "URI", "csapi:UUID", "The unique identifier of an existing service group."
 
 **Response parameters**
 
