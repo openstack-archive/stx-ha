@@ -326,7 +326,7 @@ These APIs allow the display of the service nodes and their attributes
 List all service nodes in the system
 **************************************
 
-.. rest_method:: GET /v1/servicenodes
+.. rest_method:: GET /v1/nodes
 
 **Normal response codes**
 
@@ -381,7 +381,7 @@ This operation does not accept a request body.
 Shows the attributes of a specific service node
 *************************************************
 
-.. rest_method:: GET /v1/servicenodes/​{node_id}​
+.. rest_method:: GET /v1/nodes/​{node_id}​
 
 **Normal response codes**
 
@@ -437,7 +437,7 @@ These APIs allow the display of the service groups and their attributes
 List all service groups in the system - STX-HA Services API
 ***********************************************************
 
-.. rest_method:: GET /v1/servicegroup
+.. rest_method:: GET /v1/service_groups
 
 **Normal response codes**
 
@@ -465,7 +465,7 @@ itemNotFound (404)
 ::
 
    {
-      "sm_servicegroup":[
+      "service_groups":[
          {
             "status":"",
             "name":"controller",
@@ -552,7 +552,7 @@ This operation does not accept a request body.
 Shows the attributes of a specific service group - STX-HA Services API
 **********************************************************************
 
-.. rest_method:: GET /v1/servicegroup/​{servicegroup_id}​
+.. rest_method:: GET /v1/service_groups/​{service_groups_id}​
 
 **Normal response codes**
 
@@ -570,7 +570,7 @@ itemNotFound (404)
    :header: "Parameter", "Style", "Type", "Description"
    :widths: 20, 20, 20, 60
 
-   "servicegroup_id", "URI", "csapi:UUID", "The unique identifier of an existing service group."
+   "service_groups_id", "URI", "csapi:UUID", "The unique identifier of an existing service group."
 
 **Response parameters**
 
