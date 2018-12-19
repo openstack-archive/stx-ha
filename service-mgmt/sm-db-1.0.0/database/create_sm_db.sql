@@ -1079,4 +1079,15 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','enable','ocf-script','
 INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
+
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','registry-token-server','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','registry-token-server','initial','initial','none','none',2,1,90000,4,16,'/var/run/registry-token-server.pid' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','registry-token-server','not-applicable','enable','management-ip','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','registry-token-server','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('registry-token-server','enable','lsb-script','','registry-token-server','start','',2,2,2,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('registry-token-server','disable','lsb-script','','registry-token-server','stop','',1,1,1,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('registry-token-server','audit-enabled','lsb-script','','registry-token-server','status','',2,2,2,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('registry-token-server','audit-disabled','lsb-script','','registry-token-server','status','',0,0,0,15,40);
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','registry-token-server','not-applicable','disable','docker-distribution','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','enable','registry-token-server','enabled-active');
 COMMIT;
