@@ -910,9 +910,9 @@ void sm_failover_audit()
 
     bool in_transition = false;
     bool infra_configured = is_infra_configured();
-    in_transition = in_transition &&
+    in_transition = in_transition ||
             sm_failover_if_transit_state(_mgmt_interface_info);
-    in_transition = in_transition &&
+    in_transition = in_transition ||
             sm_failover_if_transit_state(_oam_interface_info);
     if( infra_configured )
     {
