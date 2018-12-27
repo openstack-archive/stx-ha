@@ -750,7 +750,7 @@ SmErrorT sm_trap_thread_start( int trap_fd )
                     strerror( errno ) );
         }
 
-        if( 0 > open( "/dev/null", O_WRONLY ) )
+        if( 0 > open( "/dev/null", O_RDWR ) )
         {
             printf( "Failed to open stderr to /dev/null, error=%s.\n",
                     strerror( errno ) );
