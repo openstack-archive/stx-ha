@@ -130,6 +130,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','barbican-api','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','barbican-keystone-listener','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','barbican-worker','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dbsync-api','critical' FROM "SERVICE_GROUP_MEMBERS";
 CREATE TABLE SERVICES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), DESIRED_STATE CHAR(32), STATE CHAR(32), STATUS CHAR(32), CONDITION CHAR(32), MAX_FAILURES INT, FAIL_COUNTDOWN INT, FAIL_COUNTDOWN_INTERVAL INT, MAX_ACTION_FAILURES INT, MAX_TRANSITION_FAILURES INT, PID_FILE CHAR(256) );
 INSERT INTO "SERVICES" VALUES(1,'yes','oam-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(2,'yes','management-ip','initial','initial','none','none',2,1,90000,4,16,'');
@@ -228,6 +229,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','etcd-fs','initial','initial','no
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','barbican-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/barbican/pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','barbican-keystone-listener','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/barbican-keystone-listener.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','barbican-worker','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/barbican-worker.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dbsync-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dbsync-api.pid' FROM "SERVICES";
 CREATE TABLE SERVICE_HEARTBEAT ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), TYPE CHAR(32), SRC_ADDRESS CHAR(256), SRC_PORT INT, DST_ADDRESS CHAR(256), DST_PORT INT, MESSAGE CHAR(256), INTERVAL_IN_MS INT, MISSED_WARN INT, MISSED_DEGRADE INT, MISSED_FAIL INT, STATE CHAR(32), MISSED INT, HEARTBEAT_TIMER_ID INT, HEARTBEAT_SOCKET INT );
 CREATE TABLE SERVICE_DEPENDENCY ( DEPENDENCY_TYPE CHAR(32), SERVICE_NAME CHAR(32), STATE CHAR(32), ACTION CHAR(32), DEPENDENT CHAR(32), DEPENDENT_STATE CHAR(32), PRIMARY KEY (DEPENDENCY_TYPE, SERVICE_NAME, STATE, ACTION, DEPENDENT));
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ip','not-applicable','enable','management-ip','enabled-active');
@@ -510,6 +512,10 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','di
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','barbican-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-api','not-applicable','disable','barbican-worker','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-worker','not-applicable','disable','barbican-keystone-listener','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dbsync-api','not-applicable','enable','keystone','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','disable','dbsync-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','dbsync-api','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dbsync-api','not-applicable','disable','dcorch-engine','disabled');
 CREATE TABLE SERVICE_INSTANCES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, SERVICE_NAME CHAR(32), INSTANCE_NAME CHAR(32), INSTANCE_PARAMETERS CHAR(1024) );
 INSERT INTO "SERVICE_INSTANCES" VALUES(1,'lighttpd','lighttpd','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(2,'horizon','horizon','');
@@ -907,6 +913,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-patch-api-proxy','enable','ocf-scri
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-patch-api-proxy','disable','ocf-script','openstack','dcorch-patch-api-proxy','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-patch-api-proxy','audit-enabled','ocf-script','openstack','dcorch-patch-api-proxy','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-patch-api-proxy','audit-disabled','ocf-script','openstack','dcorch-patch-api-proxy','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dbsync-api','enable','ocf-script','openstack','dbsync-api','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dbsync-api','disable','ocf-script','openstack','dbsync-api','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dbsync-api','audit-enabled','ocf-script','openstack','dbsync-api','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dbsync-api','audit-disabled','ocf-script','openstack','dbsync-api','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','enable','ocf-script','linbit','drbd','start','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,90,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','disable','ocf-script','linbit','drbd','stop','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',1,1,1,180,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','go-active','ocf-script','linbit','drbd','promote','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,180,'');
