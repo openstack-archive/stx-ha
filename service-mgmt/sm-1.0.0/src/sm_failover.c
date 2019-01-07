@@ -316,8 +316,20 @@ void sm_failover_heartbeat_restore( SmFailoverInterfaceT* interface )
     }
     else if( SM_FAILOVER_INTERFACE_DOWN == state )
     {
-        // need to wait for if up
-        return;
+        bool enabled = true;
+        SmErrorT error = sm_hw_get_if_state(interface->interface_name, &enabled);
+        if(SM_OKAY != error)
+        {
+           DPRINTFE("Couldn't get interface (%s) state. ", interface->interface_name);
+        }
+        if(!enabled)
+        {
+            // need to wait for if up
+            return;
+        }else
+        {
+            DPRINTFI("Interface %s is verified as UP after receiving heartbeat.", interface->interface_name);
+        }
     }
 
     if(if_info->set_state(SM_FAILOVER_INTERFACE_OK))
@@ -1104,8 +1116,8 @@ void _log_nodes_state()
     }
     DPRINTFI("Host state %d, I/F state %d, peer I/F state %d",
             _node_comm_state,
-            _peer_if_state,
-            _host_state
+            _host_state,
+            _peer_if_state
         );
 }
 // ****************************************************************************
