@@ -79,7 +79,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(49,'yes','directory-services','open-l
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(50,'yes','web-services','lighttpd','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(51,'yes','web-services','horizon','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(52,'yes','patching-services','patch-alarm-manager','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(53,'no','storage-services','ceph-rest-api','critical');
+INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(53,'no','storage-services','mgr-restful-plugin','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(54,'no','storage-monitoring-services','ceph-manager','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(55,'no','controller-services','drbd-cinder','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(56,'no','controller-services','cinder-lvm','critical');
@@ -177,7 +177,7 @@ INSERT INTO "SERVICES" VALUES(49,'yes','snmp','initial','initial','none','none',
 INSERT INTO "SERVICES" VALUES(50,'yes','lighttpd','initial','initial','none','none',2,1,90000,4,16,'/var/run/lighttpd.pid');
 INSERT INTO "SERVICES" VALUES(51,'yes','horizon','initial','initial','none','none',2,1,90000,4,16,'/var/run/openstack-dashboard.pid');
 INSERT INTO "SERVICES" VALUES(52,'yes','patch-alarm-manager','initial','initial','none','none',2,1,90000,4,16,'/var/run/patch-alarm-manager.pid');
-INSERT INTO "SERVICES" VALUES(53,'no','ceph-rest-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/ceph/ceph-rest-api.pid');
+INSERT INTO "SERVICES" VALUES(53,'no','mgr-restful-plugin','initial','initial','none','none',2,1,90000,4,16,'/var/run/ceph/mgr-restful-plugin.pid');
 INSERT INTO "SERVICES" VALUES(54,'no','ceph-manager','initial','initial','none','none',2,1,90000,4,16,'/var/run/ceph/ceph-manager.pid');
 INSERT INTO "SERVICES" VALUES(55,'no','drbd-cinder','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(56,'no','cinder-lvm','initial','initial','none','none',2,1,90000,4,16,'');
@@ -308,7 +308,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-api','not-applicable','en
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-api-cfn','not-applicable','enable','heat-api','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-api-cloudwatch','not-applicable','enable','heat-api-cfn','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','horizon','not-applicable','enable','lighttpd','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-manager','not-applicable','enable','ceph-rest-api','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-manager','not-applicable','enable','mgr-restful-plugin','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','go-active','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-lvm','not-applicable','enable','drbd-cinder','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','iscsi','not-applicable','enable','cinder-lvm','enabled-active');
@@ -391,7 +391,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-engine','not-applicable',
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-api','not-applicable','disable','heat-api-cfn','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','heat-api-cfn','not-applicable','disable','heat-api-cloudwatch','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','lighttpd','not-applicable','disable','horizon','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-rest-api','not-applicable','disable','ceph-manager','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mgr-restful-plugin','not-applicable','disable','ceph-manager','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','disable','cgcs-nfs-ip','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','disable','cinder-volume','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','disable','cinder-backup','disabled');
@@ -522,7 +522,7 @@ INSERT INTO "SERVICE_INSTANCES" VALUES(8,'vim-api','vim-api','config=/etc/nfv/vi
 INSERT INTO "SERVICE_INSTANCES" VALUES(9,'vim-webserver','vim-webserver','config=/etc/nfv/vim/config.ini');
 INSERT INTO "SERVICE_INSTANCES" VALUES(10,'nova-api-proxy','nova-api-proxy','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(11,'haproxy','haproxy','');
-INSERT INTO "SERVICE_INSTANCES" VALUES(12,'ceph-rest-api','ceph-rest-api','');
+INSERT INTO "SERVICE_INSTANCES" VALUES(12,'mgr-restful-plugin','mgr-restful-plugin','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(13,'ceph-manager','ceph-manager','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(14,'ceph-radosgw','ceph-radosgw','');
 CREATE TABLE SERVICE_ACTIONS ( SERVICE_NAME CHAR(32), ACTION CHAR(32), PLUGIN_TYPE CHAR(32), PLUGIN_CLASS CHAR(32), PLUGIN_NAME CHAR(80), PLUGIN_COMMAND CHAR(80), PLUGIN_PARAMETERS CHAR(1024), MAX_FAILURE_RETRIES INT,      MAX_TIMEOUT_RETRIES INT,      MAX_TOTAL_RETRIES INT,      TIMEOUT_IN_SECS INT,      INTERVAL_IN_SECS INT,      PRIMARY KEY (SERVICE_NAME, ACTION));
@@ -759,10 +759,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','enable','lsb-script','','haproxy
 INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','disable','lsb-script','','haproxy','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','audit-enabled','lsb-script','','haproxy','status','',2,2,2,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','audit-disabled','lsb-script','','haproxy','status','',0,0,0,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-rest-api','enable','lsb-script','','ceph-rest-api','start','',2,2,2,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-rest-api','disable','lsb-script','','ceph-rest-api','stop','',1,1,1,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-rest-api','audit-enabled','lsb-script','','ceph-rest-api','status','',2,2,2,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-rest-api','audit-disabled','lsb-script','','ceph-rest-api','status','',0,0,0,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','enable','lsb-script','','mgr-restful-plugin','start','',2,2,2,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','disable','lsb-script','','mgr-restful-plugin','stop','',1,1,1,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','audit-enabled','lsb-script','','mgr-restful-plugin','status','',2,2,2,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','audit-disabled','lsb-script','','mgr-restful-plugin','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-manager','enable','lsb-script','','ceph-manager','start','',2,2,2,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-manager','disable','lsb-script','','ceph-manager','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-manager','audit-enabled','lsb-script','','ceph-manager','status','',2,2,2,15,40);
