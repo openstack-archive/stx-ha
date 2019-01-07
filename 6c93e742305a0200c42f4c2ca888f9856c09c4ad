@@ -1,0 +1,9 @@
+Code-Review+1: Bruce Jones <bruce.e.jones@intel.com>
+Code-Review+2: Eric MacDonald <eric.macdonald@windriver.com>
+Workflow+1: Eric MacDonald <eric.macdonald@windriver.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Mon, 07 Jan 2019 22:57:50 +0000
+Reviewed-on: https://review.openstack.org/629036
+Project: openstack/stx-ha
+Branch: refs/heads/master
