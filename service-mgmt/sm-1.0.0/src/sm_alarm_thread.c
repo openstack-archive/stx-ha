@@ -1297,7 +1297,8 @@ static void sm_alarm_thread_audit( const char entity_instance[] )
         return;
     }
 
-    snprintf( fm_entity_instance_id, FM_MAX_BUFFER_LENGTH, entity_instance );
+    snprintf( fm_entity_instance_id, FM_MAX_BUFFER_LENGTH, "%s",
+              entity_instance );
 
     fm_error = fm_get_faults_wrapper( &fm_entity_instance_id, fm_alarm_data,
                                       &fm_total_alarms );

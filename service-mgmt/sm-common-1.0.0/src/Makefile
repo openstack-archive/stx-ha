@@ -15,9 +15,9 @@ SRCS+=sm_thread_health.c
 SRCS+=sm_utils.c
 SRCS+=sm_node_utils.c
 SRCS+=sm_node_stats.c
-SRCS+=sm_selobj.c 
-SRCS+=sm_time.c 
-SRCS+=sm_timer.c 
+SRCS+=sm_selobj.c
+SRCS+=sm_time.c
+SRCS+=sm_timer.c
 SRCS+=sm_netlink.c
 SRCS+=sm_hw.c
 SRCS+=sm_uuid.c
@@ -28,7 +28,7 @@ SRCS+=sm_util_types.c
 OBJS = $(SRCS:.c=.o)
 CCFLAGS= -fPIC -g -O2 -Wall -Werror -std=c++11
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS -DSW_VERSION=\"$(SW_VERSION)\"
-
+EXTRACCFLAGS+= -Wformat -Wformat-security
 LDLIBS= -lsqlite3 -lglib-2.0 -lgmodule-2.0 -luuid -lrt -lpthread
 LDFLAGS = -shared -rdynamic
 
