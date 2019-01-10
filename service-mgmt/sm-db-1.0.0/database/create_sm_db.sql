@@ -759,7 +759,7 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','enable','lsb-script','','haproxy
 INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','disable','lsb-script','','haproxy','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','audit-enabled','lsb-script','','haproxy','status','',2,2,2,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','audit-disabled','lsb-script','','haproxy','status','',0,0,0,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','enable','lsb-script','','mgr-restful-plugin','start','',2,2,2,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','enable','lsb-script','','mgr-restful-plugin','start','',8,8,8,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','disable','lsb-script','','mgr-restful-plugin','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','audit-enabled','lsb-script','','mgr-restful-plugin','status','',2,2,2,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','audit-disabled','lsb-script','','mgr-restful-plugin','status','',0,0,0,15,40);
