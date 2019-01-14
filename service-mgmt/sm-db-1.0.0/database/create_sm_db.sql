@@ -1071,4 +1071,12 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-osd','disable','lsb-script','','ceph-
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-osd','audit-enabled','lsb-script','','ceph-init-wrapper','status','ARGS=osd',2,2,2,125,130);
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-osd','audit-disabled','lsb-script','','ceph-init-wrapper','status','ARGS=osd',0,0,0,125,130);
 
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','helmrepository-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','helmrepository-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','helmrepository-fs','not-applicable','enable','cgcs-fs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cgcs-fs','not-applicable','disable','helmrepository-fs','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
 COMMIT;
