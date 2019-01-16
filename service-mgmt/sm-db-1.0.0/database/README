@@ -3,8 +3,7 @@ create_sm_db.sql -> sm.db
 create_sm_hb_db.sql -> sm.db.hb
 
 Instructions:
-1. Update the SM excel spreadsheet (sm_database.xlsb) with your changes,
-2. Update the corresponding SQL script i.e, create_sm_db.sql or create_sm_hb_db.sql:
+1. Update the corresponding SQL script i.e, create_sm_db.sql or create_sm_hb_db.sql:
     Add proper SQL statement(s) (insert, update, delete) to the sql file.
 
 

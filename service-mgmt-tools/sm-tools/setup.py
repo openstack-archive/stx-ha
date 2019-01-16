@@ -19,7 +19,6 @@ setuptools.setup(
             'sm-deprovision = sm_tools.sm_provision:main ',
             'sm-dump = sm_tools.sm_dump:main',
             'sm-query = sm_tools.sm_query:main',
-            'sm-patch = sm_tools.sm_patch:main',
             'sm-manage = sm_tools.sm_action:main',
             'sm-unmanage = sm_tools.sm_action:main ',
             'sm-restart-safe = sm_tools.sm_action:main ',
