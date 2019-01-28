@@ -184,14 +184,6 @@ static SmErrorT sm_process_initialize( void )
         return( SM_FAILED );
     }
 
-    error = sm_hw_initialize( NULL );
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to initialize hardware module, error=%s.",
-                  sm_error_str( error ) );
-        return( SM_FAILED );
-    }
-
     error = SmWorkerThread::initialize();
     if( SM_OKAY != error )
     {
@@ -508,13 +500,6 @@ static SmErrorT sm_process_finalize( void )
     if( SM_OKAY != error )
     {
         DPRINTFE( "Failed to finalize worker thread, error=%s.",
-                  sm_error_str( error ) );
-    }
-
-    error = sm_hw_finalize();
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to finalize hardware module, error=%s.",
                   sm_error_str( error ) );
     }
 
