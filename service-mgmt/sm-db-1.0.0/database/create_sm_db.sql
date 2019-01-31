@@ -1038,7 +1038,7 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('gnocchi-metricd','audit-enabled','lsb-scri
 INSERT INTO "SERVICE_ACTIONS" VALUES('gnocchi-metricd','audit-disabled','lsb-script','','gnocchi-metricd','status','',0,0,0,30,30);
 
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','ceph-mon','critical' FROM "SERVICE_GROUP_MEMBERS";
-INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','ceph-mon','initial','initial','none','none',2,1,90000,4,16,'/var/run/ceph/mon.controller.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','ceph-mon','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','enable','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','ceph-mon','disabled');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','enable','lsb-script','','ceph-init-wrapper','start','ARGS=mon',2,2,2,15,'');
