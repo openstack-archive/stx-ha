@@ -198,6 +198,10 @@ SmErrorT sm_service_domain_initial_state_event_handler(
             // Ignore.
         break;
 
+        case SM_SERVICE_DOMAIN_EVENT_CHANGING_LEADER:
+            DPRINTFE("Received unexpected %s event", sm_service_domain_event_str(event));
+        break;
+
         default:
             DPRINTFD( "Service Domain (%s) ignoring event (%s).", 
                       domain->name, sm_service_domain_event_str( event ) );

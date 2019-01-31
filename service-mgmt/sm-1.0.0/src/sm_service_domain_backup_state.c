@@ -58,6 +58,7 @@ SmErrorT sm_service_domain_backup_state_event_handler( SmServiceDomainT* domain,
     char* neighbor_name = NULL;
     char leader[SM_NODE_NAME_MAX_CHAR];
     char hostname[SM_NODE_NAME_MAX_CHAR];
+    const char* new_leader;
     int generation = 0;    
     char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR] = "";
     SmServiceDomainStateT state = SM_SERVICE_DOMAIN_STATE_NIL;
@@ -186,6 +187,34 @@ SmErrorT sm_service_domain_backup_state_event_handler( SmServiceDomainT* domain,
 
         case SM_SERVICE_DOMAIN_EVENT_WAIT_EXPIRED:
             // Ignore.
+        break;
+
+        case SM_SERVICE_DOMAIN_EVENT_CHANGING_LEADER:
+            new_leader = (const char*) event_data[0];
+            error = sm_node_api_get_hostname(hostname);
+            if(SM_OKAY != error )
+            {
+                DPRINTFE("Failed to get hostname. Error %s", sm_error_str(error));
+                return SM_FAILED;
+            }
+
+            if(0 != strncmp(hostname, new_leader, SM_NODE_NAME_MAX_CHAR))
+            {
+                //Ignore
+            }else
+            {
+                strncpy(domain->leader, new_leader, SM_NODE_NAME_MAX_CHAR);
+                state = SM_SERVICE_DOMAIN_STATE_LEADER;
+                error = sm_service_domain_fsm_set_state( domain->name, state,
+                                                         "leader change");
+                if( SM_OKAY != error )
+                {
+                    DPRINTFE( "Set state (%s) of service domain (%s) failed, "
+                              "error=%s.", sm_service_domain_state_str( state ),
+                              domain->name, sm_error_str( error ) );
+                    return( error );
+                }
+            }
         break;
 
         default:

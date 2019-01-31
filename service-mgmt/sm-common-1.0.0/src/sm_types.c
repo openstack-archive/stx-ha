@@ -151,6 +151,7 @@ _sm_service_domain_event_mappings[SM_SERVICE_DOMAIN_EVENT_MAX] =
     { SM_SERVICE_DOMAIN_EVENT_INTERFACE_ENABLED,  "interface-enabled"  },
     { SM_SERVICE_DOMAIN_EVENT_INTERFACE_DISABLED, "interface-disabled" },
     { SM_SERVICE_DOMAIN_EVENT_WAIT_EXPIRED,       "wait-expired"       },
+    { SM_SERVICE_DOMAIN_EVENT_CHANGING_LEADER,    "change-leader"      },
 };
 
 static SmValueStrMappingT 
