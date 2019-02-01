@@ -59,10 +59,10 @@ MAJOR=`echo $VER | awk -F . '{print $1}'`
 make -j"%(nproc)"
 
 %install
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 VER=%{version}
 MAJOR=`echo $VER | awk -F . '{print $1}'`
-make DEST_DIR=$RPM_BUILD_ROOT UNIT_DIR=%{_unitdir} install_non_bb
+make DEST_DIR=%{buildroot} UNIT_DIR=%{_unitdir} install
 
 %post
 /usr/bin/systemctl enable sm.service >/dev/null 2>&1
@@ -81,19 +81,3 @@ make DEST_DIR=$RPM_BUILD_ROOT UNIT_DIR=%{_unitdir} install_non_bb
 "/etc/init.d/sm-shutdown"
 "/etc/pmon.d/sm.conf"
 "/etc/logrotate.d/sm.logrotate"
-
-#%files -n sm-dbg
-#%defattr(-,-,-,-)
-#%dir "/usr"
-#%dir "/usr/bin"
-#%dir "/usr/src"
-#%dir "/usr/bin/.debug"
-#"/usr/bin/.debug/sm"
-#%dir "/usr/src/debug"
-#%dir "/usr/src/debug/sm"
-#%dir "/usr/src/debug/sm/1.0.0-r10"
-#%dir "/usr/src/debug/sm/1.0.0-r10/src"
-#/usr/src/debug/sm/1.0.0-r10/src/*.c
-#/usr/src/debug/sm/1.0.0-r10/src/*.h
-
-
