@@ -130,7 +130,7 @@ LDFLAGS = -rdynamic
 build: $(OBJS)
 	$(CXX) $(CCFLAGS) $(EXTRACCFLAGS) $(OBJS) ${LDFLAGS} $(LDLIBS) -o sm
 
-install_non_bb:
+install:
 	install -d 755 ${DEST_DIR}/usr/bin
 	install -m 755 sm ${DEST_DIR}/usr/bin/sm
 
