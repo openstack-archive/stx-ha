@@ -1,4 +1,4 @@
-install_non_bb:
+install:
 	install -d ${DEST_DIR}/etc/init.d
 	install sm ${DEST_DIR}/etc/init.d/sm
 	install sm.shutdown ${DEST_DIR}/etc/init.d/sm-shutdown

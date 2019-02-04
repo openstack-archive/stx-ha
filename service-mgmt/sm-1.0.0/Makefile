@@ -6,7 +6,7 @@
 build:
 	@(cd src; make build )
 
-install_non_bb:
+install:
 	@(cd src; make $@)
 	@(cd scripts; make $@)
 
