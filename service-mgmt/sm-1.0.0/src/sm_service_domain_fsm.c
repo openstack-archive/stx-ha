@@ -340,6 +340,13 @@ SmErrorT sm_service_domain_fsm_set_state( char service_domain_name[],
         snprintf( _reason_text, sizeof(_reason_text), "%s", reason_text );
     }
 
+    error = sm_service_domain_table_persist( domain );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to persist service domain (%s), error=%s.",
+                  domain->name, sm_error_str( error ) );
+    }
+
     return( SM_OKAY );
 
 STATE_CHANGE_ERROR:

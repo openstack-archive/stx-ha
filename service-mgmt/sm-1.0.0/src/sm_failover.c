@@ -810,14 +810,37 @@ static SmErrorT sm_ensure_leader_scheduler()
 {
     char controller_domain[] = "controller";
     char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR] = "Loss of heartbeat";
+    SmServiceDomainT* domain;
 
-    SmErrorT error = sm_service_domain_fsm_set_state(
-        controller_domain,
-        SM_SERVICE_DOMAIN_STATE_LEADER,
-        reason_text );
-    if(SM_OKAY != error)
+    domain = sm_service_domain_table_read( controller_domain );
+    if( NULL == domain )
     {
-        DPRINTFE("Failed to ensure leader scheduler. Error %s", sm_error_str(error));
+        DPRINTFE( "Failed to read service domain (%s), error=%s.",
+                  controller_domain, sm_error_str(SM_NOT_FOUND) );
+        return( SM_NOT_FOUND );
+    }
+
+    if(0 == strncmp(domain->leader, _host_name, sizeof(domain->leader)))
+    {
+        //Already leader. Nothing to do
+        return SM_OKAY;
+    }
+
+    SmServiceDomainEventT event = SM_SERVICE_DOMAIN_EVENT_CHANGING_LEADER;
+    void* event_data[] = {
+        _host_name //new leader
+    };
+    SmErrorT error = sm_service_domain_fsm_event_handler(
+        controller_domain,
+        event,
+        event_data, reason_text );
+
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Service domain (%s) failed to handle event (%s), error=%s.",
+                  controller_domain, sm_service_domain_event_str(event),
+                  sm_error_str( error ) );
+        return( error );
     }
     return error;
 }
