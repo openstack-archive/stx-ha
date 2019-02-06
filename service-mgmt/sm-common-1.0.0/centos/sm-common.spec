@@ -85,27 +85,11 @@ make  VER=${VER} VER_MJR=$MAJOR %{?_smp_mflags}
 %global _buildsubdir %{_builddir}/%{name}-%{version}
 
 %install
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 VER=%{version}
 MAJOR=`echo $VER | awk -F . '{print $1}'`
 MINOR=`echo $VER | awk -F . '{print $2}'`
-make DEST_DIR=$RPM_BUILD_ROOT BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_libdir} INC_DIR=%{_includedir} VER=$VER VER_MJR=$MAJOR install_non_bb
-
-install -m 750 -d %{buildroot}/usr
-install -m 750 -d %{buildroot}/usr/bin
-install -m 750 -p -D %{_buildsubdir}/src/sm_eru %{buildroot}%{_bindir}/sm-eru
-install -m 750 -p -D %{_buildsubdir}/src/sm_eru_dump %{buildroot}%{_bindir}/sm-eru-dump
-install -m 750 -p -D %{_buildsubdir}/src/sm_watchdog %{buildroot}%{_bindir}/sm-watchdog
-
-install -m 644 -p -D %{_buildsubdir}/scripts/sm-eru.service %{buildroot}%{_unitdir}/sm-eru.service
-install -m 644 -p -D %{_buildsubdir}/scripts/sm-watchdog.service %{buildroot}%{_unitdir}/sm-watchdog.service
-
-install -m 750 -d %{buildroot}%{_sysconfdir}/pmon.d
-install -m 640 -p -D %{_buildsubdir}/scripts/sm-eru.conf %{buildroot}%{_sysconfdir}/pmon.d/sm-eru.conf
-install -m 640 -p -D %{_buildsubdir}/scripts/sm-watchdog.conf %{buildroot}%{_sysconfdir}/pmon.d/sm-watchdog.conf
-
-install -m 750 -p -D %{_buildsubdir}/scripts/sm-eru %{buildroot}%{_sysconfdir}/init.d/sm-eru
-install -m 750 -p -D %{_buildsubdir}/scripts/sm-watchdog %{buildroot}%{_sysconfdir}/init.d/sm-watchdog
+make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_libdir} INC_DIR=%{_includedir} BUILDSUBDIR=%{_buildsubdir} VER=$VER VER_MJR=$MAJOR install
 
 %post
 /usr/bin/systemctl enable sm-watchdog.service >/dev/null 2>&1
