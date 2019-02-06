@@ -19,23 +19,6 @@ BuildRequires: libuuid-devel
 %description
 Service Managment Databases
 
-#%package -n sm-db-dbg
-#Summary: Service Management Databases - Debugging files
-#Group: devel
-#Suggests: libsqlite3-dbg
-#Suggests: libgcc-s-dbg(x86_64)
-#Suggests: libglib-2.0-dbg(x86_64)
-#Suggests: libstdc++-dbg(x86_64)
-#Suggests: libc6-dbg(x86_64)
-#Suggests: util-linux-libuuid-dbg
-#Suggests: sm-common-dbg(x86_64)
-#Recommends: sm-db = 1.0.0-r16.0
-#Provides: sm-db-dbg(x86_64) = 1.0.0-r16.0
-
-#%description -n sm-db-dbg
-#Service Managment Databases  This package contains ELF symbols and related
-#sources for debugging purposes.
-
 %package dev
 Summary: Service Management Databases - Development files
 Group: devel
@@ -60,7 +43,7 @@ make  VER=${VER} VER_MJR=$MAJOR
 rm -rf $RPM_BUILD_ROOT 
 VER=%{version}
 MAJOR=`echo $VER | awk -F . '{print $1}'`
-make DEST_DIR=$RPM_BUILD_ROOT VER=$VER VER_MJR=$MAJOR install_non_bb
+make DEST_DIR=$RPM_BUILD_ROOT VER=$VER VER_MJR=$MAJOR install
 
 %files
 %license LICENSE
@@ -71,25 +54,7 @@ make DEST_DIR=$RPM_BUILD_ROOT VER=$VER VER_MJR=$MAJOR install_non_bb
 %config(noreplace)"/var/lib/sm/sm.db"
 "/var/lib/sm/patches/sm-patch.sql"
 
-#%files -n sm-db-dbg
-#%defattr(-,-,-,-)
-#%dir "/usr"
-#%dir "/usr/lib64"
-#%dir "/usr/bin"
-#%dir "/usr/src"
-#%dir "/usr/lib64/.debug"
-#"/usr/lib64/.debug/libsm_db.so.1.0.0"
-#%dir "/usr/bin/.debug"
-#%dir "/usr/src/debug"
-#%dir "/usr/src/debug/sm-db"
-#%dir "/usr/src/debug/sm-db/1.0.0-r16"
-#%dir "/usr/src/debug/sm-db/1.0.0-r16/src"
-#/usr/src/debug/sm-db/1.0.0-r16/src/*.h
-#/usr/src/debug/sm-db/1.0.0-r16/src/*.c
-
 %files dev
 %defattr(-,root,root,-)
 /usr/lib64/libsm_db.so
 /usr/include/*.h
-
-

@@ -6,7 +6,7 @@
 build:
 	@(cd src; make build VER=$(VER) VER_MJR=$(VER_MJR))
 
-install_non_bb:
+install:
 	@(cd src; make $@)
 	@(cd database; make $@)
 

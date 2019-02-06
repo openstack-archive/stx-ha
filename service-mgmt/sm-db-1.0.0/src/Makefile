@@ -50,7 +50,7 @@ libsm_db.so.$(VER): ${OBJS}
 sm_db_build: ${OBJS}
 	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(OBJS) $(LDLIBS) -o sm_db_build
 
-install_non_bb:
+install:
 	install -d ${DEST_DIR}/usr/lib64
 	install libsm_db.so.${VER} $(DEST_DIR)/usr/lib64
 	cp -P libsm_db.so libsm_db.so.$(VER_MJR) $(DEST_DIR)/usr/lib64

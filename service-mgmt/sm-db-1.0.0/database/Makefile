@@ -1,4 +1,8 @@
-install_non_bb:
+#
+## SPDX-License-Identifier: Apache-2.0
+#
+
+install:
 	install -d ${DEST_DIR}/var/lib/sm
 	install -d ${DEST_DIR}/var/lib/sm/patches
 	install sm.hb.db ${DEST_DIR}/var/lib/sm
