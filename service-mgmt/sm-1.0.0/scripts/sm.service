@@ -1,6 +1,6 @@
 [Unit]
 Description=Service Management Unit
-After=network-online.target syslog-ng.service config.service sm-watchdog.service systemd-udev-settle.service
+After=network-online.target syslog-ng.service config.service sm-watchdog.service systemd-udev-settle.service drbd.service
 Before=sm-shutdown.service sm-api.service pmon.service
 
 [Service]
