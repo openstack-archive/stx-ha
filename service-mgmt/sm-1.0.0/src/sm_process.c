@@ -53,6 +53,7 @@
 #include "sm_failover.h"
 #include "sm_task_affining_thread.h"
 #include "sm_worker_thread.h"
+#include "sm_configuration_table.h"
 
 #define SM_PROCESS_DB_CHECKPOINT_INTERVAL_IN_MS         30000
 #define SM_PROCESS_TICK_INTERVAL_IN_MS                    200
@@ -570,6 +571,34 @@ static SmErrorT sm_process_wait_node_configuration( void )
 // ****************************************************************************
 
 // ****************************************************************************
+// Process - get process priority setting
+// ==============
+static int get_process_nice_val()
+{
+    char buf[SM_CONFIGURATION_VALUE_MAX_CHAR + 1];
+    int nice_val = -2;
+    if( SM_OKAY == sm_configuration_table_get("sm_process_priority", buf, sizeof(buf) - 1) )
+    {
+        if(buf[0] != '\0')
+        {
+            nice_val = atoi(buf);
+        }
+    }
+
+    if(nice_val > -2 || nice_val < -20)
+    {
+        DPRINTFE("Invalid sm_process_priority value %d, reset to default (-2)", nice_val);
+        nice_val = -2;
+    }
+    else
+    {
+        DPRINTFI("sm_process_priority value is set to %d", nice_val);
+    }
+    return nice_val;
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Process - Main
 // ==============
 SmErrorT sm_process_main( int argc, char *argv[], char *envp[] )
@@ -604,14 +633,6 @@ SmErrorT sm_process_main( int argc, char *argv[], char *envp[] )
     {
         DPRINTFE( "Failed to write pid file for sm, error=%s.",
                   strerror(errno) );
-        return( SM_FAILED );
-    }
-
-    result = setpriority( PRIO_PROCESS, getpid(), -2 );
-    if( 0 > result )
-    {
-        DPRINTFE( "Failed to set priority of process, error=%s.",
-                  strerror( errno ) );
         return( SM_FAILED );
     }
 
@@ -708,6 +729,16 @@ SmErrorT sm_process_main( int argc, char *argv[], char *envp[] )
         DPRINTFE( "Failed initialize process, error=%s.",
                   sm_error_str(error) );
         return( error );
+    }
+
+    int process_nice_val = get_process_nice_val();
+
+    result = setpriority( PRIO_PROCESS, getpid(), process_nice_val);
+    if( 0 > result )
+    {
+        DPRINTFE( "Failed to set priority of process, error=%s.",
+                  strerror( errno ) );
+        return( SM_FAILED );
     }
 
     error = sm_utils_set_boot_complete();

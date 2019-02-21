@@ -68,6 +68,11 @@ def main():
             help='port mtce receives sm commands from'
         )
 
+        sys_parser.add_argument(
+            "--sm_process_priority",
+            help='sm process nice value, range from -2 to -20, default -2.'
+        )
+
         sg_parser = subparsers.add_parser('service_group',
                                           help='Service Group '
                                           'Configuration')
@@ -94,6 +99,15 @@ def main():
 
             if args.sm_client_port:
                 configure_system_opt("sm_client_port", args.sm_client_port)
+
+            if args.sm_process_priority:
+                if int(args.sm_process_priority) in range(-20, -1):
+                    configure_system_opt("sm_process_priority",
+                                         args.sm_process_priority)
+                else:
+                    print("Invalid sm_process_priority value. "
+                          "Must be between -2 to -20")
+                    sys.exit(-1)
         else:
             database = sqlite3.connect(database_name)
             _dispatch_config_action(args, database)
@@ -243,8 +257,9 @@ def configure_system_opt(key, value):
     database = sqlite3.connect(database_name)
 
     cursor = database.cursor()
-    sql = "UPDATE CONFIGURATION SET VALUE='%s' " \
-          "WHERE KEY = '%s'" % (value, key)
+    sql = 'INSERT OR REPLACE INTO CONFIGURATION ( ID, "KEY", "VALUE" ) ' \
+          'VALUES((SELECT ID FROM CONFIGURATION WHERE KEY = "%s"), ' \
+          '"%s", "%s");' % (key, key, value)
 
     cursor.execute(sql)
     database.commit()
