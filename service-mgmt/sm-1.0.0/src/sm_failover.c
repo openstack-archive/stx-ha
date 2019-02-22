@@ -1275,6 +1275,17 @@ SmErrorT sm_failover_initialize( void )
         return SM_FAILED;
     }
 
+    SmHwCallbacksT callbacks;
+    memset( &callbacks, 0, sizeof(callbacks) );
+    callbacks.interface_change = sm_failover_interface_change_callback;
+    error = sm_hw_initialize( &callbacks );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to initialize hardware module, error=%s.",
+                  sm_error_str( error ) );
+        return( error );
+    }
+
     _total_interfaces = 0;
     sm_service_domain_interface_table_foreach(
         user_data,
@@ -1350,17 +1361,6 @@ SmErrorT sm_failover_initialize( void )
         DPRINTFE("Failed to initialize cluster hbs info messaging");
     }
 
-    SmHwCallbacksT callbacks;
-    memset( &callbacks, 0, sizeof(callbacks) );
-    callbacks.interface_change = sm_failover_interface_change_callback;
-    error = sm_hw_initialize( &callbacks );
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to initialize hardware module, error=%s.",
-                  sm_error_str( error ) );
-        return( error );
-    }
-
     return SM_OKAY;
 }
 // ****************************************************************************
@@ -1373,16 +1373,6 @@ SmErrorT sm_failover_finalize( void )
     _total_interfaces = 0;
 
     SmErrorT error;
-    SmHwCallbacksT callbacks;
-    memset( &callbacks, 0, sizeof(callbacks) );
-    callbacks.interface_change = sm_failover_interface_change_callback;
-    error = sm_hw_initialize( &callbacks );
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to initialize hardware module, error=%s.",
-                  sm_error_str( error ) );
-        return( error );
-    }
 
     error = SmClusterHbsInfoMsg::finalize();
     if(SM_OKAY != error)
@@ -1403,11 +1393,17 @@ SmErrorT sm_failover_finalize( void )
         _sm_db_handle = NULL;
     }
 
+    error = sm_hw_finalize();
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to finalize hardware module, error=%s.",
+                  sm_error_str( error ) );
+    }
+
     error = SmFailoverFSM::finalize();
     if( SM_OKAY != error )
     {
         DPRINTFE( "Failed to finalize failover FSM, error %s.", sm_error_str( error ) );
-        return error;
     }
 
     pthread_mutex_destroy(&_mutex);
