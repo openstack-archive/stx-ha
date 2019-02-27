@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
+
 INCLUDES =-I$(STAGING_DIR)/usr/include/glib-2.0
 INCLUDES+=-I$(STAGING_DIR)/usr/lib64/glib-2.0/include -I.
 
@@ -64,7 +65,7 @@ sm_eru: libsm_common.so
 sm_eru_dump: libsm_common.so
 	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(OBJS) sm_eru_dump.c $(LDLIBS) -L./ -lsm_common -o sm_eru_dump
 
-install_non_bb:
+install:
 	# install of these 3 are in the .spec file so that they can be
 	# renamed with '-' like they are in the bitbake file.
 	#
