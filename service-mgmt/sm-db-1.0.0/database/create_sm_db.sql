@@ -793,6 +793,7 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-radosgw','enable','lsb-script','','ce
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-radosgw','disable','lsb-script','','ceph-radosgw','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-radosgw','audit-enabled','lsb-script','','ceph-radosgw','status','',2,2,2,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-radosgw','audit-disabled','lsb-script','','ceph-radosgw','status','',0,0,0,15,40);
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-radosgw','not-applicable','enable','ceph-mon','enabled-active');
 INSERT INTO "SERVICE_ACTIONS" VALUES('aodh-api','enable','ocf-script','openstack','aodh-api','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('aodh-api','disable','ocf-script','openstack','aodh-api','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('aodh-api','audit-enabled','ocf-script','openstack','aodh-api','monitor','',2,2,2,30,30);
