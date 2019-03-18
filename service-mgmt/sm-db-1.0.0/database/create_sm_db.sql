@@ -1051,6 +1051,8 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cephmon-fs','not-applicable','
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','enable','cephmon-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cephmon','not-applicable','go-standby','cephmon-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cephmon-fs','not-applicable','disable','ceph-mon','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-radosgw','not-applicable','enable','ceph-mon','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','disable','ceph-radosgw','disabled');
 INSERT INTO "SERVICE_ACTIONS" VALUES('cephmon-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('cephmon-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('cephmon-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
