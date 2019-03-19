@@ -11,6 +11,9 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Copyright (C) 2019 Intel Corporation
+#
 
 # stx-ha Release Notes documentation build configuration file.
 #
