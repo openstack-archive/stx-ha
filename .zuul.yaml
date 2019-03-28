@@ -46,15 +46,17 @@
         sm-client: true
         sm-tools: true
         sm-api: true
+        sm-eru: true
+        sm-watchdog: true
         mysql: false
         postgresql: true
         tls-proxy: false
       devstack_plugins:
         barbican: https://git.openstack.org/openstack/barbican
         stx-config: https://git.starlingx.io/stx-config
-        stx-fault: https:://git.starlingx.io/stx-fault
+        stx-fault: https://git.starlingx.io/stx-fault
         stx-ha: https://git.starlingx.io/stx-ha
         stx-integ: https://git.starlingx.io/stx-integ
-        stx-metal: https:://git.starlingx.io/stx-metal
-        stx-nfv: https:://git.starlingx.io/stx-nfv
-        stx-update: https:://git.starlingx.io/stx-update
+        stx-metal: https://git.starlingx.io/stx-metal
+        stx-nfv: https://git.starlingx.io/stx-nfv
+        stx-update: https://git.starlingx.io/stx-update
