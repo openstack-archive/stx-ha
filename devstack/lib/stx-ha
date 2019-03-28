@@ -51,7 +51,7 @@ function build_sm {
     # CCFLAGS= -g -O2 -Wall -Werror -Wformat  -std=c++11
     make \
         CCFLAGS="-g -O2 -Wall -Wformat -Wunused-result -std=c++11" \
-        INCLUDES="-I$STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -I$STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src -I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include" \
+        INCLUDES="-I$STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -I$STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src -I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$/usr/local/include" \
         LDLIBS="-L $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -L $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src  -lsqlite3 -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl" \
         build
 
@@ -118,7 +118,16 @@ function cleanup_sm {
 
     make clean
 
-    $STX_SUDO rm -f ${STX_BIN_DIR}/sm
+    sudo rm -f ${STX_BIN_DIR}/sm                     \
+        ${STX_SYSCONFDIR}/init.d/sm                    \
+        ${STX_SYSCONFDIR}/init.d/sm-shutdown         \
+        ${STX_BIN_DIR}/sbin/sm-notify                  \
+        ${STX_BIN_DIR}/sbin/sm-troubleshoot            \
+        ${STX_BIN_DIR}/sbin/sm-notification            \
+        ${STX_SYSCONFDIR}/pmon.d/sm.conf               \
+        ${STX_SYSCONFDIR}/logrotate.d/sm.logrotate     \
+        ${STX_SYSCONFDIR}/systemd/system/sm.service    \
+        ${STX_SYSCONFDIR}/systemd/system/sm-shutdown.service
 
     popd
 }
@@ -175,7 +184,40 @@ function cleanup_sm_db {
 function configure_ha {
     if is_service_enabled sm-api; then
         create_sm_accounts
+        config_sm_api
     fi
+
+    if is_service_enabled sm-common; then
+        config_eru
+        config_watchdog
+    fi
+
+    if is_service_enabled sm-daemon; then
+        config_sm
+    fi
+}
+
+function config_sm {
+    sudo sed -i "s%SM=\"/usr/bin/\${SM_NAME}\"%SM=\"$STX_INST_DIR/bin/\${SM_NAME}\"%" $STX_SYSCONFDIR/init.d/sm
+    iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-daemon.service "Service" "Type" "forking"
+    iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-daemon.service "Service" "PIDFile" "/var/run/sm.pid"
+}
+
+function config_sm_api {
+    iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-api.service "Service" "Type" "forking"
+    iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-api.service "Service" "PIDFile" "/var/run/sm-api.pid"
+}
+
+function config_eru {
+    sudo sed -i "s%SM_ERU=\"/usr/bin/\${SM_ERU_NAME}\"%SM_ERU=\"$STX_INST_DIR/bin/\${SM_ERU_NAME}\"%" $STX_SYSCONFDIR/init.d/sm-eru
+    iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-eru.service "Service" "Type" "forking"
+    iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-eru.service "Service" "PIDFile" "/var/run/sm-eru.pid"
+}
+
+function config_watchdog {
+    sudo sed -i "s%SM_WATCHDOG=\"/usr/bin/\${SM_WATCHDOG_NAME}\"%SM_WATCHDOG=\"$STX_INST_DIR/bin/\${SM_WATCHDOG_NAME}\"%" $STX_SYSCONFDIR/init.d/sm-watchdog
+    iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-watchdog.service "Service" "Type" "forking"
+    iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-watchdog.service "Service" "PIDFile" "/var/run/sm-watchdog.pid"
 }
 
 function create_sm_accounts {
@@ -219,6 +261,18 @@ function install_sm {
 
     # Skip make install_non_bb, it hard-codes /usr/bin as the destination
     $STX_SUDO install -m 755 src/sm ${STX_BIN_DIR}/sm
+    sudo install -m 755 scripts/sm ${STX_SYSCONFDIR}/init.d/sm
+    sudo install -m 755 scripts/sm.shutdown ${STX_SYSCONFDIR}/init.d/sm-shutdown
+    $STX_SUDO install -d 755 ${STX_BIN_DIR}/sbin
+    $STX_SUDO install -m 755 scripts/sm.notify ${STX_BIN_DIR}/sbin/sm-notify
+    $STX_SUDO install -m 755 scripts/sm.troubleshoot ${STX_BIN_DIR}/sbin/sm-troubleshoot
+    $STX_SUDO install -m 755 scripts/sm.notification ${STX_BIN_DIR}/sbin/sm-notification
+    sudo install -d ${STX_SYSCONFDIR}/pmon.d
+    sudo install -m 644 scripts/sm.conf ${STX_SYSCONFDIR}/pmon.d/sm.conf
+    sudo install -d ${STX_SYSCONFDIR}/logrotate.d
+    sudo install -m 644 scripts/sm.logrotate ${STX_SYSCONFDIR}/logrotate.d/sm.logrotate
+    sudo install -m 644 -D scripts/sm.service ${STX_SYSCONFDIR}/systemd/system
+    sudo install -m 644 -D scripts/sm-shutdown.service ${STX_SYSCONFDIR}/systemd/system
 
     popd
 }
@@ -344,15 +398,49 @@ function install_sm_tools {
     popd
 }
 
+function start_sm {
+    run_process sm-daemon "$STX_SYSCONFDIR/init.d/sm start" root root
+}
+
+function start_sm_api {
+    run_process sm-api "$STX_SYSCONFDIR/init.d/sm-api start" root root
+}
+
+function start_eru {
+    run_process sm-eru "$STX_SYSCONFDIR/init.d/sm-eru start" root root
+}
+
+function start_watchdog {
+    run_process sm-watchdog "$STX_SYSCONFDIR/init.d/sm-watchdog start" root root
+}
+
 function start_ha {
+    if is_service_enabled sm-daemon; then
+        start_sm
+    fi
+
     if is_service_enabled sm-api; then
-        run_process sm-api "/usr/bin/sm-api --config-file=${STX_SM_API_CONF_DIR}"
+        start_sm_api
+    fi
+
+    if is_service_enabled sm-common; then
+        start_eru
+        start_watchdog
     fi
 }
 
 function stop_ha {
+    if is_service_enabled sm-common; then
+        stop_process sm-eru
+        stop_process sm-watchdog
+    fi
+
     if is_service_enabled sm-api; then
         stop_process sm-api
+    fi
+
+    if is_service_enabled sm-daemon; then
+        stop_process sm-daemon
     fi
 }
 
