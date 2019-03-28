@@ -35,5 +35,5 @@ source $PLUGIN_DIR/devstack/lib/stx-ha
 build_sm_common
 install_sm_common_libs
 build_sm_db
-build_sm
+build_sm_daemon
 build_sm_api
