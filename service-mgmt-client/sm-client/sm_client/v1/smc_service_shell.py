@@ -34,9 +34,9 @@ def do_service_list(cc, args):
         clean_list = [x for x in service if x.state != 'initial']
         for s in clean_list:
             if s.status:
-                setattr(s, 'state', s.state + '-' + s.status)
+                s.state = (s.state + '-' + s.status)
             if getattr(s, 'node_name', None) is None:
-                setattr(s, 'node_name', socket.gethostname())
+                s.node_name = socket.gethostname()
 
         utils.print_list(clean_list, fields, field_labels, sortby=1)
 
@@ -56,8 +56,8 @@ def do_service_show(cc, args):
             print("Service %s could not be found" % args.service)
             return
         if service.status:
-            setattr(service, 'state', service.state + '-' + service.status)
-        setattr(service, 'service_name', service.name)
+            service.state = (service.state + '-' + service.status)
+        service.service_name = service.name
         if getattr(service, 'node_name', None) is None:
-            setattr(service, 'hostname', socket.gethostname())
+            service.hostname = socket.gethostname()
         _print_service_show(service)
