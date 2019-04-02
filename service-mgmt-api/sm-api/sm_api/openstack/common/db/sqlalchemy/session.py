@@ -698,4 +698,4 @@ def _patch_mysqldb_with_stacktrace_comments():
             qq = q
         old_mysql_do_query(self, qq)
 
-    setattr(MySQLdb.cursors.BaseCursor, '_do_query', _do_query)
+    MySQLdb.cursors.BaseCursor._do_query = _do_query

@@ -108,5 +108,5 @@ def get_client(api_version, **kwargs):
 
 def Client(version, *args, **kwargs):
     module = utils.import_versioned_module(version, 'client')
-    client_class = getattr(module, 'Client')
+    client_class = module.Client
     return client_class(*args, **kwargs)
