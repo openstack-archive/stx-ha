@@ -21,8 +21,10 @@ class AuthTokenMiddleware(auth_token.AuthProtocol):
 
     """
 
-    def __init__(self, app, conf, public_api_routes=[]):
+    def __init__(self, app, conf, public_api_routes=None):
         self.smapi_app = app
+        if public_api_routes is None:
+            public_api_routes = []
         self.public_api_routes = set(public_api_routes)
 
         super(AuthTokenMiddleware, self).__init__(app, conf)
