@@ -33,7 +33,7 @@ class CommandFilter(object):
         self.args = args
         self.real_exec = None
 
-    def get_exec(self, exec_dirs=[]):
+    def get_exec(self, exec_dirs=None):
         """Returns existing executable, or empty string if none found."""
         if self.real_exec is not None:
             return self.real_exec
@@ -41,7 +41,7 @@ class CommandFilter(object):
         if self.exec_path.startswith('/'):
             if os.access(self.exec_path, os.X_OK):
                 self.real_exec = self.exec_path
-        else:
+        elif exec_dirs is not None:
             for binary_path in exec_dirs:
                 expanded_path = os.path.join(binary_path, self.exec_path)
                 if os.access(expanded_path, os.X_OK):
@@ -53,7 +53,7 @@ class CommandFilter(object):
         """Only check that the first argument (command) matches exec_path."""
         return os.path.basename(self.exec_path) == userargs[0]
 
-    def get_command(self, userargs, exec_dirs=[]):
+    def get_command(self, userargs, exec_dirs=None):
         """Returns command to execute (with sudo -u if run_as != root)."""
         to_exec = self.get_exec(exec_dirs=exec_dirs) or self.exec_path
         if (self.run_as != 'root'):
@@ -125,7 +125,7 @@ class PathFilter(CommandFilter):
                 args_equal_or_pass and
                 paths_are_within_base_dirs)
 
-    def get_command(self, userargs, exec_dirs=[]):
+    def get_command(self, userargs, exec_dirs=None):
         command, arguments = userargs[0], userargs[1:]
 
         # convert path values to canonical ones; copy other args as is
@@ -149,7 +149,7 @@ class DnsmasqFilter(CommandFilter):
             return True
         return False
 
-    def get_command(self, userargs, exec_dirs=[]):
+    def get_command(self, userargs, exec_dirs=None):
         to_exec = self.get_exec(exec_dirs=exec_dirs) or self.exec_path
         dnsmasq_pos = userargs.index('dnsmasq')
         return [to_exec] + userargs[dnsmasq_pos + 1:]
