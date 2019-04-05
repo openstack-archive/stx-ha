@@ -729,4 +729,16 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('registry-token-server','audit-enabled','ls
 INSERT INTO "SERVICE_ACTIONS" VALUES('registry-token-server','audit-disabled','lsb-script','','registry-token-server','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','registry-token-server','not-applicable','disable','docker-distribution','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','enable','registry-token-server','enabled-active');
+
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','cloud-services','dbmon','minor' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dbmon','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_INSTANCES" SELECT MAX(id) + 1,'dbmon','dbmon','' FROM "SERVICE_INSTANCES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dbmon','not-applicable','enable','docker-distribution','enabled-active');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dbmon','enable','ocf-script','openstack','dbmon','start','',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dbmon','disable','ocf-script','openstack','dbmon','stop','',1,1,1,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dbmon','audit-enabled','ocf-script','openstack','dbmon','monitor','',2,2,2,10,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dbmon','audit-disabled','ocf-script','openstack','dbmon','monitor','',0,0,0,10,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dbmon','go-standby','ocf-script','openstack','dbmon','standby','',2,2,2,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dbmon','go-active','ocf-script','openstack','dbmon','active','',2,2,2,180,'');
+
 COMMIT;
