@@ -68,10 +68,10 @@ static void sm_service_domain_interface_api_get_hw_interface(
             return;
         }
 
-    } else if( 0 == strcmp( SM_SERVICE_DOMAIN_INFRA_INTERFACE,
+    } else if( 0 == strcmp( SM_SERVICE_DOMAIN_CLUSTER_HOST_INTERFACE,
                             interface->service_domain_interface ) )
     {
-        error = sm_node_utils_get_infra_interface( interface->interface_name );
+        error = sm_node_utils_get_cluster_host_interface( interface->interface_name );
         if( SM_OKAY == error )
         {
             DPRINTFI( "Network address (%s) maps to %s interface from config, "
@@ -81,7 +81,7 @@ static void sm_service_domain_interface_api_get_hw_interface(
         }
         else if( SM_NOT_FOUND != error )
         {
-            DPRINTFE( "Failed to look up infrastructure interface, error=%s.",
+            DPRINTFE( "Failed to look up cluster-host interface, error=%s.",
                       sm_error_str(error) );
             return;
         }

@@ -98,11 +98,11 @@ extern "C" {
 
 #define SM_SERVICE_DOMAIN_MGMT_INTERFACE             "management-interface"
 #define SM_SERVICE_DOMAIN_OAM_INTERFACE              "oam-interface"
-#define SM_SERVICE_DOMAIN_INFRA_INTERFACE            "infrastructure-interface"
+#define SM_SERVICE_DOMAIN_CLUSTER_HOST_INTERFACE     "cluster-host-interface"
 
 #define SM_MGMT_INTERFACE_NAME                       "mgmt"
 #define SM_OAM_INTERFACE_NAME                        "oam"
-#define SM_INFRA_INTERFACE_NAME                      "infra"
+#define SM_CLUSTER_HOST_INTERFACE_NAME               "cluster-host"
 #define SM_MAX_IF_NAME_LEN                           5
 
 #define SM_NODE_CONTROLLER_0_NAME                    "controller-0"
@@ -203,7 +203,7 @@ typedef enum
 {
     SM_INTERFACE_UNKNOWN,
     SM_INTERFACE_MGMT,
-    SM_INTERFACE_INFRA,
+    SM_INTERFACE_CLUSTER_HOST,
     SM_INTERFACE_OAM
 }SmInterfaceTypeT;
 

@@ -215,7 +215,7 @@ SmErrorT SmFailoverFailPendingState::event_handler(SmFailoverEventT event, const
                 }else
                 {
                     interfaces_to_check[0] = SM_INTERFACE_MGMT;
-                    interfaces_to_check[1] = SM_INTERFACE_INFRA;
+                    interfaces_to_check[1] = SM_INTERFACE_CLUSTER_HOST;
                 }
                 for(int i = 0; interfaces_to_check[i] != SM_INTERFACE_UNKNOWN; i ++)
                 {

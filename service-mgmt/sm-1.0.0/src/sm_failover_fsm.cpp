@@ -33,8 +33,8 @@ void SmIFStateChangedEventData::set_interface_state(
         case SM_INTERFACE_MGMT:
             _mgmt_state = interface_state;
             break;
-        case SM_INTERFACE_INFRA:
-            _infra_state = interface_state;
+        case SM_INTERFACE_CLUSTER_HOST:
+            _cluster_host_state = interface_state;
             break;
         default:
             DPRINTFE("Runtime error: invalid interface type %d", interface_type);
@@ -49,8 +49,8 @@ SmFailoverInterfaceStateT SmIFStateChangedEventData::get_interface_state(SmInter
             return _oam_state;
         case SM_INTERFACE_MGMT:
             return _mgmt_state;
-        case SM_INTERFACE_INFRA:
-            return _infra_state;
+        case SM_INTERFACE_CLUSTER_HOST:
+            return _cluster_host_state;
         default:
             DPRINTFE("Runtime error: invalid interface type %d", interface_type);
             return SM_FAILOVER_INTERFACE_UNKNOWN;

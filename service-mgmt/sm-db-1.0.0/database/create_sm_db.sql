@@ -5,7 +5,7 @@ CREATE TABLE NODE_HISTORY ( ID INTEGER PRIMARY KEY AUTOINCREMENT, NAME CHAR(32),
 CREATE TABLE SERVICE_DOMAIN_INTERFACES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), SERVICE_DOMAIN CHAR(32), SERVICE_DOMAIN_INTERFACE CHAR(32), PATH_TYPE CHAR(32), AUTH_TYPE CHAR(32), AUTH_KEY CHAR(128), INTERFACE_NAME CHAR(32), INTERFACE_STATE CHAR(32), NETWORK_TYPE CHAR(32), NETWORK_MULTICAST CHAR(256), NETWORK_ADDRESS CHAR(256), NETWORK_PORT INT, NETWORK_HEARTBEAT_PORT INT, NETWORK_PEER_ADDRESS CHAR(256), NETWORK_PEER_PORT INT, NETWORK_PEER_HEARTBEAT_PORT INT , INTERFACE_CONNECT_TYPE CHAR(32) DEFAULT 'tor');
 INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(1,'yes','controller','management-interface','secondary','none','','','','','','','','','','','','tor');
 INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(2,'yes','controller','oam-interface','secondary','hmac-sha512','titanium-server','','','','','','','','','','','tor');
-INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(3,'yes','controller','infrastructure-interface','secondary','none','','','','','','','','','','','','tor');
+INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(3,'yes','controller','cluster-host-interface','secondary','none','','','','','','','','','','','','tor');
 CREATE TABLE SERVICE_DOMAINS ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), ORCHESTRATION CHAR(32), DESIGNATION CHAR(32), PREEMPT CHAR(32), PRIORITY INT, HELLO_INTERVAL INT, DEAD_INTERVAL INT, WAIT_INTERVAL INT, EXCHANGE_INTERVAL INT, STATE CHAR(32), SPLIT_BRAIN_RECOVERY CHAR(32), LEADER CHAR(32), GENERATION INT);
 INSERT INTO "SERVICE_DOMAINS" VALUES(1,'yes','controller','regional','unknown','no',230,200,800,5000,2000,'initial','select-best-active','',1);
 CREATE TABLE SERVICE_DOMAIN_MEMBERS ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), SERVICE_GROUP_NAME CHAR(32), REDUNDANCY_MODEL CHAR(32), N_ACTIVE INT, M_STANDBY INT, SERVICE_GROUP_AGGREGATE CHAR(32), ACTIVE_ONLY_IF_ACTIVE CHAR(32) );
@@ -67,7 +67,6 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(54,'no','storage-monitoring-services'
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(55,'no','controller-services','drbd-cinder','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(56,'no','controller-services','cinder-lvm','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(57,'no','controller-services','iscsi','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(58,'no','controller-services','cinder-ip','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(59,'yes','vim-services','vim','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(60,'yes','vim-services','vim-api','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(61,'yes','vim-services','vim-webserver','minor');
@@ -96,6 +95,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','barbican-api','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','barbican-keystone-listener','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','barbican-worker','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','controller-services','cluster-host-ip','critical' FROM "SERVICE_GROUP_MEMBERS";
 CREATE TABLE SERVICES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), DESIRED_STATE CHAR(32), STATE CHAR(32), STATUS CHAR(32), CONDITION CHAR(32), MAX_FAILURES INT, FAIL_COUNTDOWN INT, FAIL_COUNTDOWN_INTERVAL INT, MAX_ACTION_FAILURES INT, MAX_TRANSITION_FAILURES INT, PID_FILE CHAR(256) );
 INSERT INTO "SERVICES" VALUES(1,'yes','oam-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(2,'yes','management-ip','initial','initial','none','none',2,1,90000,4,16,'');
@@ -131,7 +131,6 @@ INSERT INTO "SERVICES" VALUES(54,'no','ceph-manager','initial','initial','none',
 INSERT INTO "SERVICES" VALUES(55,'no','drbd-cinder','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(56,'no','cinder-lvm','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(57,'no','iscsi','initial','initial','none','none',2,1,90000,4,16,'');
-INSERT INTO "SERVICES" VALUES(58,'no','cinder-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(59,'yes','vim','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim.pid');
 INSERT INTO "SERVICES" VALUES(60,'yes','vim-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim-api.pid');
 INSERT INTO "SERVICES" VALUES(61,'yes','vim-webserver','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim-webserver.pid');
@@ -160,6 +159,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','etcd-fs','initial','initial','no
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','barbican-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/barbican/pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','barbican-keystone-listener','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/barbican-keystone-listener.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','barbican-worker','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/barbican-worker.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','cluster-host-ip','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 CREATE TABLE SERVICE_HEARTBEAT ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), TYPE CHAR(32), SRC_ADDRESS CHAR(256), SRC_PORT INT, DST_ADDRESS CHAR(256), DST_PORT INT, MESSAGE CHAR(256), INTERVAL_IN_MS INT, MISSED_WARN INT, MISSED_DEGRADE INT, MISSED_FAIL INT, STATE CHAR(32), MISSED INT, HEARTBEAT_TIMER_ID INT, HEARTBEAT_SOCKET INT );
 CREATE TABLE SERVICE_DEPENDENCY ( DEPENDENCY_TYPE CHAR(32), SERVICE_NAME CHAR(32), STATE CHAR(32), ACTION CHAR(32), DEPENDENT CHAR(32), DEPENDENT_STATE CHAR(32), PRIMARY KEY (DEPENDENCY_TYPE, SERVICE_NAME, STATE, ACTION, DEPENDENT));
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ip','not-applicable','enable','management-ip','enabled-active');
@@ -207,7 +207,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable',
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-lvm','not-applicable','enable','drbd-cinder','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','iscsi','not-applicable','enable','cinder-lvm','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','iscsi','not-applicable','enable','cgcs-fs','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','enable','iscsi','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ip','not-applicable','disable','haproxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','pg-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','rabbit-fs','disabled');
@@ -247,8 +246,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim','not-applicable','disable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','disable','','');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','lighttpd','not-applicable','disable','horizon','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-rest-api','not-applicable','disable','ceph-manager','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-ip','not-applicable','disable','cgcs-nfs-ip','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','iscsi','not-applicable','disable','cinder-ip','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cgcs','not-applicable','disable','iscsi','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd-fs','not-applicable','disable','etcd','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-lvm','not-applicable','disable','iscsi','disabled');
@@ -331,6 +328,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('management-ip','enable','ocf-script','hear
 INSERT INTO "SERVICE_ACTIONS" VALUES('management-ip','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('management-ip','audit-enabled','ocf-script','heartbeat','IPaddr2','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('management-ip','audit-disabled','ocf-script','heartbeat','IPaddr2','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('cluster-host-ip','enable','ocf-script','heartbeat','IPaddr2','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cluster-host-ip','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cluster-host-ip','audit-enabled','ocf-script','heartbeat','IPaddr2','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('cluster-host-ip','audit-disabled','ocf-script','heartbeat','IPaddr2','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-pg','enable','ocf-script','linbit','drbd','start','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,90,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-pg','disable','ocf-script','linbit','drbd','stop','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',1,1,1,180,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-pg','go-active','ocf-script','linbit','drbd','promote','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,180,'');
@@ -502,10 +503,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-lvm','enable','ocf-script','heartbe
 INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-lvm','disable','ocf-script','heartbeat','LVM','stop','',1,1,1,30,20);
 INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-lvm','audit-enabled','ocf-script','heartbeat','LVM','monitor','',2,2,2,60,20);
 INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-lvm','audit-disabled','ocf-script','heartbeat','LVM','monitor','',0,0,0,30,20);
-INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-ip','enable','ocf-script','heartbeat','IPaddr2','start','',2,2,2,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-ip','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-ip','audit-enabled','ocf-script','heartbeat','IPaddr2','monitor','',2,2,2,20,5);
-INSERT INTO "SERVICE_ACTIONS" VALUES('cinder-ip','audit-disabled','ocf-script','heartbeat','IPaddr2','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('pxeboot-ip','enable','ocf-script','heartbeat','IPaddr2','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('pxeboot-ip','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('pxeboot-ip','audit-enabled','ocf-script','heartbeat','IPaddr2','monitor','',2,2,2,20,5);
