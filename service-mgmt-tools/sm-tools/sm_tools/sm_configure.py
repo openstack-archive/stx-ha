@@ -12,7 +12,7 @@ from sm_api_msg_utils import database_name as database_name
 cpe_duplex = "duplex"
 cpe_duplex_direct = "duplex-direct"
 mgmt_if = 'management-interface'
-infra_if = 'infrastructure-interface'
+cluster_host_if = 'cluster-host-interface'
 tor_connect = 'tor'
 dc_connect = 'dc'
 database_name = "/var/lib/sm/sm.db"
@@ -233,12 +233,12 @@ def _dispatch_config_action(args, database):
 
 def configure_cpe_duplex():
     configure_if_connect_type(mgmt_if, tor_connect)
-    configure_if_connect_type(infra_if, tor_connect)
+    configure_if_connect_type(cluster_host_if, tor_connect)
 
 
 def configure_cpe_dc():
     configure_if_connect_type(mgmt_if, dc_connect)
-    configure_if_connect_type(infra_if, dc_connect)
+    configure_if_connect_type(cluster_host_if, dc_connect)
 
 
 def configure_if_connect_type(if_name, connect_type):
