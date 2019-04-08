@@ -71,7 +71,7 @@ class SmIFStateChangedEventData: public ISmFSMEventData
 
     private:
         SmFailoverInterfaceStateT _mgmt_state;
-        SmFailoverInterfaceStateT _infra_state;
+        SmFailoverInterfaceStateT _cluster_host_state;
         SmFailoverInterfaceStateT _oam_state;
 };
 

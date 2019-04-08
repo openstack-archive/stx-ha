@@ -230,7 +230,7 @@ static int get_node_if_healthy_score(unsigned int interface_state)
     {
         healthy_score -= 1;
     }
-    if(interface_state & SM_FAILOVER_INFRA_DOWN)
+    if(interface_state & SM_FAILOVER_CLUSTER_HOST_DOWN)
     {
         healthy_score -= 2;
     }
@@ -266,12 +266,12 @@ SmErrorT _get_system_status(SmSystemStatusT& sys_status, char host_name[], char 
 
     sys_status.system_mode = sm_node_utils_get_system_mode();
     sys_status.host_status.mgmt_state = sm_failover_get_interface_info(SM_INTERFACE_MGMT);
-    sys_status.host_status.infra_state = sm_failover_get_interface_info(SM_INTERFACE_INFRA);
+    sys_status.host_status.cluster_host_state = sm_failover_get_interface_info(SM_INTERFACE_CLUSTER_HOST);
     sys_status.host_status.oam_state = sm_failover_get_interface_info(SM_INTERFACE_OAM);
 
     if(SM_FAILOVER_INTERFACE_OK == sys_status.host_status.mgmt_state ||
        SM_FAILOVER_INTERFACE_OK == sys_status.host_status.oam_state ||
-       SM_FAILOVER_INTERFACE_OK == sys_status.host_status.infra_state)
+       SM_FAILOVER_INTERFACE_OK == sys_status.host_status.cluster_host_state)
     {
         sys_status.heartbeat_state = SM_HEARTBEAT_OK;
     }else
@@ -551,8 +551,8 @@ SmErrorT _get_survivor_dc(const SmSystemStatusT& system_status, SmSystemFailover
     if(SM_HEARTBEAT_LOSS == system_status.heartbeat_state)
     {
         if(system_status.host_status.mgmt_state == SM_FAILOVER_INTERFACE_DOWN &&
-            (system_status.host_status.infra_state == SM_FAILOVER_INTERFACE_DOWN ||
-            system_status.host_status.infra_state == SM_FAILOVER_INTERFACE_UNKNOWN))
+            (system_status.host_status.cluster_host_state == SM_FAILOVER_INTERFACE_DOWN ||
+            system_status.host_status.cluster_host_state == SM_FAILOVER_INTERFACE_UNKNOWN))
         {
             if(SM_FAILOVER_INTERFACE_DOWN == system_status.host_status.oam_state)
             {

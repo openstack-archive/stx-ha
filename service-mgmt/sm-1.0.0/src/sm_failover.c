@@ -131,7 +131,7 @@ static SmFailoverInterfaceInfo _my_if_list[SM_INTERFACE_MAX];
 static unsigned int _total_interfaces;
 static SmFailoverInterfaceInfo* _oam_interface_info = NULL;
 static SmFailoverInterfaceInfo* _mgmt_interface_info = NULL;
-static SmFailoverInterfaceInfo* _infra_interface_info = NULL;
+static SmFailoverInterfaceInfo* _cluster_host_interface_info = NULL;
 static SmFailoverInterfaceInfo _peer_if_list[SM_INTERFACE_MAX];
 static pthread_mutex_t _mutex;
 static SmDbHandleT* _sm_db_handle = NULL;
@@ -176,17 +176,17 @@ static void sm_failover_interface_check( void* user_data[],
             _my_if_list[*count].set_interface(interface);
             _mgmt_interface_info = _my_if_list + (*count);
             (*count) ++;
-        }else if( 0 == strcmp(SM_SERVICE_DOMAIN_INFRA_INTERFACE, interface->service_domain_interface ))
+        }else if( 0 == strcmp(SM_SERVICE_DOMAIN_CLUSTER_HOST_INTERFACE, interface->service_domain_interface ))
         {
-            SmErrorT error = sm_node_utils_get_infra_interface(interface->interface_name);
+            SmErrorT error = sm_node_utils_get_cluster_host_interface(interface->interface_name);
             if(SM_OKAY == error)
             {
                 _my_if_list[*count].set_interface(interface);
-                _infra_interface_info = _my_if_list + (*count);
+                _cluster_host_interface_info = _my_if_list + (*count);
                 (*count) ++;
             } else if (SM_NOT_FOUND != error )
             {
-                DPRINTFE( "Failed to look up infrastructure interface, error=%s.",
+                DPRINTFE( "Failed to look up cluster-host interface, error=%s.",
                       sm_error_str(error) );
             }
         }else
@@ -471,12 +471,12 @@ void sm_failover_if_state_update(const char node_name[], SmHeartbeatMsgIfStateT 
 // ****************************************************************************
 
 // ****************************************************************************
-// Failover - is infra configured
-// ==================
-bool is_infra_configured()
+// Failover - is cluster-host configured
+// =====================================
+bool is_cluster_host_configured()
 {
-    if (NULL == _infra_interface_info ||
-        _infra_interface_info->get_interface()->service_domain_interface[0] == '\0' )
+    if (NULL == _cluster_host_interface_info ||
+        _cluster_host_interface_info->get_interface()->service_domain_interface[0] == '\0' )
     {
         return false;
     }
@@ -492,18 +492,18 @@ int sm_failover_get_if_state()
 {
     SmFailoverInterfaceStateT mgmt_state = _mgmt_interface_info->get_state();
     SmFailoverInterfaceStateT oam_state = _oam_interface_info->get_state();
-    SmFailoverInterfaceStateT infra_state;
+    SmFailoverInterfaceStateT cluster_host_state;
     int if_state_flag  = 0;
-    if ( is_infra_configured() )
+    if ( is_cluster_host_configured() )
     {
-        infra_state = _infra_interface_info->get_state();
-        if( SM_FAILOVER_INTERFACE_OK == infra_state )
+        cluster_host_state = _cluster_host_interface_info->get_state();
+        if( SM_FAILOVER_INTERFACE_OK == cluster_host_state )
         {
             if_state_flag |= SM_FAILOVER_HEARTBEAT_ALIVE;
         }
-        else if ( SM_FAILOVER_INTERFACE_DOWN == infra_state )
+        else if ( SM_FAILOVER_INTERFACE_DOWN == cluster_host_state )
         {
-            if_state_flag |= SM_FAILOVER_INFRA_DOWN;
+            if_state_flag |= SM_FAILOVER_CLUSTER_HOST_DOWN;
         }
     }
 
@@ -944,15 +944,15 @@ void sm_failover_audit()
     }
 
     bool in_transition = false;
-    bool infra_configured = is_infra_configured();
+    bool cluster_host_configured = is_cluster_host_configured();
     in_transition = in_transition ||
             sm_failover_if_transit_state(_mgmt_interface_info);
     in_transition = in_transition ||
             sm_failover_if_transit_state(_oam_interface_info);
-    if( infra_configured )
+    if( cluster_host_configured )
     {
         in_transition = in_transition ||
-            sm_failover_if_transit_state(_infra_interface_info);
+            sm_failover_if_transit_state(_cluster_host_interface_info);
     }
 
     if(in_transition)
@@ -1013,12 +1013,12 @@ void sm_failover_audit()
         SmIFStateChangedEventData event_data;
         event_data.set_interface_state(SM_INTERFACE_OAM, _oam_interface_info->get_state());
         event_data.set_interface_state(SM_INTERFACE_MGMT, _mgmt_interface_info->get_state());
-        if( NULL != _infra_interface_info)
+        if( NULL != _cluster_host_interface_info)
         {
-            event_data.set_interface_state(SM_INTERFACE_INFRA, _infra_interface_info->get_state());
+            event_data.set_interface_state(SM_INTERFACE_CLUSTER_HOST, _cluster_host_interface_info->get_state());
         }else
         {
-            event_data.set_interface_state(SM_INTERFACE_INFRA, SM_FAILOVER_INTERFACE_UNKNOWN);
+            event_data.set_interface_state(SM_INTERFACE_CLUSTER_HOST, SM_FAILOVER_INTERFACE_UNKNOWN);
         }
         SmFailoverFSM::get_fsm().send_event(SM_FAILOVER_EVENT_IF_STATE_CHANGED, &event_data);
         _if_state_changed = false;
@@ -1179,8 +1179,8 @@ SmFailoverInterfaceStateT sm_failover_get_interface_info(SmInterfaceTypeT interf
         case SM_INTERFACE_MGMT:
             res = _mgmt_interface_info;
             break;
-        case SM_INTERFACE_INFRA:
-            res = _infra_interface_info;
+        case SM_INTERFACE_CLUSTER_HOST:
+            res = _cluster_host_interface_info;
             break;
         case SM_INTERFACE_OAM:
             res = _oam_interface_info;
@@ -1470,7 +1470,7 @@ void dump_interfaces_state(FILE* fp)
 {
     dump_if_state(fp, _oam_interface_info,   "  OAM");
     dump_if_state(fp, _mgmt_interface_info,  " MGMT");
-    dump_if_state(fp, _infra_interface_info, "INFRA");
+    dump_if_state(fp, _cluster_host_interface_info, "CLUSTER-HOST");
 }
 
 void dump_peer_if_state(FILE* fp)

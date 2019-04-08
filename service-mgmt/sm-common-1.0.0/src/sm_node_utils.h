@@ -45,9 +45,9 @@ extern SmErrorT sm_node_utils_get_oam_interface( char interface_name[] );
 // ****************************************************************************
 
 // ****************************************************************************
-// Node Utilities - Get Infrastructure Interface
-// =============================================
-extern SmErrorT sm_node_utils_get_infra_interface( char interface_name[] );
+// Node Utilities - Get Cluster Host Interface
+// ===========================================
+extern SmErrorT sm_node_utils_get_cluster_host_interface( char interface_name[] );
 // ****************************************************************************
 
 // ****************************************************************************
