@@ -212,11 +212,11 @@ SmErrorT sm_node_utils_get_oam_interface( char interface_name[] )
 // ****************************************************************************
 
 // ****************************************************************************
-// Node Utilities - Get Infrastructure Interface
-// =============================================
-SmErrorT sm_node_utils_get_infra_interface( char interface_name[] )
+// Node Utilities - Get Cluster Host Interface
+// ===========================================
+SmErrorT sm_node_utils_get_cluster_host_interface( char interface_name[] )
 {
-    return( sm_node_utils_read_platform_config( "infrastructure_interface",
+    return( sm_node_utils_read_platform_config( "cluster_host_interface",
                                                 interface_name,
                                                 SM_INTERFACE_NAME_MAX_CHAR ) );
 }

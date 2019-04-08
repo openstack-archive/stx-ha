@@ -109,10 +109,10 @@ void sm_eru_process_load_interfaces( void )
                   sm_error_str(error) );
     }
 
-    error = sm_node_utils_get_infra_interface( &(_interfaces[2][0]) );
+    error = sm_node_utils_get_cluster_host_interface( &(_interfaces[2][0]) );
     if(( SM_OKAY != error )&&( SM_NOT_FOUND != error ))
     {
-        DPRINTFE( "Failed to look up infrastructure interface, error=%s.",
+        DPRINTFE( "Failed to look up cluster-host interface, error=%s.",
                   sm_error_str(error) );
     }
 }

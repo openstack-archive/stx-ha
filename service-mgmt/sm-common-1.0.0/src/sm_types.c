@@ -1846,9 +1846,9 @@ SmInterfaceTypeT sm_get_interface_type( const char* domain_interface )
     } else if ( 0 == strcmp ( SM_SERVICE_DOMAIN_OAM_INTERFACE, domain_interface ) )
     {
         return SM_INTERFACE_OAM;
-    } else if ( 0 == strcmp ( SM_SERVICE_DOMAIN_INFRA_INTERFACE, domain_interface ) )
+    } else if ( 0 == strcmp ( SM_SERVICE_DOMAIN_CLUSTER_HOST_INTERFACE, domain_interface ) )
     {
-        return SM_INTERFACE_INFRA;
+        return SM_INTERFACE_CLUSTER_HOST;
     }
 
     return SM_INTERFACE_UNKNOWN;
