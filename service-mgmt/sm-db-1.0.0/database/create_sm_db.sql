@@ -729,4 +729,9 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('registry-token-server','audit-enabled','ls
 INSERT INTO "SERVICE_ACTIONS" VALUES('registry-token-server','audit-disabled','lsb-script','','registry-token-server','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','registry-token-server','not-applicable','disable','docker-distribution','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','enable','registry-token-server','enabled-active');
+
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','registry-token-server','not-applicable','enable','keystone','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','disable','registry-token-server','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','docker-distribution','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','disable','sysinv-conductor','disabled');
 COMMIT;
