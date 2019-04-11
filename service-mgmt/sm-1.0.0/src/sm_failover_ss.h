@@ -16,7 +16,7 @@ typedef struct
     unsigned int interface_state;
     unsigned int heartbeat_state;
     SmFailoverInterfaceStateT mgmt_state;
-    SmFailoverInterfaceStateT infra_state;
+    SmFailoverInterfaceStateT cluster_host_state;
     SmFailoverInterfaceStateT oam_state;
     SmNodeScheduleStateT current_schedule_state;
 }SmNodeStatusT;
