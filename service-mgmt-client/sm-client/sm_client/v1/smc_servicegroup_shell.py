@@ -28,7 +28,7 @@ def do_servicegroup_list(cc, args):
         field_labels = ['uuid', 'service_group_name', 'hostname', 'state']
         for s in servicegroup:
             if s.status:
-                setattr(s, 'state', s.state + '-' + s.status)
+                s.state = (s.state + '-' + s.status)
         utils.print_list(servicegroup, fields, field_labels, sortby=1)
 
 
@@ -48,7 +48,7 @@ def do_servicegroup_show(cc, args):
             print("Service group %s could not be found" % args.servicegroup)
             return
         if servicegroup.status:
-            setattr(servicegroup, 'state', servicegroup.state + '-' +
-                    servicegroup.status)
-        setattr(servicegroup, 'hostname', servicegroup.node_name)
+            servicegroup.state = (servicegroup.state + '-' +
+                                  servicegroup.status)
+        servicegroup.hostname = servicegroup.node_name
         _print_servicegroup_show(servicegroup)
