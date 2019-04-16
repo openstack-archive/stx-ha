@@ -142,7 +142,7 @@ log_opts = [
     cfg.BoolOpt('publish_errors',
                 default=False,
                 help='publish error events'),
-    cfg.BoolOpt('fatal_deprecations',
+    cfg.BoolOpt('deprecations_fatal',
                 default=False,
                 help='make deprecations fatal'),
 
@@ -247,7 +247,7 @@ class ContextAdapter(BaseLoggerAdapter):
 
     def deprecated(self, msg, *args, **kwargs):
         stdmsg = _("Deprecated: %s") % msg
-        if CONF.fatal_deprecations:
+        if CONF.deprecations_fatal:
             self.critical(stdmsg, *args, **kwargs)
             raise DeprecatedConfig(msg=stdmsg)
         else:
