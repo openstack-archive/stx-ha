@@ -192,6 +192,12 @@ SmErrorT sm_service_dependency_table_load( void )
     SmDbServiceDependencyT service_dependency;
     SmErrorT error;
 
+    if( NULL != _service_dependency )
+    {
+        SM_LIST_CLEANUP_ALL( _service_dependency );
+        _service_dependency = NULL;
+    }
+
     error = sm_db_foreach( SM_DATABASE_NAME, SM_SERVICE_DEPENDENCY_TABLE_NAME,
                            NULL, &service_dependency,
                            sm_db_service_dependency_convert,
@@ -213,8 +219,6 @@ SmErrorT sm_service_dependency_table_load( void )
 SmErrorT sm_service_dependency_table_initialize( void )
 {
     SmErrorT error;
-
-    _service_dependency = NULL;
 
     error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle );
     if( SM_OKAY != error )

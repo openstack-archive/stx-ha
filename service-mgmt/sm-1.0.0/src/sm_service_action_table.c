@@ -90,12 +90,7 @@ static SmErrorT sm_service_action_table_add( void* user_data[], void* record )
         return( SM_FAILED );
     }
 
-    if( !(db_service.provisioned) )
-    {
-        return( SM_OKAY );
-    }
-
-    service_action = sm_service_action_table_read( 
+    service_action = sm_service_action_table_read(
                                         db_service_action->service_name,
                                         db_service_action->action );
     if( NULL == service_action )
