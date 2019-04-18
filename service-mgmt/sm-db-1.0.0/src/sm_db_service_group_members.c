@@ -233,6 +233,10 @@ SmErrorT sm_db_service_group_members_update( SmDbHandleT* sm_db_handle,
                          sm_service_severity_str( record->service_failure_impact ) );
     }
 
+    len += snprintf( sql+len, sizeof(sql)-len, "%s = '%s', ",
+                     SM_SERVICE_GROUP_MEMBERS_TABLE_COLUMN_PROVISIONED,
+                     record->provisioned ? "yes": "no" );
+
     snprintf( sql+len-2, sizeof(sql)-len, " WHERE %s = '%s' and %s = '%s';",
               SM_SERVICE_GROUP_MEMBERS_TABLE_COLUMN_NAME, record->name,
               SM_SERVICE_GROUP_MEMBERS_TABLE_COLUMN_SERVICE_NAME,

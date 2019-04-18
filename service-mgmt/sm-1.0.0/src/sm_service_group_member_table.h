@@ -25,6 +25,7 @@ typedef struct
     SmServiceConditionT service_condition;
     SmServiceSeverityT service_failure_impact;
     long service_failure_timestamp;
+    bool provisioned;
 } SmServiceGroupMemberT;
 
 typedef void (*SmServiceGroupMemberTableForEachCallbackT)
@@ -65,6 +66,10 @@ extern void sm_service_group_member_table_foreach_member(
     char service_group_name[], void* user_data[],
     SmServiceGroupMemberTableForEachCallbackT callback );
 // ****************************************************************************
+
+extern SmErrorT sm_service_group_member_provision(char service_group_name[], char service_name[]);
+
+extern SmErrorT sm_service_group_member_deprovision(char service_group_name[], char service_name[]);
 
 // ****************************************************************************
 // Service Group Member Table - Load

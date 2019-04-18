@@ -337,6 +337,10 @@ SmErrorT sm_db_services_update( SmDbHandleT* sm_db_handle,
                          sm_service_condition_str( record->condition ) );
     }
 
+    len += snprintf( sql+len, sizeof(sql)-len, "%s = '%s', ",
+                     SM_SERVICES_TABLE_COLUMN_PROVISIONED,
+                     record->provisioned ? "yes": "no" );
+
     len += snprintf( sql+len, sizeof(sql)-len, "%s = '%i', ",
                      SM_SERVICES_TABLE_COLUMN_MAX_FAILURES,
                      record->max_failures );

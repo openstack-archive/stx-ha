@@ -28,6 +28,7 @@
 static SmListT* _services = NULL;
 static SmDbHandleT* _sm_db_handle = NULL;
 
+static SmErrorT sm_service_table_add( void* user_data[], void* record );
 // ****************************************************************************
 // Service Table - Read
 // ====================
@@ -123,7 +124,7 @@ SmServiceT* sm_service_table_read_by_action_pid( int pid )
 // ****************************************************************************
 // Service Table - For Each
 // ========================
-void sm_service_table_foreach( void* user_data[], 
+void sm_service_table_foreach( void* user_data[],
     SmServiceTableForEachCallbackT callback )
 {
     SmListT* entry = NULL;
@@ -145,6 +146,12 @@ static SmErrorT sm_service_table_add( void* user_data[], void* record )
     SmDbServiceT* db_service = (SmDbServiceT*) record;
     SmDbServiceInstanceT db_service_instance;
     SmErrorT error;
+    int *count = NULL;
+    if(user_data)
+    {
+        count = (int*)user_data[0];
+        (*count) ++;
+    }
 
     error = sm_db_service_instances_read( _sm_db_handle, db_service->name,
                                           &db_service_instance );
@@ -183,7 +190,7 @@ static SmErrorT sm_service_table_add( void* user_data[], void* record )
         service->max_failures = db_service->max_failures;
         service->fail_count = 0;
         service->fail_countdown = db_service->fail_countdown;
-        service->fail_countdown_interval_in_ms 
+        service->fail_countdown_interval_in_ms
             = db_service->fail_countdown_interval_in_ms;
         service->fail_countdown_timer_id = SM_TIMER_ID_INVALID;
         service->audit_timer_id = SM_TIMER_ID_INVALID;
@@ -222,7 +229,7 @@ static SmErrorT sm_service_table_add( void* user_data[], void* record )
             return( error );
         }
 
-        error = sm_service_enable_exists( service, 
+        error = sm_service_enable_exists( service,
                                         &service->enable_action_exists );
         if( SM_OKAY != error )
         {
@@ -270,7 +277,7 @@ static SmErrorT sm_service_table_add( void* user_data[], void* record )
 
         SM_LIST_PREPEND( _services, (SmListEntryDataPtrT) service );
 
-    } else { 
+    } else {
         service->id = db_service->id;
         snprintf( service->instance_name, sizeof(service->instance_name),
                   "%s", db_service_instance.instance_name );
@@ -278,39 +285,114 @@ static SmErrorT sm_service_table_add( void* user_data[], void* record )
                   "%s", db_service_instance.instance_params );
         service->max_failures = db_service->max_failures;
         service->fail_countdown = db_service->fail_countdown;
-        service->fail_countdown_interval_in_ms 
+        service->fail_countdown_interval_in_ms
             = db_service->fail_countdown_interval_in_ms;
         service->max_action_failures = db_service->max_action_failures;
         service->max_transition_failures = db_service->max_transition_failures;
         snprintf( service->pid_file, sizeof(service->pid_file), "%s",
                   db_service->pid_file );
     }
-
+    service->provisioned = db_service->provisioned;
     return( SM_OKAY );
 }
 // ****************************************************************************
+
+SmErrorT sm_service_provision(char service_name[])
+{
+    SmServiceT* service = sm_service_table_read(service_name);
+    if(NULL != service)
+    {
+        return SM_OKAY;
+    }
+
+    SmErrorT error;
+    SmDbServiceT db_service;
+    error = sm_db_services_read( _sm_db_handle, service_name, &db_service );
+    if(SM_OKAY != error)
+    {
+        return error;
+    }
+
+    db_service.provisioned = true;
+    error = sm_db_services_update(_sm_db_handle, &db_service);
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to update service %s, error %s", service_name, sm_error_str(error));
+        return SM_FAILED;
+    }
+
+    error = sm_service_table_load();
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to load services, error %s", sm_error_str(error));
+        return SM_FAILED;
+    }
+
+    service = sm_service_table_read(service_name);
+    if(NULL == service)
+    {
+        DPRINTFE("Service %s not found.", service_name);
+        return SM_FAILED;
+    }
+
+    return SM_OKAY;
+}
+
+
+SmErrorT sm_service_deprovision(char service_name[])
+{
+    SmServiceT* service = sm_service_table_read(service_name);
+    if(NULL == service)
+    {
+        DPRINTFE("Failed to deprovision service %s. Not existing.", service_name);
+        return SM_FAILED;
+    }
+
+    service->provisioned = false;
+    SmErrorT error;
+    error = sm_service_table_persist(service);
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to deprovision %s, persist failed", service_name);
+        return SM_FAILED;
+    }
+
+    SM_LIST_REMOVE( _services, (SmListEntryDataPtrT) service );
+    DPRINTFI("%s is deprovisioned", service_name);
+    return SM_OKAY;
+}
 
 // ****************************************************************************
 // Service Table - Load
 // ====================
 SmErrorT sm_service_table_load( void )
 {
-    char db_query[SM_DB_QUERY_STATEMENT_MAX_CHAR]; 
+    char db_query[SM_DB_QUERY_STATEMENT_MAX_CHAR];
     SmDbServiceT service;
     SmErrorT error;
+    int count = 0;
+    void* user_data[] = {&count};
+
+    if( NULL != _services )
+    {
+        SM_LIST_CLEANUP_ALL( _services );
+        _services = NULL;
+    }
 
     snprintf( db_query, sizeof(db_query), "%s = 'yes'",
               SM_SERVICES_TABLE_COLUMN_PROVISIONED );
 
     error = sm_db_foreach( SM_DATABASE_NAME, SM_SERVICES_TABLE_NAME,
                            db_query, &service, sm_db_services_convert,
-                           sm_service_table_add, NULL );
+                           sm_service_table_add, user_data );
     if( SM_OKAY != error )
     {
         DPRINTFE( "Failed to loop over services in database, error=%s.",
                   sm_error_str( error ) );
         return( error );
     }
+
+    DPRINTFI("load %d services", count);
 
     return( SM_OKAY );
 }
@@ -327,6 +409,7 @@ SmErrorT sm_service_table_persist( SmServiceT* service )
     memset( &db_service, 0, sizeof(db_service) );
 
     db_service.id = service->id;
+    db_service.provisioned = service->provisioned;
     snprintf( db_service.name, sizeof(db_service.name), "%s", service->name );
     db_service.desired_state = service->desired_state;
     db_service.state = service->state;
@@ -334,7 +417,7 @@ SmErrorT sm_service_table_persist( SmServiceT* service )
     db_service.condition = service->condition;
     db_service.max_failures = service->max_failures;
     db_service.fail_countdown = service->fail_countdown;
-    db_service.fail_countdown_interval_in_ms 
+    db_service.fail_countdown_interval_in_ms
         = service->fail_countdown_interval_in_ms;
     db_service.max_action_failures = service->max_action_failures;
     db_service.max_transition_failures = service->max_transition_failures;

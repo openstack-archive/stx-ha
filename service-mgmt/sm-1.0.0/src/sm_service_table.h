@@ -57,6 +57,7 @@ typedef struct
     //flag to indicate disable a service without disabling its dependency
     bool disable_skip_dependent;
     char group_name[SM_SERVICE_GROUP_NAME_MAX_CHAR];
+    bool provisioned;
 } SmServiceT;
 
 typedef void (*SmServiceTableForEachCallbackT) 
@@ -92,6 +93,10 @@ extern SmServiceT* sm_service_table_read_by_action_pid( int pid );
 extern void sm_service_table_foreach( void* user_data[],
     SmServiceTableForEachCallbackT callback );
 // ****************************************************************************
+
+extern SmErrorT sm_service_provision(char service_name[]);
+
+extern SmErrorT sm_service_deprovision(char service_name[]);
 
 // ****************************************************************************
 // Service Table - Load

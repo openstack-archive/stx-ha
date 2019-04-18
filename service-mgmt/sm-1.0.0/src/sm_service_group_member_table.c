@@ -169,7 +169,8 @@ static SmErrorT sm_service_group_member_table_add( void* user_data[],
         service_group_member->service_failure_impact
             = db_service_group_member->service_failure_impact;
         service_group_member->service_failure_timestamp = 0;
- 
+        service_group_member->provisioned = db_service_group_member->provisioned;
+
         SM_LIST_PREPEND( _service_group_members, 
                          (SmListEntryDataPtrT) service_group_member );
 
@@ -177,11 +178,82 @@ static SmErrorT sm_service_group_member_table_add( void* user_data[],
         service_group_member->id = db_service_group_member->id;
         service_group_member->service_failure_impact
             = db_service_group_member->service_failure_impact;
+        service_group_member->provisioned = db_service_group_member->provisioned;
     }
 
     return( SM_OKAY );
 }
 // ****************************************************************************
+
+SmErrorT sm_service_group_member_provision(char service_group_name[], char service_name[])
+{
+    SmErrorT error;
+    SmDbServiceGroupMemberT db_service_group_member;
+    SmServiceGroupMemberT* service_group_member;
+    service_group_member = sm_service_group_member_table_read(service_group_name, service_name);
+    if(NULL != service_group_member)
+    {
+        return SM_OKAY;
+    }
+
+    error = sm_db_service_group_members_read( _sm_db_handle, service_group_name, service_name,
+                                              &db_service_group_member );
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Service group member %s:%s was not found", service_group_name, service_name);
+        return SM_FAILED;
+    }
+
+    db_service_group_member.provisioned = true;
+    error = sm_db_service_group_members_update(_sm_db_handle, &db_service_group_member);
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to update service group member %s:%s, error %s",
+            service_group_name, service_name, sm_error_str(error));
+        return SM_FAILED;
+    }
+
+    error = sm_service_group_member_table_load();
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to load service group members. Error %s", sm_error_str(error));
+        return SM_FAILED;
+    }
+
+    service_group_member = sm_service_group_member_table_read(service_group_name, service_name);
+    if(NULL == service_group_member)
+    {
+        DPRINTFE("Service group member %s:%s not found", service_group_name, service_name);
+        return SM_FAILED;
+    }
+
+    return error;
+}
+
+SmErrorT sm_service_group_member_deprovision(char service_group_name[], char service_name[])
+{
+    SmServiceGroupMemberT* service_group_member;
+    service_group_member = sm_service_group_member_table_read(service_group_name, service_name);
+    if(NULL == service_group_member)
+    {
+        DPRINTFE("Service group member %s:%s was not found", service_group_name, service_name);
+        return SM_FAILED;
+    }
+
+    service_group_member->provisioned = false;
+    SmErrorT error;
+    error = sm_service_group_member_table_persist(service_group_member);
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to persist service group member %s:%s. Error %s",
+            service_group_name, service_name,
+            sm_error_str(error));
+    }
+
+    SM_LIST_REMOVE( _service_group_members, (SmListEntryDataPtrT) service_group_member );
+    DPRINTFI("%s:%s is deprovisioned", service_group_name, service_name);
+    return error;
+}
 
 // ****************************************************************************
 // Service Group Member Table - Load
@@ -191,6 +263,12 @@ SmErrorT sm_service_group_member_table_load( void )
     char db_query[SM_DB_QUERY_STATEMENT_MAX_CHAR]; 
     SmDbServiceGroupMemberT service_group_member;
     SmErrorT error;
+
+    if( NULL != _service_group_members )
+    {
+        SM_LIST_CLEANUP_ALL( _service_group_members );
+        _service_group_members = NULL;
+    }
 
     snprintf( db_query, sizeof(db_query), "%s = 'yes'",
               SM_SERVICE_GROUP_MEMBERS_TABLE_COLUMN_PROVISIONED );
@@ -223,6 +301,7 @@ SmErrorT sm_service_group_member_table_persist(
     memset( &db_service_group_member, 0, sizeof(db_service_group_member) );
 
     db_service_group_member.id = service_group_member->id;
+    db_service_group_member.provisioned = service_group_member->provisioned;
     snprintf( db_service_group_member.name, 
               sizeof(db_service_group_member.name),
               "%s", service_group_member->name );
